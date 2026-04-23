@@ -9,15 +9,26 @@ import {
   REMEDIES,
   SYMPTOMS,
   type Remedy,
+  type SymptomChip,
 } from "@/data/remedies";
 import { RemedyDetail } from "@/components/RemedyDetail";
-import { ChevronRight, Mic, Search, Sparkles } from "lucide-react";
+import { AlertTriangle, ChevronRight, Mic, Search, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const [text, setText] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [selected, setSelected] = useState<Remedy | null>(null);
+  const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
 
   const symptomKeys = useMemo(() => {
     const fromText = matchSymptomsFromText(text);
