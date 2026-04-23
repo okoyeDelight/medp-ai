@@ -126,10 +126,17 @@ const Index = () => {
               <div className="flex flex-wrap gap-2">
                 {SYMPTOMS.map((s) => {
                   const active = picked.includes(s.key);
+                  const handleClick = () => {
+                    if (s.highRisk && !picked.includes(s.key)) {
+                      setRiskChip(s);
+                      return;
+                    }
+                    toggle(s.key);
+                  };
                   return (
                     <button
                       key={s.key}
-                      onClick={() => toggle(s.key)}
+                      onClick={handleClick}
                       className={`flex items-center gap-1.5 rounded-full border-2 border-foreground px-3 py-1.5 text-xs font-semibold transition-all ${
                         active
                           ? "bg-primary text-primary-foreground shadow-brutal-sm"
@@ -138,6 +145,13 @@ const Index = () => {
                     >
                       <span className="text-base leading-none">{s.emoji}</span>
                       {s.label}
+                      {s.highRisk && (
+                        <AlertTriangle
+                          className={`h-3.5 w-3.5 ${active ? "text-primary-foreground" : "text-danger"}`}
+                          strokeWidth={3}
+                          aria-label="High-risk: extra safety check"
+                        />
+                      )}
                     </button>
                   );
                 })}
