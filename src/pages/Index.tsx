@@ -172,22 +172,49 @@ const Index = () => {
               </div>
 
               <ul className="space-y-3">
-                {(symptomKeys.length > 0 ? results : REMEDIES).map((r) => (
-                  <li key={r.id}>
-                    <button
-                      onClick={() => setSelected(r)}
-                      className="group flex w-full items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 text-left shadow-brutal-sm transition-all brutal-press hover:bg-secondary"
+                {(symptomKeys.length > 0 ? results : REMEDIES).map((r) => {
+                  const redInteraction = r.interactions.find((i) => i.level === "red");
+                  const cautionReason = r.warning ?? redInteraction?.why;
+                  return (
+                    <li
+                      key={r.id}
+                      className="group relative flex items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-brutal-sm transition-all brutal-press hover:bg-secondary"
                     >
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-background text-3xl">
+                      <button
+                        onClick={() => setSelected(r)}
+                        aria-label={`Open ${r.localName}`}
+                        className="absolute inset-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <div className="pointer-events-none flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-background text-3xl">
                         {r.emoji}
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="pointer-events-none min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-display text-base leading-tight">{r.localName}</p>
-                          {r.interactions.some((i) => i.level === "red") && (
-                            <span className="rounded-full bg-danger/15 px-1.5 py-0.5 font-mono-tech text-[9px] font-bold uppercase text-danger">
-                              Caution
-                            </span>
+                          {cautionReason && (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/15 px-1.5 py-0.5 font-mono-tech text-[9px] font-bold uppercase text-danger transition-colors hover:bg-danger/25"
+                                  aria-label="Why caution?"
+                                >
+                                  <AlertTriangle className="h-2.5 w-2.5" strokeWidth={3} />
+                                  Caution
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                side="top"
+                                align="start"
+                                className="w-64 border-2 border-foreground bg-card p-3 shadow-brutal-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <p className="font-display text-[10px] uppercase tracking-wider text-danger">
+                                  Why caution
+                                </p>
+                                <p className="mt-1 text-sm leading-snug">{cautionReason}</p>
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </div>
                         <p className="font-mono-tech text-[10px] uppercase text-muted-foreground">
@@ -195,10 +222,10 @@ const Index = () => {
                         </p>
                         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.blurb}</p>
                       </div>
-                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </li>
-                ))}
+                      <ChevronRight className="pointer-events-none h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </li>
+                  );
+                })}
               </ul>
 
               {symptomKeys.length > 0 && results.length === 0 && (
