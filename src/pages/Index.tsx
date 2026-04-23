@@ -9,15 +9,26 @@ import {
   REMEDIES,
   SYMPTOMS,
   type Remedy,
+  type SymptomChip,
 } from "@/data/remedies";
 import { RemedyDetail } from "@/components/RemedyDetail";
-import { ChevronRight, Mic, Search, Sparkles } from "lucide-react";
+import { AlertTriangle, ChevronRight, Mic, Search, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const [text, setText] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [selected, setSelected] = useState<Remedy | null>(null);
+  const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
 
   const symptomKeys = useMemo(() => {
     const fromText = matchSymptomsFromText(text);
@@ -115,10 +126,17 @@ const Index = () => {
               <div className="flex flex-wrap gap-2">
                 {SYMPTOMS.map((s) => {
                   const active = picked.includes(s.key);
+                  const handleClick = () => {
+                    if (s.highRisk && !picked.includes(s.key)) {
+                      setRiskChip(s);
+                      return;
+                    }
+                    toggle(s.key);
+                  };
                   return (
                     <button
                       key={s.key}
-                      onClick={() => toggle(s.key)}
+                      onClick={handleClick}
                       className={`flex items-center gap-1.5 rounded-full border-2 border-foreground px-3 py-1.5 text-xs font-semibold transition-all ${
                         active
                           ? "bg-primary text-primary-foreground shadow-brutal-sm"
@@ -127,6 +145,13 @@ const Index = () => {
                     >
                       <span className="text-base leading-none">{s.emoji}</span>
                       {s.label}
+                      {s.highRisk && (
+                        <AlertTriangle
+                          className={`h-3.5 w-3.5 ${active ? "text-primary-foreground" : "text-danger"}`}
+                          strokeWidth={3}
+                          aria-label="High-risk: extra safety check"
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -147,22 +172,49 @@ const Index = () => {
               </div>
 
               <ul className="space-y-3">
-                {(symptomKeys.length > 0 ? results : REMEDIES).map((r) => (
-                  <li key={r.id}>
-                    <button
-                      onClick={() => setSelected(r)}
-                      className="group flex w-full items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 text-left shadow-brutal-sm transition-all brutal-press hover:bg-secondary"
+                {(symptomKeys.length > 0 ? results : REMEDIES).map((r) => {
+                  const redInteraction = r.interactions.find((i) => i.level === "red");
+                  const cautionReason = r.warning ?? redInteraction?.why;
+                  return (
+                    <li
+                      key={r.id}
+                      className="group relative flex items-center gap-4 rounded-xl border-2 border-foreground bg-card p-4 shadow-brutal-sm transition-all brutal-press hover:bg-secondary"
                     >
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-background text-3xl">
+                      <button
+                        onClick={() => setSelected(r)}
+                        aria-label={`Open ${r.localName}`}
+                        className="absolute inset-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      <div className="pointer-events-none flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-background text-3xl">
                         {r.emoji}
                       </div>
-                      <div className="min-w-0 flex-1">
+                      <div className="pointer-events-none min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <p className="font-display text-base leading-tight">{r.localName}</p>
-                          {r.interactions.some((i) => i.level === "red") && (
-                            <span className="rounded-full bg-danger/15 px-1.5 py-0.5 font-mono-tech text-[9px] font-bold uppercase text-danger">
-                              Caution
-                            </span>
+                          {cautionReason && (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/15 px-1.5 py-0.5 font-mono-tech text-[9px] font-bold uppercase text-danger transition-colors hover:bg-danger/25"
+                                  aria-label="Why caution?"
+                                >
+                                  <AlertTriangle className="h-2.5 w-2.5" strokeWidth={3} />
+                                  Caution
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                side="top"
+                                align="start"
+                                className="w-64 border-2 border-foreground bg-card p-3 shadow-brutal-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <p className="font-display text-[10px] uppercase tracking-wider text-danger">
+                                  Why caution
+                                </p>
+                                <p className="mt-1 text-sm leading-snug">{cautionReason}</p>
+                              </PopoverContent>
+                            </Popover>
                           )}
                         </div>
                         <p className="font-mono-tech text-[10px] uppercase text-muted-foreground">
@@ -170,10 +222,10 @@ const Index = () => {
                         </p>
                         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.blurb}</p>
                       </div>
-                      <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </li>
-                ))}
+                      <ChevronRight className="pointer-events-none h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </li>
+                  );
+                })}
               </ul>
 
               {symptomKeys.length > 0 && results.length === 0 && (
@@ -195,6 +247,57 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      {/* High-risk pre-check (e.g. BP) */}
+      <Dialog open={!!riskChip} onOpenChange={(o) => !o && setRiskChip(null)}>
+        <DialogContent className="max-w-md border-2 border-foreground p-0 shadow-brutal-lg sm:rounded-lg">
+          <DialogHeader className="space-y-2 border-b-2 border-foreground bg-danger px-5 pb-4 pt-5 text-danger-foreground">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-6 w-6" strokeWidth={2.5} />
+              <DialogTitle className="font-display text-xl uppercase tracking-tight">
+                Hold up — safety check
+              </DialogTitle>
+            </div>
+            <DialogDescription className="font-display text-base text-danger-foreground/95">
+              {riskChip?.riskQuestion}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 px-5 py-5">
+            <p className="text-sm text-muted-foreground">
+              Mixing herbs with heart or BP drugs fit cause serious wahala. Make we know first.
+            </p>
+            <DialogFooter className="grid grid-cols-2 gap-3 sm:flex-row sm:space-x-0">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-foreground bg-danger font-display text-base text-danger-foreground shadow-brutal-sm brutal-press hover:bg-danger/90"
+                onClick={() => {
+                  setRiskChip(null);
+                  toast({
+                    title: "Good call 🩺",
+                    description: "Abeg see Pharmacist before you mix any herb with your BP drug.",
+                  });
+                }}
+              >
+                Yes, I dey take
+              </Button>
+              <Button
+                size="lg"
+                className="border-2 border-foreground bg-primary font-display text-base text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
+                onClick={() => {
+                  if (riskChip) toggle(riskChip.key);
+                  setRiskChip(null);
+                }}
+              >
+                No, nothing
+              </Button>
+            </DialogFooter>
+            <p className="text-center font-mono-tech text-[10px] uppercase text-muted-foreground">
+              I be AI, I no be Doctor — suggestions only.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
