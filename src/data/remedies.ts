@@ -31,17 +31,25 @@ export interface SymptomChip {
   key: string;
   label: string; // pidgin
   emoji: string;
+  highRisk?: boolean; // forces safety pre-check before showing remedies
+  riskQuestion?: string; // pidgin question shown in the pre-check popup
 }
 
 export const SYMPTOMS: SymptomChip[] = [
-  { key: "malaria", label: "Body dey hot (Malaria)", emoji: "🥵" },
+  { key: "malaria", label: "Body dey hot (Fit be Malaria)", emoji: "🥵" },
   { key: "stomach", label: "Belle dey pain me", emoji: "🤕" },
   { key: "cough", label: "I dey cough", emoji: "😮‍💨" },
   { key: "cold", label: "Catarrh & cold", emoji: "🤧" },
   { key: "headache", label: "Head dey bang", emoji: "🤯" },
   { key: "diarrhea", label: "Belle dey run", emoji: "🚽" },
   { key: "wound", label: "Cut / wound", emoji: "🩹" },
-  { key: "bp", label: "High BP wahala", emoji: "💢" },
+  {
+    key: "bp",
+    label: "High BP wahala",
+    emoji: "💢",
+    highRisk: true,
+    riskQuestion: "Are you already taking hospital medicine for your heart or blood?",
+  },
 ];
 
 export const REMEDIES: Remedy[] = [
