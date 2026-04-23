@@ -247,6 +247,57 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      {/* High-risk pre-check (e.g. BP) */}
+      <Dialog open={!!riskChip} onOpenChange={(o) => !o && setRiskChip(null)}>
+        <DialogContent className="max-w-md border-2 border-foreground p-0 shadow-brutal-lg sm:rounded-lg">
+          <DialogHeader className="space-y-2 border-b-2 border-foreground bg-danger px-5 pb-4 pt-5 text-danger-foreground">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-6 w-6" strokeWidth={2.5} />
+              <DialogTitle className="font-display text-xl uppercase tracking-tight">
+                Hold up — safety check
+              </DialogTitle>
+            </div>
+            <DialogDescription className="font-display text-base text-danger-foreground/95">
+              {riskChip?.riskQuestion}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 px-5 py-5">
+            <p className="text-sm text-muted-foreground">
+              Mixing herbs with heart or BP drugs fit cause serious wahala. Make we know first.
+            </p>
+            <DialogFooter className="grid grid-cols-2 gap-3 sm:flex-row sm:space-x-0">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-foreground bg-danger font-display text-base text-danger-foreground shadow-brutal-sm brutal-press hover:bg-danger/90"
+                onClick={() => {
+                  setRiskChip(null);
+                  toast({
+                    title: "Good call 🩺",
+                    description: "Abeg see Pharmacist before you mix any herb with your BP drug.",
+                  });
+                }}
+              >
+                Yes, I dey take
+              </Button>
+              <Button
+                size="lg"
+                className="border-2 border-foreground bg-primary font-display text-base text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
+                onClick={() => {
+                  if (riskChip) toggle(riskChip.key);
+                  setRiskChip(null);
+                }}
+              >
+                No, nothing
+              </Button>
+            </DialogFooter>
+            <p className="text-center font-mono-tech text-[10px] uppercase text-muted-foreground">
+              I be AI, I no be Doctor — suggestions only.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
