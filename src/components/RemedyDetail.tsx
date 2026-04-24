@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { Disclaimer } from "@/components/Disclaimer";
 import { PrepTimeline } from "@/components/PrepTimeline";
 import { FeelCheck } from "@/components/FeelCheck";
+import { ScienceSnapshot } from "@/components/ScienceSnapshot";
 import { logDose, setFeel, type Feel } from "@/lib/diary";
 import { ensureNotificationPermission, scheduleNotification, showNotification } from "@/lib/notifications";
 
@@ -156,6 +157,9 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
           ⚠️ {remedy.warning}
         </div>
       )}
+
+      {/* Stream B — The Lab: Science & Research accordion */}
+      <ScienceSnapshot remedy={remedy} />
 
       {/* Action buttons */}
       <div className="grid grid-cols-1 gap-3">
