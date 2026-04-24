@@ -23,19 +23,13 @@ interface PrepTimelineProps {
 }
 
 export function PrepTimeline({ remedy, onConsumed }: PrepTimelineProps) {
-  const finalIndex = useMemo(
-    () =>
-      remedy.prep.findLastIndex
-        ? remedy.prep.findLastIndex((s) => s.verb === "DRINK" || s.verb === "APPLY")
-        : (() => {
-            for (let i = remedy.prep.length - 1; i >= 0; i--) {
-              const v = remedy.prep[i].verb;
-              if (v === "DRINK" || v === "APPLY") return i;
-            }
-            return remedy.prep.length - 1;
-          })(),
-    [remedy.prep],
-  );
+  const finalIndex = useMemo(() => {
+    for (let i = remedy.prep.length - 1; i >= 0; i--) {
+      const v = remedy.prep[i].verb;
+      if (v === "DRINK" || v === "APPLY") return i;
+    }
+    return remedy.prep.length - 1;
+  }, [remedy.prep]);
 
   const [done, setDone] = useState<Set<number>>(new Set());
   const [consumedFired, setConsumedFired] = useState(false);
