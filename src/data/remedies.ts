@@ -17,6 +17,19 @@ export interface PrepStep {
   timerMinutes?: number;
 }
 
+export interface ScienceSnapshot {
+  /** Active phytochemical classes / compounds. */
+  phytochemicals: string[];
+  /** One real clinical study summary + short citation tag. */
+  evidence: { citation: string; summary: string };
+  /** Toxicity data: optional LD50 + plain-English notes for liver/kidney risk. */
+  toxicity: { ld50?: string; notes: string };
+  /** Pharmacokinetic flag (e.g. "Inhibits CYP450 3A4") — drives high-risk interaction alerts. */
+  cypInteraction?: string;
+  /** Citation link to PubMed / journal. */
+  source: { label: string; url: string };
+}
+
 export interface Remedy {
   id: string;
   name: string;
@@ -32,6 +45,8 @@ export interface Remedy {
   warning?: string;
   /** Pidgin storage advice — appears as the final card. */
   storage?: string;
+  /** Stream B — Lab/Research data shown in the Science accordion. */
+  science?: ScienceSnapshot;
 }
 
 export interface SymptomChip {
