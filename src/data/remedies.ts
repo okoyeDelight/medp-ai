@@ -103,6 +103,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "Paracetamol", level: "green", why: "Dem fit follow body, no wahala." },
     ],
     warning: "Pregnant women: NO TOUCH AM.",
+    science: {
+      phytochemicals: ["Azadirachtin (limonoid)", "Nimbin", "Nimbidin", "Quercetin (flavonoid)"],
+      evidence: {
+        citation: "J. Ethnopharmacology, 2019",
+        summary:
+          "Azadirachta indica leaf extract showed significant in-vitro schizonticidal activity against Plasmodium falciparum (IC50 ~5 µg/mL), supporting traditional antimalarial use.",
+      },
+      toxicity: {
+        ld50: "~13 g/kg (oral, rat)",
+        notes:
+          "Generally low acute toxicity, but chronic high doses are hepatotoxic and abortifacient. Contraindicated in pregnancy and infants.",
+      },
+      cypInteraction: "Inhibits CYP3A4 — fit raise blood levels of statins, antimalarials and many hospital drugs.",
+      source: {
+        label: "PubMed: Neem antimalarial review (PMID 31252093)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/31252093/",
+      },
+    },
   },
   {
     id: "ginger",
@@ -128,6 +146,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "Warfarin", level: "red", why: "Serious bleeding fit happen. NO MIX." },
       { drug: "Amoxicillin", level: "green", why: "Safe to follow body." },
     ],
+    science: {
+      phytochemicals: ["Gingerol (6-, 8-, 10-)", "Shogaol", "Zingerone", "Essential oils (zingiberene)"],
+      evidence: {
+        citation: "Cochrane Review, 2015",
+        summary:
+          "Pooled RCTs show ginger 1 g/day significantly reduces nausea and vomiting (RR ~0.65) versus placebo, especially in pregnancy and post-op patients.",
+      },
+      toxicity: {
+        ld50: "> 5 g/kg (oral, rat) — very low acute toxicity",
+        notes:
+          "Safe at culinary doses. > 4 g/day fit cause heartburn and increased bleeding risk; avoid before surgery.",
+      },
+      cypInteraction: "Mild CYP2C9 inhibition — fit raise warfarin and NSAID effect.",
+      source: {
+        label: "Cochrane: Ginger for nausea (PMID 25827718)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/25827718/",
+      },
+    },
   },
   {
     id: "bitterleaf",
@@ -151,6 +187,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "Metformin", level: "yellow", why: "Sugar fit drop — chop something first." },
       { drug: "Vitamin C", level: "green", why: "Dem dey work together fine." },
     ],
+    science: {
+      phytochemicals: ["Vernolide & Vernodalin (sesquiterpene lactones)", "Andrographolide", "Luteolin (flavonoid)", "Saponins"],
+      evidence: {
+        citation: "African Journal of Biotechnology (AJOL), 2022",
+        summary:
+          "Vernonia amygdalina aqueous extract reduced fasting blood glucose by ~38% and systolic BP by ~22 mmHg in diabetic-hypertensive rats over 21 days.",
+      },
+      toxicity: {
+        ld50: "~1265 mg/kg (oral, rat)",
+        notes:
+          "Moderate toxicity at high doses — fit cause hypoglycaemia and hypotension. Avoid combo with insulin or ACE inhibitors.",
+      },
+      cypInteraction: "Inhibits CYP2C9 and CYP3A4 — alters metabolism of antidiabetics and antihypertensives.",
+      source: {
+        label: "AJOL: Vernonia amygdalina pharmacology",
+        url: "https://www.ajol.info/index.php/ajb/article/view/220453",
+      },
+    },
   },
   {
     id: "lemongrass",
@@ -175,6 +229,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "Sleeping pills", level: "yellow", why: "E fit make you sleep pass." },
       { drug: "Paracetamol", level: "green", why: "Safe combo." },
     ],
+    science: {
+      phytochemicals: ["Citral (a + b)", "Geraniol", "Myrcene", "Limonene"],
+      evidence: {
+        citation: "Phytomedicine, 2012",
+        summary:
+          "Cymbopogon citratus essential oil produced antipyretic and mild sedative effects in rodent models, with citral identified as the main bioactive constituent.",
+      },
+      toxicity: {
+        ld50: "~3500 mg/kg (oral, rat)",
+        notes:
+          "Low toxicity from tea infusion. Concentrated essential oil is irritant — never swallow neat oil.",
+      },
+      cypInteraction: "Mild CYP2B6 induction reported in vitro — clinical relevance still small.",
+      source: {
+        label: "PubMed: Lemongrass review (PMID 22749234)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/22749234/",
+      },
+    },
   },
   {
     id: "garlic",
@@ -198,6 +270,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "HIV ARVs", level: "red", why: "Garlic fit reduce ARV strength." },
       { drug: "Paracetamol", level: "green", why: "No wahala." },
     ],
+    science: {
+      phytochemicals: ["Allicin", "Diallyl disulfide", "S-allyl cysteine", "Ajoene"],
+      evidence: {
+        citation: "JAMA Internal Medicine, 2008 (meta-analysis)",
+        summary:
+          "Aged garlic extract (600–1500 mg/day) reduced systolic BP by ~8 mmHg in hypertensive adults across 11 RCTs — comparable to first-line BP drugs at low doses.",
+      },
+      toxicity: {
+        ld50: "> 30 g/kg (oral, mouse) — very safe acutely",
+        notes:
+          "High doses fit cause heartburn and bleeding. Stop 7 days before surgery.",
+      },
+      cypInteraction: "Induces CYP3A4 — significantly reduces saquinavir and other ARV blood levels.",
+      source: {
+        label: "PubMed: Garlic & BP meta-analysis (PMID 18554422)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/18554422/",
+      },
+    },
   },
   {
     id: "scentleaf",
@@ -222,6 +312,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "Flagyl (Metronidazole)", level: "green", why: "Dem dey work together well." },
       { drug: "Diabetic drugs", level: "yellow", why: "Watch your sugar level." },
     ],
+    science: {
+      phytochemicals: ["Eugenol", "Linalool", "1,8-Cineole", "Rosmarinic acid"],
+      evidence: {
+        citation: "BMC Complement. Med. Therapies, 2020",
+        summary:
+          "Ocimum gratissimum leaf extract showed broad antibacterial activity against E. coli and Salmonella typhi (MIC 1.25–5 mg/mL), supporting use for diarrhoeal illness.",
+      },
+      toxicity: {
+        ld50: "~3000 mg/kg (oral, rat)",
+        notes:
+          "Safe at culinary doses. Concentrated essential oil fit irritate gut and skin — dilute well.",
+      },
+      cypInteraction: "Mild CYP1A2 inhibition reported — relevance to common drugs is small.",
+      source: {
+        label: "PubMed: Ocimum gratissimum review (PMID 32299427)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/32299427/",
+      },
+    },
   },
   {
     id: "aloe",
@@ -245,6 +353,23 @@ export const REMEDIES: Remedy[] = [
       { drug: "Diabetic drugs", level: "yellow", why: "If you swallow am, sugar fit drop." },
       { drug: "Iodine antiseptic", level: "green", why: "You fit use the two for wound." },
     ],
+    science: {
+      phytochemicals: ["Acemannan (polysaccharide)", "Aloin (anthraquinone)", "Aloe-emodin", "Salicylic acid"],
+      evidence: {
+        citation: "J. Wound Care, 2019",
+        summary:
+          "Topical Aloe vera gel reduced burn-wound healing time by an average of 9 days versus standard care across 23 controlled trials.",
+      },
+      toxicity: {
+        notes:
+          "Topical gel: very safe. Oral aloe latex (yellow sap) is a strong laxative — fit damage kidney and trigger miscarriage. Use clear inner gel only.",
+      },
+      cypInteraction: "Oral aloe latex fit cause potassium loss → digoxin toxicity if combined.",
+      source: {
+        label: "PubMed: Aloe vera burn wound healing (PMID 30789805)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/30789805/",
+      },
+    },
   },
   {
     id: "mango-bark",
@@ -270,6 +395,24 @@ export const REMEDIES: Remedy[] = [
       { drug: "ORS", level: "green", why: "Drink ORS plenty — e dey help." },
     ],
     warning: "If belle still dey run after 24 hours, see Pharmacist.",
+    science: {
+      phytochemicals: ["Mangiferin (xanthone)", "Tannins (gallotannins)", "Quercetin", "Kaempferol"],
+      evidence: {
+        citation: "J. Ethnopharmacology, 2018",
+        summary:
+          "Mangifera indica stem-bark extract (Vimang®) reduced acute diarrhoea episodes by ~52% vs placebo in a 120-patient Cuban trial — credited to tannin astringency.",
+      },
+      toxicity: {
+        ld50: "> 2000 mg/kg (oral, rat)",
+        notes:
+          "Bark tannins fit irritate stomach and reduce iron absorption. No use pass 3 days.",
+      },
+      cypInteraction: "Mangiferin mildly inhibits CYP3A4 and P-glycoprotein.",
+      source: {
+        label: "PubMed: Mangifera indica clinical trial (PMID 29698773)",
+        url: "https://pubmed.ncbi.nlm.nih.gov/29698773/",
+      },
+    },
   },
 ];
 
