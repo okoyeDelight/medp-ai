@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Remedy } from "@/data/remedies";
 import { Button } from "@/components/ui/button";
-import { UnitIcon } from "@/components/UnitIcons";
-import { ArrowLeft, Bell, MapPin, ShieldCheck, Sprout } from "lucide-react";
+import {
+  ArrowLeft,
+  Bell,
+  BellRing,
+  CheckCircle2,
+  MapPin,
+  ShieldCheck,
+  Sprout,
+} from "lucide-react";
 import { SafetyGate } from "@/components/SafetyGate";
 import { toast } from "@/hooks/use-toast";
 import { Disclaimer } from "@/components/Disclaimer";
+import { PrepTimeline } from "@/components/PrepTimeline";
+import { FeelCheck } from "@/components/FeelCheck";
+import { logDose, setFeel, type Feel } from "@/lib/diary";
+import { ensureNotificationPermission, scheduleNotification, showNotification } from "@/lib/notifications";
 
 interface RemedyDetailProps {
   remedy: Remedy;
@@ -16,25 +27,80 @@ interface RemedyDetailProps {
 export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProps) {
   const [gateOpen, setGateOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [feelOpen, setFeelOpen] = useState(false);
+  const [lastLogId, setLastLogId] = useState<string | null>(null);
+  const [reminderHours, setReminderHours] = useState<number>(remedy.intervalHours);
+  const [reminderSet, setReminderSet] = useState(false);
 
-  function scheduleReminder() {
-    const ms = remedy.intervalHours * 60 * 60 * 1000;
-    if ("Notification" in window && Notification.permission !== "denied") {
-      Notification.requestPermission().then((p) => {
-        if (p === "granted") {
-          setTimeout(() => {
-            new Notification("MedP-AI Dose Reminder", {
-              body: `Time to take next dose of ${remedy.localName}. ${remedy.dose}`,
-            });
-          }, ms);
-        }
+  // Fresh state per remedy
+  useEffect(() => {
+    setConfirmed(false);
+    setFeelOpen(false);
+    setLastLogId(null);
+    setReminderSet(false);
+    setReminderHours(remedy.intervalHours);
+  }, [remedy.id, remedy.intervalHours]);
+
+  async function handleConsumed() {
+    try {
+      const id = await logDose(remedy);
+      setLastLogId(id);
+      setFeelOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Couldn't save to diary",
+        description: "We go try again next time. Check your network.",
       });
     }
+  }
+
+  async function handleFeel(feel: Feel) {
+    if (!lastLogId) return;
+    try {
+      await setFeel(lastLogId, feel);
+      toast({
+        title: "Saved to diary ✅",
+        description:
+          feel === "worse"
+            ? "If e get worse, abeg see Pharmacist quick quick."
+            : "We dey track your progress.",
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function setNextDoseAlarm() {
+    const perm = await ensureNotificationPermission();
+    if (perm !== "granted") {
+      toast({
+        title: "Allow notifications",
+        description: "We need notification permission to remind you. Check your browser settings.",
+      });
+      return;
+    }
+    const ms = reminderHours * 60 * 60 * 1000;
+    scheduleNotification(
+      ms,
+      "🕒 Time to take your MedP-AI!",
+      `Drink ${remedy.dose} now. No forget!`,
+      `dose-${remedy.id}`,
+    );
+    // Friendly preview so the user knows it works
+    void showNotification(
+      "Reminder set ⏰",
+      `We go ping you in ${reminderHours} hour${reminderHours > 1 ? "s" : ""} for next dose.`,
+      `dose-set-${remedy.id}`,
+    );
+    setReminderSet(true);
     toast({
-      title: "Reminder set ⏰",
-      description: `We go remind you in ${remedy.intervalHours} hours for next dose.`,
+      title: "Alarm set ⏰",
+      description: `We go remind you in ${reminderHours}h: "${remedy.dose}"`,
     });
   }
+
+  const HOUR_OPTIONS = [4, 6, 8, 12, 24];
 
   return (
     <div className="space-y-5 pb-10 animate-fade-up">
@@ -74,31 +140,8 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
         </div>
       </div>
 
-      {/* Prep cards */}
-      <section className="space-y-3">
-        <h3 className="font-display text-lg uppercase">How to prepare am</h3>
-        <ol className="space-y-3">
-          {remedy.prep.map((step, i) => (
-            <li
-              key={i}
-              className="flex items-start gap-3 rounded-xl border-2 border-foreground bg-card p-4 shadow-brutal-sm"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border-2 border-foreground bg-primary font-display text-base text-primary-foreground">
-                {i + 1}
-              </div>
-              <p className="flex-1 pt-1.5 text-[15px] font-medium leading-snug">{step.text}</p>
-              {step.unit && (
-                <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-md border-2 border-foreground bg-background px-2 py-1.5">
-                  <UnitIcon unit={step.unit} className="h-7 w-7 text-primary" />
-                  <span className="font-mono-tech text-[10px] font-bold uppercase">
-                    {step.qty ? `×${step.qty}` : ""}
-                  </span>
-                </div>
-              )}
-            </li>
-          ))}
-        </ol>
-      </section>
+      {/* Vertical timeline of detailed steps */}
+      <PrepTimeline remedy={remedy} onConsumed={handleConsumed} />
 
       {/* Dose */}
       <section className="rounded-xl border-2 border-foreground bg-primary p-5 text-primary-foreground shadow-brutal">
@@ -115,28 +158,64 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
       )}
 
       {/* Action buttons */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3">
         {!confirmed ? (
           <Button
             size="lg"
-            className="h-14 border-2 border-foreground bg-primary font-display text-base uppercase text-primary-foreground shadow-brutal brutal-press hover:bg-primary/90 sm:col-span-2"
+            className="h-14 border-2 border-foreground bg-primary font-display text-base uppercase text-primary-foreground shadow-brutal brutal-press hover:bg-primary/90"
             onClick={() => setGateOpen(true)}
           >
             <ShieldCheck className="h-5 w-5" /> I wan use this remedy
           </Button>
         ) : (
-          <Button
-            size="lg"
-            className="h-14 border-2 border-foreground bg-accent font-display text-base uppercase text-accent-foreground shadow-brutal brutal-press hover:bg-accent/90 sm:col-span-2"
-            onClick={scheduleReminder}
-          >
-            <Bell className="h-5 w-5" /> Remind me in {remedy.intervalHours}h
-          </Button>
+          <div className="space-y-3 rounded-xl border-2 border-foreground bg-card p-4 shadow-brutal">
+            <div>
+              <p className="font-display text-sm uppercase tracking-wider">
+                Set Alarm for Next Dose
+              </p>
+              <p className="text-xs text-muted-foreground">When you wan take the next one?</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {HOUR_OPTIONS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => setReminderHours(h)}
+                  className={`rounded-full border-2 border-foreground px-3 py-1 font-mono-tech text-xs font-bold uppercase transition-colors ${
+                    reminderHours === h
+                      ? "bg-primary text-primary-foreground shadow-brutal-sm"
+                      : "bg-background text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {h}h
+                </button>
+              ))}
+            </div>
+            <Button
+              size="lg"
+              className={`h-14 w-full border-2 border-foreground font-display text-base uppercase shadow-brutal brutal-press ${
+                reminderSet
+                  ? "bg-safe text-safe-foreground hover:bg-safe/90"
+                  : "bg-accent text-accent-foreground hover:bg-accent/90"
+              }`}
+              onClick={setNextDoseAlarm}
+            >
+              {reminderSet ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5" /> Alarm set — remind me in {reminderHours}h
+                </>
+              ) : (
+                <>
+                  <BellRing className="h-5 w-5" /> Set alarm for {reminderHours}h
+                </>
+              )}
+            </Button>
+          </div>
         )}
         <Button
           variant="outline"
           size="lg"
-          className="h-12 border-2 border-foreground bg-background font-display text-sm uppercase shadow-brutal-sm brutal-press sm:col-span-2"
+          className="h-12 border-2 border-foreground bg-background font-display text-sm uppercase shadow-brutal-sm brutal-press"
           onClick={onFindChemist}
         >
           <MapPin className="h-5 w-5" /> Find chemist near me
@@ -151,10 +230,15 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
         onOpenChange={setGateOpen}
         onConfirm={() => {
           setConfirmed(true);
-          toast({ title: "Safe to proceed ✅", description: "Tap 'Remind Me' to set your dose timer." });
+          toast({
+            title: "Safe to proceed ✅",
+            description: "Follow the steps. When you check 'DRINK' we go save am for your diary.",
+          });
         }}
         onFindChemist={onFindChemist}
       />
+
+      <FeelCheck open={feelOpen} onOpenChange={setFeelOpen} onPick={handleFeel} />
     </div>
   );
 }
