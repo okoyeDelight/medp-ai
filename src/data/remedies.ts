@@ -6,10 +6,15 @@ export interface Interaction {
   why: string;
 }
 
+export type StepVerb = "WASH" | "PREP" | "MEASURE" | "BOIL" | "SQUEEZE" | "SIEVE" | "MIX" | "APPLY" | "DRINK";
+
 export interface PrepStep {
+  verb: StepVerb;
   text: string;
   unit?: "sachet" | "eva" | "spoon" | "leaf" | "fire" | "cup";
   qty?: number;
+  /** Minutes for the boil/wait step. If set, the UI offers a Start Timer button. */
+  timerMinutes?: number;
 }
 
 export interface Remedy {
@@ -25,6 +30,8 @@ export interface Remedy {
   intervalHours: number;
   interactions: Interaction[];
   warning?: string;
+  /** Pidgin storage advice — appears as the final card. */
+  storage?: string;
 }
 
 export interface SymptomChip {
@@ -52,6 +59,9 @@ export const SYMPTOMS: SymptomChip[] = [
   },
 ];
 
+const DEFAULT_STORAGE =
+  "No keep this medicine pass 24 hours (one day). If you no finish am after one day, throw am away and brew fresh one. Bacteria fit enter am.";
+
 export const REMEDIES: Remedy[] = [
   {
     id: "dogonyaro",
@@ -62,12 +72,16 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Fresh neem (dogonyaro) leaves",
     emoji: "🌿",
     prep: [
-      { text: "Wash fresh dogonyaro leaves well well", qty: 10, unit: "leaf" },
-      { text: "Boil for clean water for 15 minutes", qty: 2, unit: "sachet" },
-      { text: "Allow am cool small, sieve am inside cup", qty: 1, unit: "cup" },
+      { verb: "WASH", text: "Get 10 fresh dogonyaro leaves. Wash them 3 times with clean water to comot all sand and dirt.", qty: 10, unit: "leaf" },
+      { verb: "PREP", text: "Put the clean leaves inside a clean pot.", unit: "leaf" },
+      { verb: "MEASURE", text: "Pour exactly 2 sachets of pure water (about 1 small cup) inside the pot.", qty: 2, unit: "sachet" },
+      { verb: "BOIL", text: "Put am for fire and boil for 15 minutes till the water turn yellow-green.", unit: "fire", timerMinutes: 15 },
+      { verb: "SIEVE", text: "Use a clean cloth or sieve to pour the juice inside a cup. Throw the leaves comot.", unit: "cup" },
+      { verb: "DRINK", text: "Drink half cup (small Coke bottle size). E go bitter — endure am.", unit: "cup" },
     ],
-    dose: "Drink half cup, morning and night",
+    dose: "Half cup, morning and night",
     intervalHours: 12,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Coartem", level: "yellow", why: "E fit make you weak too much. Space dem 2 hours apart." },
       { drug: "Insulin", level: "red", why: "Dogonyaro dey drop sugar — sugar fit crash." },
@@ -84,12 +98,16 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Fresh ginger root",
     emoji: "🫚",
     prep: [
-      { text: "Peel and slice small ginger", qty: 1, unit: "spoon" },
-      { text: "Pour hot water for cup, cover am 5 min", qty: 1, unit: "eva" },
-      { text: "Add small honey if you get", qty: 1, unit: "spoon" },
+      { verb: "WASH", text: "Wash one finger of fresh ginger well well. Peel the back with knife.", qty: 1, unit: "spoon" },
+      { verb: "PREP", text: "Slice the ginger into thin thin pieces. Put inside clean cup.", unit: "spoon" },
+      { verb: "MEASURE", text: "Pour 1 Eva bottle (50cl) of boiling hot water on top.", qty: 1, unit: "eva" },
+      { verb: "BOIL", text: "Cover the cup well, leave am 5 minutes make the ginger soak.", unit: "fire", timerMinutes: 5 },
+      { verb: "MIX", text: "Add 1 spoon of pure honey. Stir am well.", qty: 1, unit: "spoon" },
+      { verb: "DRINK", text: "Drink one full cup, three times for day. Sip am hot.", unit: "cup" },
     ],
     dose: "One full cup, three times for day",
     intervalHours: 8,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Aspirin", level: "yellow", why: "Both fit thin blood — watch am if you get cut." },
       { drug: "Warfarin", level: "red", why: "Serious bleeding fit happen. NO MIX." },
@@ -105,12 +123,14 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Fresh bitter leaf bunch",
     emoji: "🍃",
     prep: [
-      { text: "Squeeze fresh bitterleaf for clean water", qty: 6, unit: "leaf" },
-      { text: "Sieve the green juice comot", qty: 1, unit: "sachet" },
-      { text: "Drink am sharp sharp, no chase with sugar", qty: 1, unit: "cup" },
+      { verb: "WASH", text: "Pluck 6 fresh bitterleaf leaves. Wash them 3 times to comot dust.", qty: 6, unit: "leaf" },
+      { verb: "SQUEEZE", text: "Put leaves inside bowl with 1 sachet of pure water. Squeeze with clean hand till the water turn dark green.", qty: 1, unit: "sachet" },
+      { verb: "SIEVE", text: "Use clean cloth to sieve the green juice into a cup. Throw the chaff comot.", unit: "cup" },
+      { verb: "DRINK", text: "Drink half Eva bottle (about 25cl) sharp sharp. No chase am with sugar.", unit: "eva" },
     ],
     dose: "Half Eva bottle, once a day for 3 days",
     intervalHours: 24,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Lisinopril (BP drug)", level: "red", why: "BP fit drop too low. Avoid am." },
       { drug: "Metformin", level: "yellow", why: "Sugar fit drop — chop something first." },
@@ -126,12 +146,16 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Bundle of lemon grass stalks",
     emoji: "🌾",
     prep: [
-      { text: "Roll fresh lemongrass, tie am", qty: 5, unit: "leaf" },
-      { text: "Boil with two sachets pure water", qty: 2, unit: "sachet" },
-      { text: "Cover head with wrapper, inhale steam 5 min", qty: 1, unit: "fire" },
+      { verb: "WASH", text: "Get 5 fresh lemongrass stalks. Wash them, then roll and tie am with thread.", qty: 5, unit: "leaf" },
+      { verb: "PREP", text: "Put the rolled lemongrass inside clean pot.", unit: "leaf" },
+      { verb: "MEASURE", text: "Pour 2 sachets of pure water inside the pot.", qty: 2, unit: "sachet" },
+      { verb: "BOIL", text: "Put am for fire, boil 10 minutes till water turn yellow.", unit: "fire", timerMinutes: 10 },
+      { verb: "SIEVE", text: "Pour the tea inside a cup through a sieve. Throw the lemongrass comot.", unit: "cup" },
+      { verb: "DRINK", text: "Drink one full cup hot, morning and evening.", unit: "cup" },
     ],
-    dose: "Drink one cup hot, morning and evening",
+    dose: "One cup hot, morning and evening",
     intervalHours: 12,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Sleeping pills", level: "yellow", why: "E fit make you sleep pass." },
       { drug: "Paracetamol", level: "green", why: "Safe combo." },
@@ -146,12 +170,14 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Garlic bulbs and cloves",
     emoji: "🧄",
     prep: [
-      { text: "Crush fresh garlic small", qty: 2, unit: "spoon" },
-      { text: "Mix with warm water or honey", qty: 1, unit: "cup" },
-      { text: "Swallow am quick, drink water on top", qty: 1, unit: "eva" },
+      { verb: "WASH", text: "Take 2 cloves of fresh garlic. Peel the back, wash am clean.", qty: 2, unit: "spoon" },
+      { verb: "SQUEEZE", text: "Crush the garlic with spoon or knife till e turn paste.", qty: 2, unit: "spoon" },
+      { verb: "MIX", text: "Mix the paste inside one cup of warm water with 1 spoon honey.", qty: 1, unit: "cup" },
+      { verb: "DRINK", text: "Swallow am quick quick, then drink half Eva bottle of clean water on top.", unit: "eva" },
     ],
-    dose: "One spoon, two times daily",
+    dose: "One spoon mix, two times daily",
     intervalHours: 12,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Warfarin", level: "red", why: "Serious bleeding risk." },
       { drug: "HIV ARVs", level: "red", why: "Garlic fit reduce ARV strength." },
@@ -167,12 +193,16 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Scent leaf (efinrin) bunch",
     emoji: "🌱",
     prep: [
-      { text: "Wash scent leaves clean", qty: 8, unit: "leaf" },
-      { text: "Boil 10 minutes for pure water", qty: 1, unit: "sachet" },
-      { text: "Sieve and drink am warm", qty: 1, unit: "cup" },
+      { verb: "WASH", text: "Get 8 fresh scent leaves. Wash them 3 times with clean water.", qty: 8, unit: "leaf" },
+      { verb: "PREP", text: "Put the leaves inside a clean small pot.", unit: "leaf" },
+      { verb: "MEASURE", text: "Pour 1 sachet of pure water (about 50cl) inside the pot.", qty: 1, unit: "sachet" },
+      { verb: "BOIL", text: "Boil am for fire 10 minutes till water turn light green.", unit: "fire", timerMinutes: 10 },
+      { verb: "SIEVE", text: "Sieve the warm tea into a cup. Throw the leaves away.", unit: "cup" },
+      { verb: "DRINK", text: "Drink half Eva bottle warm, three times daily after food.", unit: "eva" },
     ],
-    dose: "Half Eva bottle, three times a day",
+    dose: "Half Eva bottle, three times daily",
     intervalHours: 8,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Flagyl (Metronidazole)", level: "green", why: "Dem dey work together well." },
       { drug: "Diabetic drugs", level: "yellow", why: "Watch your sugar level." },
@@ -187,12 +217,15 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Aloe vera leaf cut open showing gel",
     emoji: "🪴",
     prep: [
-      { text: "Cut one fresh aloe leaf", qty: 1, unit: "leaf" },
-      { text: "Scoop the clear gel comot", qty: 1, unit: "spoon" },
-      { text: "Rub am for the wound or cut", qty: 1, unit: "cup" },
+      { verb: "WASH", text: "Cut one fresh aloe leaf from the plant. Wash am clean with water.", qty: 1, unit: "leaf" },
+      { verb: "PREP", text: "Slice the leaf open with clean knife to show the clear gel.", unit: "leaf" },
+      { verb: "MEASURE", text: "Scoop out 1 spoon of the clear gel into a clean small bowl.", qty: 1, unit: "spoon" },
+      { verb: "APPLY", text: "Use clean finger to rub the gel small small on the wound or cut.", unit: "cup" },
     ],
     dose: "Apply 2-3 times daily till e dry",
     intervalHours: 6,
+    storage:
+      "Keep the cut aloe leaf inside fridge — e fit last 3 days. After that, throw am comot, fresh one dey work better.",
     interactions: [
       { drug: "Diabetic drugs", level: "yellow", why: "If you swallow am, sugar fit drop." },
       { drug: "Iodine antiseptic", level: "green", why: "You fit use the two for wound." },
@@ -207,12 +240,16 @@ export const REMEDIES: Remedy[] = [
     imageHint: "Strip of mango tree bark",
     emoji: "🥭",
     prep: [
-      { text: "Wash small mango bark well well", qty: 1, unit: "leaf" },
-      { text: "Boil with two sachets water 20 min", qty: 2, unit: "sachet" },
-      { text: "Cool am, drink the brown water", qty: 1, unit: "cup" },
+      { verb: "WASH", text: "Take small piece of fresh mango bark. Wash am 3 times to comot sand.", qty: 1, unit: "leaf" },
+      { verb: "PREP", text: "Break the bark into smaller pieces and put inside clean pot.", unit: "leaf" },
+      { verb: "MEASURE", text: "Pour 2 sachets of pure water inside the pot.", qty: 2, unit: "sachet" },
+      { verb: "BOIL", text: "Put am for fire and boil 20 minutes till the water turn brown.", unit: "fire", timerMinutes: 20 },
+      { verb: "SIEVE", text: "Sieve the brown tea into a cup. Throw the bark away.", unit: "cup" },
+      { verb: "DRINK", text: "Cool am small, drink quarter Eva bottle two times a day.", unit: "eva" },
     ],
     dose: "Quarter Eva bottle, two times daily",
     intervalHours: 12,
+    storage: DEFAULT_STORAGE,
     interactions: [
       { drug: "Loperamide (Imodium)", level: "yellow", why: "Pick one, no use both." },
       { drug: "ORS", level: "green", why: "Drink ORS plenty — e dey help." },
