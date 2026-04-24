@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      dose_logs: {
+        Row: {
+          created_at: string
+          dose: string
+          feel: string | null
+          id: string
+          remedy_emoji: string
+          remedy_id: string
+          remedy_local_name: string
+          remedy_name: string
+          taken_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose: string
+          feel?: string | null
+          id?: string
+          remedy_emoji: string
+          remedy_id: string
+          remedy_local_name: string
+          remedy_name: string
+          taken_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dose?: string
+          feel?: string | null
+          id?: string
+          remedy_emoji?: string
+          remedy_id?: string
+          remedy_local_name?: string
+          remedy_name?: string
+          taken_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
