@@ -82,7 +82,44 @@ const Index = () => {
     );
   }
 
-  return (
+  async function searchAnyPlant() {
+    const q = text.trim();
+    if (q.length < 2) {
+      toast({ title: "Type something first", description: "e.g. 'ulcer', 'bitter kola', 'ringworm'." });
+      return;
+    }
+    setAiSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-remedy", { body: { query: q } });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.safe === false) {
+        toast({
+          title: "Can't help with that",
+          description: data.refusal_reason ?? "Try a different symptom or plant.",
+          variant: "destructive",
+        });
+        return;
+      }
+      const remedy: Remedy = data.remedy;
+      setSelected(remedy);
+      toast({
+        title: `${remedy.emoji} ${remedy.localName}`,
+        description: "AI-generated entry — confirm with your pharmacist before use.",
+      });
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "AI search failed",
+        description: e instanceof Error ? e.message : "Try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setAiSearching(false);
+    }
+  }
+
+
     <div className="min-h-screen bg-background">
       <AppHeader />
 
