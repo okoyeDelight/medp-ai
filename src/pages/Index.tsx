@@ -125,6 +125,24 @@ const Index = () => {
                 </button>
               </div>
 
+              {/* Plant Scanner CTA */}
+              <button
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                className="flex w-full items-center gap-3 rounded-xl border-2 border-foreground bg-accent px-4 py-3 text-left text-accent-foreground shadow-brutal-sm brutal-press hover:bg-accent/90"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm">
+                  <ScanLine className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm uppercase leading-tight">Scan a plant</p>
+                  <p className="text-xs opacity-80">
+                    Snap the leaf — AI go identify am + show prep & science.
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0" />
+              </button>
+
               <div className="flex flex-wrap gap-2">
                 {SYMPTOMS.map((s) => {
                   const active = picked.includes(s.key);
@@ -300,6 +318,13 @@ const Index = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Plant Scanner */}
+      <PlantScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onIdentified={(r) => setSelected(r)}
+      />
     </div>
   );
 };
