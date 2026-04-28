@@ -107,11 +107,7 @@ const Diary = () => {
     );
   }
 
-  function shareWhatsapp() {
-    if (!logs) return;
-    const text = encodeURIComponent(buildReport(logs, 7));
-    window.open(`https://wa.me/?text=${text}`, "_blank");
-  }
+  // (legacy text WhatsApp share replaced by DoctorReportDialog with PDF attach)
 
   return (
     <div className="min-h-screen bg-background">
