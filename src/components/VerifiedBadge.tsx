@@ -9,7 +9,7 @@ export function VerifiedBadge({ remedy, size = "md" }: { remedy: Remedy; size?: 
   if (isUnverified) {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full border border-warning/50 bg-warning/15 ${padding} font-mono-tech font-bold uppercase text-warning`}
+        className={`inline-flex items-center gap-1 rounded-full border border-caution/50 bg-caution/15 ${padding} font-mono-tech font-bold uppercase text-caution-foreground`}
         title="AI-generated entry — not yet reviewed by a pharmacist."
       >
         <AlertTriangle className={icon} strokeWidth={3} />
