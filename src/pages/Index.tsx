@@ -13,7 +13,9 @@ import {
 } from "@/data/remedies";
 import { RemedyDetail } from "@/components/RemedyDetail";
 import { PlantScanner } from "@/components/PlantScanner";
-import { AlertTriangle, ChevronRight, Mic, ScanLine, Search, ShieldAlert, Sparkles } from "lucide-react";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Wand2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -31,6 +33,7 @@ const Index = () => {
   const [selected, setSelected] = useState<Remedy | null>(null);
   const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [aiSearching, setAiSearching] = useState(false);
 
   const symptomKeys = useMemo(() => {
     const fromText = matchSymptomsFromText(text);
