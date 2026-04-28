@@ -96,7 +96,7 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
           </DialogHeader>
 
           <div className="relative h-[420px] w-full bg-secondary">
-            {/* @ts-expect-error - custom element */}
+            {/* model-viewer is a custom element registered globally */}
             <model-viewer
               src={model.url}
               alt={`3D model of ${remedy.name}`}
