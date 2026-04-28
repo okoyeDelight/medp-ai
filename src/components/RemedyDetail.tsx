@@ -150,6 +150,9 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
         </div>
       </div>
 
+      {/* 3D plant viewer */}
+      <Plant3DViewer remedy={remedy} />
+
       {/* Vertical timeline of detailed steps */}
       <PrepTimeline remedy={remedy} onConsumed={handleConsumed} />
 
