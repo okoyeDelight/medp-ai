@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { Disclaimer } from "@/components/Disclaimer";
 import { PrepTimeline } from "@/components/PrepTimeline";
 import { FeelCheck } from "@/components/FeelCheck";
+import { Plant3DViewer } from "@/components/Plant3DViewer";
 import { ScienceSnapshot } from "@/components/ScienceSnapshot";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { logDose, setFeel, type Feel } from "@/lib/diary";
