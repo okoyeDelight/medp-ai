@@ -16,6 +16,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { PrepTimeline } from "@/components/PrepTimeline";
 import { FeelCheck } from "@/components/FeelCheck";
 import { ScienceSnapshot } from "@/components/ScienceSnapshot";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { logDose, setFeel, type Feel } from "@/lib/diary";
 import { ensureNotificationPermission, scheduleNotification, showNotification } from "@/lib/notifications";
 
@@ -123,9 +124,16 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
               {remedy.name}
             </p>
             <h2 className="font-display text-2xl leading-tight">{remedy.localName}</h2>
-            <p className="mt-1 text-sm text-foreground/80">{remedy.blurb}</p>
+            <div className="mt-1.5"><VerifiedBadge remedy={remedy} /></div>
+            <p className="mt-2 text-sm text-foreground/80">{remedy.blurb}</p>
           </div>
         </div>
+
+        {remedy.__unverified && (
+          <div className="border-t-2 border-foreground bg-caution/15 px-5 py-3 text-xs font-semibold text-foreground">
+            ⚠️ <strong>Unverified AI entry.</strong> A pharmacy student has NOT reviewed this remedy. Always confirm dose, interactions, and identity with a real pharmacist before use.
+          </div>
+        )}
 
         {/* Plant verification */}
         <div className="border-t-2 border-foreground bg-background px-5 py-4">
