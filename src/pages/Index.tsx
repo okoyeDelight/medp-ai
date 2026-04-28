@@ -249,8 +249,9 @@ const Index = () => {
                         {r.emoji}
                       </div>
                       <div className="pointer-events-none min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-display text-base leading-tight">{r.localName}</p>
+                          <VerifiedBadge remedy={r} size="sm" />
                           {cautionReason && (
                             <Popover>
                               <PopoverTrigger asChild>
@@ -288,9 +289,30 @@ const Index = () => {
                 })}
               </ul>
 
+              {/* Open AI search — for any plant / symptom not in curated list */}
+              <button
+                type="button"
+                onClick={searchAnyPlant}
+                disabled={aiSearching}
+                className="flex w-full items-center gap-3 rounded-xl border-2 border-dashed border-foreground/60 bg-secondary px-4 py-3 text-left shadow-brutal-sm brutal-press hover:bg-secondary/80 disabled:opacity-60"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-accent text-accent-foreground shadow-brutal-sm">
+                  {aiSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wand2 className="h-5 w-5" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm uppercase leading-tight">
+                    {aiSearching ? "AI dey search…" : "Search any other plant or symptom"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Type above (e.g. "ulcer", "scent leaf") — AI go suggest. Marked Unverified.
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </button>
+
               {symptomKeys.length > 0 && results.length === 0 && (
                 <div className="rounded-xl border-2 border-dashed border-foreground/40 bg-muted p-6 text-center text-sm text-muted-foreground">
-                  We never get remedy for that one. Abeg see a Pharmacist.
+                  We never get curated remedy for that. Try the AI search above.
                 </div>
               )}
             </section>
