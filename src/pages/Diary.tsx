@@ -3,8 +3,9 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { fetchLogs, streakFromLogs, type DoseLog } from "@/lib/diary";
 import { Disclaimer } from "@/components/Disclaimer";
-import { Flame, Loader2, MessageCircle, Share2 } from "lucide-react";
+import { FileText, Flame, Loader2, Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { DoctorReportDialog } from "@/components/DoctorReportDialog";
 
 const FEEL_BADGE: Record<string, { emoji: string; bg: string; label: string }> = {
   better: { emoji: "😊", bg: "bg-safe text-safe-foreground", label: "Better" },
@@ -74,6 +75,7 @@ function buildReport(logs: DoseLog[], days = 7): string {
 const Diary = () => {
   const [logs, setLogs] = useState<DoseLog[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -150,11 +152,23 @@ const Diary = () => {
           </div>
         </section>
 
-        {/* Doctor report */}
+        {/* Doctor report — formal PDF */}
         <section className="rounded-xl border-2 border-foreground bg-accent p-4 text-accent-foreground shadow-brutal">
-          <p className="font-display text-sm uppercase tracking-wider">Generate Report for Doctor / Pharmacist</p>
-          <p className="mt-1 text-xs">7-day summary, ready to copy or send via WhatsApp.</p>
+          <p className="font-display text-sm uppercase tracking-wider">
+            Generate Report for Doctor / Pharmacist
+          </p>
+          <p className="mt-1 text-xs">
+            Hospital-style PDF with letterhead, dose table & science notes — ready to print or share.
+          </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button
+              size="lg"
+              className="h-12 border-2 border-foreground bg-primary font-display text-sm uppercase text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
+              onClick={() => setReportOpen(true)}
+              disabled={!logs || logs.length === 0}
+            >
+              <FileText className="h-4 w-4" /> Generate PDF
+            </Button>
             <Button
               size="lg"
               variant="outline"
@@ -162,18 +176,16 @@ const Diary = () => {
               onClick={copyReport}
               disabled={!logs || logs.length === 0}
             >
-              <Share2 className="h-4 w-4" /> Copy
-            </Button>
-            <Button
-              size="lg"
-              className="h-12 border-2 border-foreground bg-primary font-display text-sm uppercase text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
-              onClick={shareWhatsapp}
-              disabled={!logs || logs.length === 0}
-            >
-              <MessageCircle className="h-4 w-4" /> WhatsApp
+              <Share2 className="h-4 w-4" /> Copy text
             </Button>
           </div>
         </section>
+
+        <DoctorReportDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          logs={logs ?? []}
+        />
 
         {/* Log list */}
         <section className="space-y-3">
