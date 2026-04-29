@@ -121,14 +121,11 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
             <p className="font-display text-xs uppercase text-muted-foreground">Plant ID hint</p>
             <p className="text-sm">{remedy.imageHint}</p>
           </div>
-              <p className="rounded-md border border-caution/40 bg-caution/10 px-3 py-2 text-xs text-foreground">
-                ⚠️ Showing a <strong>placeholder 3D model</strong>. Botanical .glb assets per
-                Nigerian herb need to be sourced or commissioned. The viewer + zoom + rotate
-                controls work — just swap the URL in <code>Plant3DViewer.tsx</code> when you
-                have a real model.
-              </p>
-            )}
-          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
         </DialogContent>
       </Dialog>
     </>
