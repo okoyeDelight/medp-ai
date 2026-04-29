@@ -126,8 +126,3 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
     </>
   );
 }
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
