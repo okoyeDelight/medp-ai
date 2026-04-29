@@ -34,6 +34,7 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
   const [lastLogId, setLastLogId] = useState<string | null>(null);
   const [reminderHours, setReminderHours] = useState<number>(remedy.intervalHours);
   const [reminderSet, setReminderSet] = useState(false);
+  const [pharmacyOpen, setPharmacyOpen] = useState(false);
 
   // Fresh state per remedy
   useEffect(() => {
