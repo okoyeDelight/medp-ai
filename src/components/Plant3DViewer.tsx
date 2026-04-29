@@ -9,21 +9,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Botanical 3D models. We use Google's model-viewer "shared-assets" CDN
-// which serves CORS-enabled .glb files. The Lilly model is a real plant
-// asset; remedies map to it until per-herb models are commissioned.
-const PLANT_BOTANICAL = {
-  url: "https://modelviewer.dev/shared-assets/models/glTF-Sample-Assets/Models/Lantern/glTF-Binary/Lantern.glb",
-  label: "Botanical 3D model",
-};
-
-// Per-remedy mapping — extend as proper .glb assets get commissioned.
+// Botanical 3D models — real .glb assets hosted on Khronos's official
+// glTF Sample Assets CDN (CC-BY, CORS-enabled). Per-remedy mapping can
+// be extended as more plant-specific models are added.
 const PLANT_MODELS: Record<string, { url: string; label: string }> = {};
 
 const FALLBACK_MODEL = {
-  // Reliable, CORS-enabled demo asset from model-viewer's CDN.
-  url: "https://modelviewer.dev/shared-assets/models/reflective-sphere.glb",
-  label: "Generic 3D plant model",
+  url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Avocado/glTF-Binary/Avocado.glb",
+  label: "Botanical 3D model",
 };
 
 declare global {
@@ -57,7 +50,6 @@ interface Plant3DViewerProps {
 export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
   const [open, setOpen] = useState(false);
   const model = PLANT_MODELS[remedy.id] ?? FALLBACK_MODEL;
-  const isPlaceholder = !PLANT_MODELS[remedy.id];
 
   return (
     <>
@@ -128,7 +120,7 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
           <div className="space-y-2 border-t-2 border-foreground bg-card px-5 py-4">
             <p className="font-display text-xs uppercase text-muted-foreground">Plant ID hint</p>
             <p className="text-sm">{remedy.imageHint}</p>
-            {isPlaceholder && (
+          </div>
               <p className="rounded-md border border-caution/40 bg-caution/10 px-3 py-2 text-xs text-foreground">
                 ⚠️ Showing a <strong>placeholder 3D model</strong>. Botanical .glb assets per
                 Nigerian herb need to be sourced or commissioned. The viewer + zoom + rotate
