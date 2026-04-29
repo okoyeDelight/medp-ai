@@ -18,13 +18,14 @@ import { FeelCheck } from "@/components/FeelCheck";
 import { Plant3DViewer } from "@/components/Plant3DViewer";
 import { ScienceSnapshot } from "@/components/ScienceSnapshot";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { PharmacyFinder } from "@/components/PharmacyFinder";
 import { logDose, setFeel, type Feel } from "@/lib/diary";
 import { ensureNotificationPermission, scheduleNotification, showNotification } from "@/lib/notifications";
 
 interface RemedyDetailProps {
   remedy: Remedy;
   onBack: () => void;
-  onFindChemist: () => void;
+  onFindChemist?: () => void;
 }
 
 export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProps) {
@@ -34,6 +35,7 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
   const [lastLogId, setLastLogId] = useState<string | null>(null);
   const [reminderHours, setReminderHours] = useState<number>(remedy.intervalHours);
   const [reminderSet, setReminderSet] = useState(false);
+  const [pharmacyOpen, setPharmacyOpen] = useState(false);
 
   // Fresh state per remedy
   useEffect(() => {
@@ -232,7 +234,7 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
           variant="outline"
           size="lg"
           className="h-12 border-2 border-foreground bg-background font-display text-sm uppercase shadow-brutal-sm brutal-press"
-          onClick={onFindChemist}
+          onClick={() => setPharmacyOpen(true)}
         >
           <MapPin className="h-5 w-5" /> Find chemist near me
         </Button>
@@ -251,8 +253,13 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
             description: "Follow the steps. When you check 'DRINK' we go save am for your diary.",
           });
         }}
-        onFindChemist={onFindChemist}
+        onFindChemist={() => {
+          if (onFindChemist) onFindChemist();
+          else setPharmacyOpen(true);
+        }}
       />
+
+      <PharmacyFinder open={pharmacyOpen} onOpenChange={setPharmacyOpen} />
 
       <FeelCheck open={feelOpen} onOpenChange={setFeelOpen} onPick={handleFeel} />
     </div>

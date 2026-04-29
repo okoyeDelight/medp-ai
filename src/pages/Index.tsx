@@ -63,25 +63,6 @@ const Index = () => {
     toast({ title: "Talk now 🎤", description: "Tell us wetin dey do you." });
   }
 
-  function findChemist() {
-    if (!("geolocation" in navigator)) {
-      toast({ title: "Location off", description: "Open Google Maps and search 'pharmacy near me'." });
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        window.open(
-          `https://www.google.com/maps/search/pharmacy/@${latitude},${longitude},15z`,
-          "_blank",
-        );
-      },
-      () => {
-        window.open("https://www.google.com/maps/search/pharmacy+near+me", "_blank");
-      },
-    );
-  }
-
   async function searchAnyPlant() {
     const q = text.trim();
     if (q.length < 2) {
@@ -128,7 +109,6 @@ const Index = () => {
           <RemedyDetail
             remedy={selected}
             onBack={() => setSelected(null)}
-            onFindChemist={findChemist}
           />
         ) : (
           <div className="space-y-6">
