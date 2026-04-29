@@ -234,7 +234,7 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
           variant="outline"
           size="lg"
           className="h-12 border-2 border-foreground bg-background font-display text-sm uppercase shadow-brutal-sm brutal-press"
-          onClick={onFindChemist}
+          onClick={() => setPharmacyOpen(true)}
         >
           <MapPin className="h-5 w-5" /> Find chemist near me
         </Button>
@@ -253,8 +253,13 @@ export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProp
             description: "Follow the steps. When you check 'DRINK' we go save am for your diary.",
           });
         }}
-        onFindChemist={onFindChemist}
+        onFindChemist={() => {
+          if (onFindChemist) onFindChemist();
+          else setPharmacyOpen(true);
+        }}
       />
+
+      <PharmacyFinder open={pharmacyOpen} onOpenChange={setPharmacyOpen} />
 
       <FeelCheck open={feelOpen} onOpenChange={setFeelOpen} onPick={handleFeel} />
     </div>
