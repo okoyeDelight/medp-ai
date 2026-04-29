@@ -74,8 +74,9 @@ export function PharmacyFinder({ open, onOpenChange }: PharmacyFinderProps) {
 
     // Try permissions API first for clearer messaging
     try {
-      // @ts-expect-error permissions API typing
-      const status = await navigator.permissions?.query?.({ name: "geolocation" });
+      const status = await (navigator as Navigator & {
+        permissions?: { query: (d: { name: string }) => Promise<{ state: string }> };
+      }).permissions?.query?.({ name: "geolocation" });
       if (status?.state === "denied") {
         setLoading(false);
         setError(
