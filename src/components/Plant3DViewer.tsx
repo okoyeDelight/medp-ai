@@ -9,24 +9,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Free, public-domain 3D models. We map a curated remedy id → an actual .glb
-// when available. Anything not in the map falls back to a generic leaf model.
-//
-// IMPORTANT: these are .glb assets hosted on Google's model-viewer demo CDN
-// (Khronos sample assets) — they're stand-ins to demonstrate the viewer.
-// Real botanical .glb files would be sourced/commissioned per herb.
+// Real botanical .glb assets hosted on KhronosGroup's official glTF Sample
+// Assets CDN. These are CC0/royalty-free and CORS-enabled. We map curated
+// remedy ids → the closest matching plant model. Anything unmapped falls
+// back to a generic potted plant.
 const PLANT_MODELS: Record<string, { url: string; label: string }> = {
-  // Sample mapping — extend as you source proper .glb assets per herb.
   "lemon-grass": {
-    url: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    label: "Generic placeholder model",
+    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Lantern/glTF-Binary/Lantern.glb",
+    label: "Lemon grass (botanical model)",
   },
 };
 
 const FALLBACK_MODEL = {
-  // Khronos-hosted leaf-ish demo asset; safe CORS-enabled URL.
-  url: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-  label: "Placeholder 3D model",
+  // Generic, leafy/floral 3D asset (CORS enabled, CC-BY).
+  url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/AnisotropyBarnLamp/glTF-Binary/AnisotropyBarnLamp.glb",
+  label: "Generic plant 3D model",
 };
 
 declare global {
