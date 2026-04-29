@@ -37,38 +37,85 @@ export function PharmacyFinder({ open, onOpenChange }: PharmacyFinderProps) {
   const [pharmacies, setPharmacies] = useState<Pharmacy[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function callApi(latitude: number, longitude: number) {
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke("nearby-pharmacies", {
+        body: { lat: latitude, lng: longitude, radius: 5000 },
+      });
+      if (fnErr) throw fnErr;
+      if (data?.error) throw new Error(data.error);
+      setPharmacies(data?.pharmacies ?? []);
+    } catch (e) {
+      console.error(e);
+      setError(e instanceof Error ? e.message : "Couldn't fetch pharmacies.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function tryGetPosition(highAccuracy: boolean): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: highAccuracy,
+        timeout: highAccuracy ? 8000 : 15000,
+        maximumAge: 60000,
+      });
+    });
+  }
+
   async function findNearby() {
     setError(null);
     setPharmacies(null);
     if (!("geolocation" in navigator)) {
-      setError("Your browser no support location. Open Google Maps and search 'pharmacy near me'.");
+      setError("Your browser no support location. Open Google Maps search 'pharmacy near me'.");
       return;
     }
     setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const { data, error: fnErr } = await supabase.functions.invoke("nearby-pharmacies", {
-            body: { lat: latitude, lng: longitude, radius: 3000 },
-          });
-          if (fnErr) throw fnErr;
-          if (data?.error) throw new Error(data.error);
-          setPharmacies(data?.pharmacies ?? []);
-        } catch (e) {
-          console.error(e);
-          setError(e instanceof Error ? e.message : "Couldn't fetch pharmacies.");
-        } finally {
-          setLoading(false);
-        }
-      },
-      (err) => {
-        console.warn(err);
+
+    // Try permissions API first for clearer messaging
+    try {
+      const status = await (navigator as Navigator & {
+        permissions?: { query: (d: { name: string }) => Promise<{ state: string }> };
+      }).permissions?.query?.({ name: "geolocation" });
+      if (status?.state === "denied") {
         setLoading(false);
-        setError("Allow location access to find pharmacies near you.");
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
-    );
+        setError(
+          "Location is blocked for this site. Tap the lock/info icon in your browser address bar → Site settings → allow Location, then try again.",
+        );
+        return;
+      }
+    } catch {
+      // permissions API not available — continue
+    }
+
+    let pos: GeolocationPosition | null = null;
+    try {
+      pos = await tryGetPosition(true);
+    } catch (e1) {
+      // Retry with low accuracy (often works when GPS lock fails)
+      try {
+        pos = await tryGetPosition(false);
+      } catch (e2) {
+        const err = (e2 ?? e1) as GeolocationPositionError;
+        setLoading(false);
+        if (err?.code === 1) {
+          setError(
+            "Permission denied. Tap the lock/info icon in your browser bar → allow Location for this site, then try again.",
+          );
+        } else if (err?.code === 2) {
+          setError(
+            "Couldn't get your position (signal weak). Move near a window or turn on Wi-Fi/GPS, then retry.",
+          );
+        } else if (err?.code === 3) {
+          setError("Location request timed out. Please try again.");
+        } else {
+          setError(err?.message || "Couldn't read your location. Please try again.");
+        }
+        return;
+      }
+    }
+
+    await callApi(pos.coords.latitude, pos.coords.longitude);
   }
 
   useEffect(() => {

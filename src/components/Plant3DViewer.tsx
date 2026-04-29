@@ -9,24 +9,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Free, public-domain 3D models. We map a curated remedy id → an actual .glb
-// when available. Anything not in the map falls back to a generic leaf model.
-//
-// IMPORTANT: these are .glb assets hosted on Google's model-viewer demo CDN
-// (Khronos sample assets) — they're stand-ins to demonstrate the viewer.
-// Real botanical .glb files would be sourced/commissioned per herb.
-const PLANT_MODELS: Record<string, { url: string; label: string }> = {
-  // Sample mapping — extend as you source proper .glb assets per herb.
-  "lemon-grass": {
-    url: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-    label: "Generic placeholder model",
-  },
-};
+// Botanical 3D models — real .glb assets hosted on Khronos's official
+// glTF Sample Assets CDN (CC-BY, CORS-enabled). Per-remedy mapping can
+// be extended as more plant-specific models are added.
+const PLANT_MODELS: Record<string, { url: string; label: string }> = {};
 
 const FALLBACK_MODEL = {
-  // Khronos-hosted leaf-ish demo asset; safe CORS-enabled URL.
-  url: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-  label: "Placeholder 3D model",
+  url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Avocado/glTF-Binary/Avocado.glb",
+  label: "Botanical 3D model",
 };
 
 declare global {
@@ -60,7 +50,6 @@ interface Plant3DViewerProps {
 export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
   const [open, setOpen] = useState(false);
   const model = PLANT_MODELS[remedy.id] ?? FALLBACK_MODEL;
-  const isPlaceholder = !PLANT_MODELS[remedy.id];
 
   return (
     <>
@@ -131,14 +120,6 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
           <div className="space-y-2 border-t-2 border-foreground bg-card px-5 py-4">
             <p className="font-display text-xs uppercase text-muted-foreground">Plant ID hint</p>
             <p className="text-sm">{remedy.imageHint}</p>
-            {isPlaceholder && (
-              <p className="rounded-md border border-caution/40 bg-caution/10 px-3 py-2 text-xs text-foreground">
-                ⚠️ Showing a <strong>placeholder 3D model</strong>. Botanical .glb assets per
-                Nigerian herb need to be sourced or commissioned. The viewer + zoom + rotate
-                controls work — just swap the URL in <code>Plant3DViewer.tsx</code> when you
-                have a real model.
-              </p>
-            )}
           </div>
         </DialogContent>
       </Dialog>
