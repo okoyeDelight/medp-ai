@@ -18,13 +18,14 @@ import { FeelCheck } from "@/components/FeelCheck";
 import { Plant3DViewer } from "@/components/Plant3DViewer";
 import { ScienceSnapshot } from "@/components/ScienceSnapshot";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { PharmacyFinder } from "@/components/PharmacyFinder";
 import { logDose, setFeel, type Feel } from "@/lib/diary";
 import { ensureNotificationPermission, scheduleNotification, showNotification } from "@/lib/notifications";
 
 interface RemedyDetailProps {
   remedy: Remedy;
   onBack: () => void;
-  onFindChemist: () => void;
+  onFindChemist?: () => void;
 }
 
 export function RemedyDetail({ remedy, onBack, onFindChemist }: RemedyDetailProps) {
