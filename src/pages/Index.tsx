@@ -128,7 +128,6 @@ const Index = () => {
           <RemedyDetail
             remedy={selected}
             onBack={() => setSelected(null)}
-            onFindChemist={findChemist}
           />
         ) : (
           <div className="space-y-6">
