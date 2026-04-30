@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Remedy } from "@/data/remedies";
-import { Button } from "@/components/ui/button";
-import { Box, Maximize2, RotateCcw, Sprout } from "lucide-react";
+import { Box, Maximize2, Minus, Plus, RotateCcw, Sprout } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,39 +8,28 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// Botanical 3D models — real .glb assets hosted on Khronos's official
-// glTF Sample Assets CDN (CC-BY, CORS-enabled). Per-remedy mapping can
-// be extended as more plant-specific models are added.
-const PLANT_MODELS: Record<string, { url: string; label: string }> = {};
+import dogonyaro from "@/assets/plants/dogonyaro.jpg";
+import ginger from "@/assets/plants/ginger.jpg";
+import bitterleaf from "@/assets/plants/bitterleaf.jpg";
+import lemongrass from "@/assets/plants/lemongrass.jpg";
+import garlic from "@/assets/plants/garlic.jpg";
+import scentleaf from "@/assets/plants/scentleaf.jpg";
+import aloe from "@/assets/plants/aloe.jpg";
+import mangoBark from "@/assets/plants/mango-bark.jpg";
 
-const FALLBACK_MODEL = {
-  url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Avocado/glTF-Binary/Avocado.glb",
-  label: "Botanical 3D model",
+// Per-remedy botanical illustrations. Each one is a hand-painted, species-accurate
+// reference of THAT plant — NOT a generic stand-in. If a remedy id is not listed,
+// the viewer shows an "image not yet available" notice instead of the wrong plant.
+const PLANT_IMAGES: Record<string, string> = {
+  dogonyaro,
+  ginger,
+  bitterleaf,
+  lemongrass,
+  garlic,
+  scentleaf,
+  aloe,
+  "mango-bark": mangoBark,
 };
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "model-viewer": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          src?: string;
-          alt?: string;
-          ar?: boolean | "";
-          "auto-rotate"?: boolean | "";
-          "camera-controls"?: boolean | "";
-          "shadow-intensity"?: string | number;
-          "rotation-per-second"?: string;
-          "environment-image"?: string;
-          poster?: string;
-          loading?: "auto" | "lazy" | "eager";
-          reveal?: "auto" | "interaction";
-        },
-        HTMLElement
-      >;
-    }
-  }
-}
 
 interface Plant3DViewerProps {
   remedy: Remedy;
@@ -49,22 +37,52 @@ interface Plant3DViewerProps {
 
 export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
   const [open, setOpen] = useState(false);
-  const model = PLANT_MODELS[remedy.id] ?? FALLBACK_MODEL;
+  const [scale, setScale] = useState(1);
+  const [rot, setRot] = useState(0);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<{ x: number; y: number } | null>(null);
+
+  const image = PLANT_IMAGES[remedy.id];
+
+  function reset() {
+    setScale(1);
+    setRot(0);
+    setPos({ x: 0, y: 0 });
+  }
+
+  function onPointerDown(e: React.PointerEvent) {
+    (e.target as Element).setPointerCapture(e.pointerId);
+    dragRef.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
+  }
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragRef.current) return;
+    setPos({ x: e.clientX - dragRef.current.x, y: e.clientY - dragRef.current.y });
+  }
+  function onPointerUp() {
+    dragRef.current = null;
+  }
+  function onWheel(e: React.WheelEvent) {
+    e.preventDefault();
+    setScale((s) => Math.min(4, Math.max(0.5, s - e.deltaY * 0.002)));
+  }
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          reset();
+          setOpen(true);
+        }}
         className="flex w-full items-center gap-3 rounded-xl border-2 border-foreground bg-accent px-4 py-3 text-left text-accent-foreground shadow-brutal-sm brutal-press hover:bg-accent/90"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm">
           <Box className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-sm uppercase leading-tight">View 3D plant model</p>
+          <p className="font-display text-sm uppercase leading-tight">View plant up close</p>
           <p className="text-xs opacity-80">
-            Rotate, zoom & inspect the leaf, stem & flower up close.
+            Pan, zoom & rotate to inspect leaves, stem & flower.
           </p>
         </div>
         <Maximize2 className="h-5 w-5 shrink-0" />
@@ -76,45 +94,86 @@ export function Plant3DViewer({ remedy }: Plant3DViewerProps) {
             <div className="flex items-center gap-2">
               <Sprout className="h-6 w-6" strokeWidth={2.5} />
               <DialogTitle className="font-display text-xl uppercase tracking-tight">
-                3D · {remedy.localName}
+                {remedy.localName}
               </DialogTitle>
             </div>
             <p className="text-xs text-primary-foreground/90">
-              Drag to rotate · Pinch / scroll to zoom · Double-tap to reset
+              {remedy.name} · Drag to pan · Scroll / pinch to zoom · Use buttons to rotate
             </p>
           </DialogHeader>
 
-          <div className="relative h-[420px] w-full bg-secondary">
-            {/* model-viewer is a custom element registered globally */}
-            <model-viewer
-              src={model.url}
-              alt={`3D model of ${remedy.name}`}
-              ar
-              camera-controls
-              auto-rotate
-              shadow-intensity="1"
-              rotation-per-second="20deg"
-              loading="eager"
-              reveal="auto"
-              style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                // simple "reset" — re-mount by toggling key
-                const mv = document.querySelector("model-viewer");
-                if (mv) {
-                  // @ts-expect-error custom-element method
-                  mv.resetTurntableRotation?.();
-                  // @ts-expect-error custom-element method
-                  mv.jumpCameraToGoal?.();
-                }
-              }}
-              className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-lg border-2 border-foreground bg-card text-foreground shadow-brutal-sm brutal-press"
-              aria-label="Reset view"
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
+          <div
+            className="relative h-[420px] w-full overflow-hidden bg-secondary touch-none"
+            onWheel={onWheel}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
+            {image ? (
+              <img
+                src={image}
+                alt={`Botanical illustration of ${remedy.name} (${remedy.localName})`}
+                draggable={false}
+                width={768}
+                height={768}
+                className="absolute left-1/2 top-1/2 h-full w-auto max-w-none select-none"
+                style={{
+                  transform: `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) rotate(${rot}deg) scale(${scale})`,
+                  transition: dragRef.current ? "none" : "transform 0.15s ease-out",
+                  cursor: dragRef.current ? "grabbing" : "grab",
+                }}
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 px-8 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-foreground bg-card text-3xl shadow-brutal-sm">
+                  {remedy.emoji}
+                </div>
+                <p className="font-display text-base uppercase">No plant image yet</p>
+                <p className="max-w-sm text-xs text-muted-foreground">
+                  We don't ship a verified illustration for <strong>{remedy.localName}</strong>{" "}
+                  yet. Rather than show the wrong plant, we'd rather show nothing — confirm with a
+                  herbalist using the ID hint below.
+                </p>
+              </div>
+            )}
+
+            {image && (
+              <div className="absolute bottom-3 right-3 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setScale((s) => Math.min(4, s + 0.25))}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-foreground bg-card text-foreground shadow-brutal-sm brutal-press"
+                  aria-label="Zoom in"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-foreground bg-card text-foreground shadow-brutal-sm brutal-press"
+                  aria-label="Zoom out"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRot((r) => r + 15)}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-foreground bg-card text-foreground shadow-brutal-sm brutal-press"
+                  aria-label="Rotate"
+                >
+                  <RotateCcw className="h-4 w-4 -scale-x-100" />
+                </button>
+                <button
+                  type="button"
+                  onClick={reset}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
+                  aria-label="Reset view"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 border-t-2 border-foreground bg-card px-5 py-4">
