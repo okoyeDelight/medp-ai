@@ -19,55 +19,197 @@ const PrivacyPolicy = () => {
             <p className="font-mono-tech text-xs uppercase tracking-wider text-muted-foreground">
               Legal · MedP-AI
             </p>
-            <h1 className="mt-2 font-display text-4xl leading-tight">Privacy Policy</h1>
+            <h1 className="mt-2 font-display text-4xl leading-tight">
+              Privacy Policy & Data Protection Agreement
+            </h1>
             <p className="mt-3 text-sm text-muted-foreground">
-              Effective date: <em>To be set on publication</em>
+              <strong>Effective Date:</strong> April 29, 2026 ·{" "}
+              <strong>Last Updated:</strong> April 29, 2026
             </p>
           </header>
 
-          <section className="space-y-6 text-sm leading-relaxed text-foreground">
-            <div className="rounded-xl border-2 border-dashed border-foreground/40 bg-muted p-5">
-              <p className="font-display text-xs uppercase tracking-wider text-muted-foreground">
-                Placeholder
+          <section className="space-y-8 text-[15px] leading-relaxed text-foreground">
+            <div>
+              <h2 className="font-display text-2xl">1. Introduction</h2>
+              <p className="mt-2">
+                Welcome to MedP-AI (also referred to as "Desprix Med AI"). We are committed to
+                protecting your personal and medical information. This Privacy Policy explains how
+                we collect, use, disclose, and safeguard your data when you use our mobile
+                application and services in accordance with the{" "}
+                <strong>Nigeria Data Protection Regulation (NDPR)</strong> and other applicable
+                data protection laws.
               </p>
               <p className="mt-2">
-                This page is reserved for the official MedP-AI Privacy Policy. The text you
-                provide will be inserted here verbatim, preserving section structure (Information
-                We Collect, How We Use It, Data Retention, Your Rights, Contact, etc.).
-              </p>
-              <p className="mt-3 text-xs text-muted-foreground">
-                Send the policy text in your next message and it will replace this notice.
+                By using MedP-AI, you consent to the data practices described in this policy. If
+                you do not agree with these terms, please do not access the application.
               </p>
             </div>
 
-            <h2 className="font-display text-2xl">Quick Summary (interim)</h2>
-            <ul className="ml-6 list-disc space-y-2">
-              <li>
-                <strong>Account data:</strong> we store your email and display name to identify
-                your account.
-              </li>
-              <li>
-                <strong>Health diary:</strong> herbal-remedy doses you log are stored in our
-                secure backend and only accessible to you.
-              </li>
-              <li>
-                <strong>Location:</strong> only used at the moment you tap "Find pharmacies" and
-                is never stored.
-              </li>
-              <li>
-                <strong>AI inputs:</strong> symptom text and plant photos are processed by our AI
-                provider for the duration of the request and are not retained beyond it.
-              </li>
-              <li>
-                <strong>Your rights:</strong> you can request permanent deletion of all your
-                account data at any time from the Profile page.
-              </li>
-            </ul>
+            <div>
+              <h2 className="font-display text-2xl">2. Information We Collect</h2>
+              <p className="mt-2">
+                To provide accurate pharmaceutical insights and AI-driven health support, we
+                collect several types of information:
+              </p>
 
-            <h2 className="font-display text-2xl">Contact</h2>
-            <p>
-              For privacy questions, contact the MedP-AI team via the in-app feedback channel.
-            </p>
+              <h3 className="mt-4 font-display text-lg">2.1 Personal Identification Information</h3>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>Name, email address, and phone number.</li>
+                <li>Professional or academic affiliation (for pharmacy students or practitioners).</li>
+              </ul>
+
+              <h3 className="mt-4 font-display text-lg">2.2 Sensitive Medical Information</h3>
+              <p className="mt-2">
+                As a health-tech platform, we may process sensitive data provided voluntarily by
+                you, including:
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>Current medications and dosage history.</li>
+                <li>Known allergies or drug contraindications.</li>
+                <li>Health conditions or symptoms entered for AI analysis.</li>
+              </ul>
+
+              <h3 className="mt-4 font-display text-lg">2.3 Technical and Usage Data</h3>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>Device information (model, operating system, unique device identifiers).</li>
+                <li>Log data (IP address, browser type, pages viewed, and time spent on the app).</li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">3. How We Use Your Information</h2>
+              <p className="mt-2">We process your information for the following purposes:</p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  <strong>Service Delivery:</strong> To operate the AI engine that analyzes drug
+                  interactions and provides medical academic resources.
+                </li>
+                <li>
+                  <strong>Personalization:</strong> To tailor health alerts and study materials to
+                  your specific profile.
+                </li>
+                <li>
+                  <strong>Safety & Compliance:</strong> To ensure the accuracy of pharmaceutical
+                  logic and comply with healthcare regulations.
+                </li>
+                <li>
+                  <strong>Improvement:</strong> To train and refine our AI models (using
+                  de-identified/anonymized data).
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">4. Legal Basis for Processing</h2>
+              <p className="mt-2">Under the NDPR, we process your data based on:</p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  <strong>Consent:</strong> Your explicit agreement when signing up or entering
+                  medical data.
+                </li>
+                <li>
+                  <strong>Legitimate Interests:</strong> To provide and improve the functionality
+                  of MedP-AI.
+                </li>
+                <li>
+                  <strong>Legal Obligations:</strong> When required by Nigerian health or data
+                  authorities.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">5. Data Security and Storage</h2>
+              <p className="mt-2">
+                The security of your data is our priority. We implement industry-standard technical
+                and organizational measures, including:
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>End-to-end encryption for sensitive medical data.</li>
+                <li>Secure cloud storage with restricted access protocols.</li>
+                <li>Regular security audits of our AI infrastructure.</li>
+              </ul>
+              <p className="mt-2">
+                Data is stored primarily on secure servers, and we ensure that any cross-border
+                data transfers comply with NDPR requirements for adequate protection.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">6. Sharing of Information</h2>
+              <p className="mt-2">
+                We do not sell your personal or medical data. We only share information in the
+                following circumstances:
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  <strong>Service Providers:</strong> Third-party cloud or AI processing partners
+                  who are bound by strict confidentiality agreements.
+                </li>
+                <li>
+                  <strong>Legal Requirement:</strong> If required by law to protect our rights or
+                  comply with a judicial proceeding.
+                </li>
+                <li>
+                  <strong>Anonymized Research:</strong> We may share aggregated, non-identifiable
+                  data with academic or medical institutions for research purposes.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">7. User Rights</h2>
+              <p className="mt-2">Under Nigerian law, you have the right to:</p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  <strong>Access:</strong> Request a copy of the personal data we hold about you.
+                </li>
+                <li>
+                  <strong>Correction:</strong> Update or fix any inaccurate information.
+                </li>
+                <li>
+                  <strong>Deletion:</strong> Request that we delete your data (the "Right to be
+                  Forgotten"), subject to legal retention requirements.
+                </li>
+                <li>
+                  <strong>Portability:</strong> Request a transfer of your data to another service
+                  provider.
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-xl border-2 border-foreground bg-danger/10 p-5">
+              <h2 className="font-display text-2xl">8. Medical Disclaimer</h2>
+              <p className="mt-2 font-semibold">
+                MedP-AI is an informational and academic tool. It does not provide medical
+                diagnoses or professional medical advice.
+              </p>
+              <p className="mt-2">
+                Users should always consult a qualified healthcare professional or pharmacist
+                before making medical decisions or changing medication regimens.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">9. Changes to This Policy</h2>
+              <p className="mt-2">
+                We may update this Privacy Policy from time to time. We will notify you of any
+                changes by posting the new policy on this page and updating the "Effective Date."
+              </p>
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl">10. Contact Us</h2>
+              <p className="mt-2">
+                If you have questions about this policy or our data practices, please contact our
+                Data Protection Officer at:
+              </p>
+              <p className="mt-2">
+                <strong>Email:</strong> [Your Startup Email Address]
+                <br />
+                <strong>Address:</strong> [Your Business Address/University Department], Nigeria
+              </p>
+            </div>
           </section>
         </article>
       </main>
