@@ -1,4 +1,5 @@
-import { Cross, Wifi } from "lucide-react";
+import { Cross } from "lucide-react";
+import { VitalsCheck } from "@/components/VitalsCheck";
 
 export function AppHeader() {
   return (
@@ -15,10 +16,7 @@ export function AppHeader() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-foreground/30 bg-secondary px-2.5 py-1">
-          <Wifi className="h-3 w-3 text-primary" />
-          <span className="font-mono-tech text-[10px] font-semibold uppercase">Data Saver</span>
-        </div>
+        <VitalsCheck />
       </div>
     </header>
   );
