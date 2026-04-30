@@ -6,6 +6,7 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { FileText, Flame, Loader2, Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { DoctorReportDialog } from "@/components/DoctorReportDialog";
+import { LegalFooter } from "@/components/LegalFooter";
 
 const FEEL_BADGE: Record<string, { emoji: string; bg: string; label: string }> = {
   better: { emoji: "😊", bg: "bg-safe text-safe-foreground", label: "Better" },
@@ -235,6 +236,7 @@ const Diary = () => {
 
         <Disclaimer />
       </main>
+      <LegalFooter />
     </div>
   );
 };

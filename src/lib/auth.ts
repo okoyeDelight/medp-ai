@@ -1,28 +1,17 @@
 import { supabase } from "@/integrations/supabase/client";
 
-let signingInPromise: Promise<void> | null = null;
-
 /**
- * Ensure the user has a Supabase session. We use anonymous sign-in so the
- * Health Diary works seamlessly without forcing the user to register —
- * but their data is still owned by a stable user_id and protected by RLS.
+ * Returns the current user id, or null if not signed in.
+ * No anonymous fallback — users must register/sign in.
  */
-export async function ensureSession(): Promise<void> {
+export async function getCurrentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
-  if (data.session) return;
-  if (signingInPromise) return signingInPromise;
+  return data.session?.user?.id ?? null;
+}
 
-  signingInPromise = (async () => {
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      console.error("Anonymous sign-in failed", error);
-      throw error;
-    }
-  })();
-
-  try {
-    await signingInPromise;
-  } finally {
-    signingInPromise = null;
-  }
+/** Throws if user not signed in. Use in code paths that require auth. */
+export async function requireUserId(): Promise<string> {
+  const uid = await getCurrentUserId();
+  if (!uid) throw new Error("You need to sign in first.");
+  return uid;
 }

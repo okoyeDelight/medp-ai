@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ensureSession } from "@/lib/auth";
+import { requireUserId } from "@/lib/auth";
 import type { Remedy } from "@/data/remedies";
 
 export type Feel = "better" | "same" | "worse";
@@ -16,10 +16,7 @@ export interface DoseLog {
 }
 
 export async function logDose(remedy: Remedy): Promise<string> {
-  await ensureSession();
-  const { data: userRes } = await supabase.auth.getUser();
-  const userId = userRes.user?.id;
-  if (!userId) throw new Error("No user session");
+  const userId = await requireUserId();
 
   const { data, error } = await supabase
     .from("dose_logs")
@@ -39,13 +36,13 @@ export async function logDose(remedy: Remedy): Promise<string> {
 }
 
 export async function setFeel(logId: string, feel: Feel): Promise<void> {
-  await ensureSession();
+  await requireUserId();
   const { error } = await supabase.from("dose_logs").update({ feel }).eq("id", logId);
   if (error) throw error;
 }
 
 export async function fetchLogs(limitDays = 30): Promise<DoseLog[]> {
-  await ensureSession();
+  await requireUserId();
   const since = new Date(Date.now() - limitDays * 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("dose_logs")
@@ -56,14 +53,12 @@ export async function fetchLogs(limitDays = 30): Promise<DoseLog[]> {
   return (data ?? []) as DoseLog[];
 }
 
-/** Count of consecutive days (ending today or yesterday) with at least one logged dose. */
 export function streakFromLogs(logs: Pick<DoseLog, "taken_at">[]): number {
   if (logs.length === 0) return 0;
   const days = new Set(
     logs.map((l) => new Date(l.taken_at).toISOString().slice(0, 10)),
   );
   let streak = 0;
-  // Allow streak to "start" today or yesterday so an early-morning visit still counts
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dayMs = 24 * 60 * 60 * 1000;

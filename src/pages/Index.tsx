@@ -14,6 +14,7 @@ import {
 import { RemedyDetail } from "@/components/RemedyDetail";
 import { PlantScanner } from "@/components/PlantScanner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { LegalFooter } from "@/components/LegalFooter";
 import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -302,13 +303,7 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="border-t-2 border-foreground bg-secondary py-5">
-        <div className="container max-w-2xl text-center">
-          <p className="font-mono-tech text-[10px] uppercase tracking-wider text-muted-foreground">
-            MedP-AI · Built for the Nigerian street · Data Saver Mode
-          </p>
-        </div>
-      </footer>
+      <LegalFooter />
 
       {/* High-risk pre-check (e.g. BP) */}
       <Dialog open={!!riskChip} onOpenChange={(o) => !o && setRiskChip(null)}>
