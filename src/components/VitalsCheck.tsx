@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
+import { logVitals } from "@/lib/vitals";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * VitalsCheck — camera-based heart-rate (rPPG) + estimated BP.
