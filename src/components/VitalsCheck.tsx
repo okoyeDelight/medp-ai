@@ -214,10 +214,41 @@ export function VitalsCheck() {
     // Kept conservative and centered around 120/80 at HR≈70.
     const sys = Math.round(110 + (clampedHr - 70) * 0.6);
     const dia = Math.round(72 + (clampedHr - 70) * 0.35);
-    setBp({ sys: Math.max(85, Math.min(180, sys)), dia: Math.max(55, Math.min(110, dia)) });
+    const sysClamped = Math.max(85, Math.min(180, sys));
+    const diaClamped = Math.max(55, Math.min(110, dia));
+    setBp({ sys: sysClamped, dia: diaClamped });
 
     setSignalQuality("good");
     setPhase("done");
+
+    // Persist to vitals_logs + diary entry so the result joins the timeline
+    // and shows up in the doctor's report.
+    void persistVitals(clampedHr, sysClamped, diaClamped);
+  }
+
+  async function persistVitals(bpmVal: number, sysVal: number, diaVal: number) {
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) return; // not signed in (shouldn't happen behind RequireAuth)
+      await logVitals({
+        pulse_bpm: bpmVal,
+        systolic: sysVal,
+        diastolic: diaVal,
+        signal_quality: "good",
+        source: "camera-rppg",
+      });
+      // Also drop a marker in dose_logs so it lands in diary + doctor report.
+      await supabase.from("dose_logs").insert({
+        user_id: sess.session.user.id,
+        remedy_id: "vitals-check",
+        remedy_name: `Vitals Check — ${bpmVal} bpm, ${sysVal}/${diaVal}`,
+        remedy_local_name: "BP & Pulse Check",
+        remedy_emoji: "❤️",
+        dose: `${bpmVal} bpm · BP ${sysVal}/${diaVal} (estimate)`,
+      });
+    } catch (e) {
+      console.error("Vitals persist failed", e);
+    }
   }
 
   return (
