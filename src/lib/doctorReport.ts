@@ -2,7 +2,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { DoseLog } from "@/lib/diary";
-import { fetchVitals } from "@/lib/vitals";
 import { REMEDIES } from "@/data/remedies";
 
 export interface ReportPatient {
