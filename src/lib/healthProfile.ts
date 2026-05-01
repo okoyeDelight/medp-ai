@@ -47,10 +47,11 @@ export async function fetchHealthProfile(): Promise<HealthProfile> {
 
 export async function updateHealthProfile(patch: Partial<HealthProfile>): Promise<void> {
   const uid = await requireUserId();
-  const { error } = await (supabase.from("profiles") as unknown as {
-    update: (v: Partial<HealthProfile>) => { eq: (c: string, v: string) => Promise<{ error: unknown }> };
-  })
-    .update(patch)
+  // Cast hmo_provider to plain string|null to match DB type
+  const dbPatch: Record<string, unknown> = { ...patch };
+  const { error } = await supabase
+    .from("profiles")
+    .update(dbPatch as never)
     .eq("user_id", uid);
   if (error) throw error;
 }
