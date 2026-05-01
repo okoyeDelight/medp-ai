@@ -55,27 +55,84 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_conditions: string[]
+          active_medications: string[]
           created_at: string
           display_name: string | null
           email: string | null
+          hmo_member_id: string | null
+          hmo_provider: string | null
           id: string
+          privacy_acknowledged_at: string | null
+          privacy_guard: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          active_conditions?: string[]
+          active_medications?: string[]
           created_at?: string
           display_name?: string | null
           email?: string | null
+          hmo_member_id?: string | null
+          hmo_provider?: string | null
           id?: string
+          privacy_acknowledged_at?: string | null
+          privacy_guard?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          active_conditions?: string[]
+          active_medications?: string[]
           created_at?: string
           display_name?: string | null
           email?: string | null
+          hmo_member_id?: string | null
+          hmo_provider?: string | null
           id?: string
+          privacy_acknowledged_at?: string | null
+          privacy_guard?: boolean
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vitals_logs: {
+        Row: {
+          created_at: string
+          diastolic: number | null
+          id: string
+          measured_at: string
+          notes: string | null
+          pulse_bpm: number | null
+          signal_quality: string | null
+          source: string
+          systolic: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diastolic?: number | null
+          id?: string
+          measured_at?: string
+          notes?: string | null
+          pulse_bpm?: number | null
+          signal_quality?: string | null
+          source?: string
+          systolic?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diastolic?: number | null
+          id?: string
+          measured_at?: string
+          notes?: string | null
+          pulse_bpm?: number | null
+          signal_quality?: string | null
+          source?: string
+          systolic?: number | null
           user_id?: string
         }
         Relationships: []
