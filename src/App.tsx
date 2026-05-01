@@ -10,6 +10,8 @@ import Auth from "./pages/Auth.tsx";
 import Profile from "./pages/Profile.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/TermsOfService.tsx";
+import SafetyScan from "./pages/SafetyScan.tsx";
+import SafetySync from "./pages/SafetySync.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 
@@ -48,6 +50,22 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/safety-scan"
+                element={
+                  <RequireAuth>
+                    <SafetyScan />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/safety-sync"
+                element={
+                  <RequireAuth>
+                    <SafetySync />
                   </RequireAuth>
                 }
               />

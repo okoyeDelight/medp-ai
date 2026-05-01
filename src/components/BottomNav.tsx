@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, NotebookPen, User } from "lucide-react";
+import { Home, NotebookPen, Shield, User } from "lucide-react";
 
 export function BottomNav() {
   const base =
@@ -26,6 +26,15 @@ export function BottomNav() {
           >
             <NotebookPen className="h-5 w-5" strokeWidth={2.5} />
             Diary
+          </NavLink>
+          <NavLink
+            to="/safety-scan"
+            className={({ isActive }) =>
+              `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`
+            }
+          >
+            <Shield className="h-5 w-5" strokeWidth={2.5} />
+            Safety
           </NavLink>
           <NavLink
             to="/profile"
