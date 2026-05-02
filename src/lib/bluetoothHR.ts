@@ -61,7 +61,7 @@ export async function connectToHeartRateMonitor(
 
   // Subscribe to notifications for live updates.
   const handler = (event: Event) => {
-    const target = event.target as BluetoothRemoteGATTCharacteristic;
+    const target = event.target as unknown as AnyBtChar;
     if (target.value) onBpm(parseHeartRate(target.value));
   };
   characteristic.addEventListener("characteristicvaluechanged", handler);
