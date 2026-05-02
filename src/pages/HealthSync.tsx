@@ -34,6 +34,7 @@ import { fetchVitals, bpCategory, glucoseCategory, affectsHeartRate, type Vitals
 import { fetchLogs, type DoseLog } from "@/lib/diary";
 import { fetchHealthProfile, type HealthProfile } from "@/lib/healthProfile";
 import { downloadReport } from "@/lib/doctorReport";
+import { connectToHeartRateMonitor, isWebBluetoothSupported, type HRConnection } from "@/lib/bluetoothHR";
 
 type DeviceId = "apple" | "google" | "bp_monitor";
 interface Device {
@@ -112,6 +113,68 @@ const HealthSync = () => {
   const [profile, setProfile] = useState<HealthProfile | null>(null);
   const [livePulse, setLivePulse] = useState<number[]>(() => seedPulse(72));
   const [reportOpen, setReportOpen] = useState(false);
+  const [btBpm, setBtBpm] = useState<number | null>(null);
+  const [btConn, setBtConn] = useState<HRConnection | null>(null);
+  const [btConnecting, setBtConnecting] = useState(false);
+
+  // Cleanup BT connection on unmount.
+  useEffect(() => {
+    return () => {
+      btConn?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function connectBluetoothHR() {
+    if (!isWebBluetoothSupported()) {
+      toast({
+        title: "Bluetooth not supported",
+        description: "Your browser does not support Web Bluetooth. Please use Chrome or Edge.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setBtConnecting(true);
+    try {
+      const conn = await connectToHeartRateMonitor((bpm) => {
+        setBtBpm(bpm);
+        setLivePulse((prev) => [...prev.slice(-29), bpm]);
+      });
+      setBtConn(conn);
+      setConnected((prev) => {
+        const next = new Set(prev);
+        next.add("bp_monitor");
+        saveConnected(next);
+        return next;
+      });
+      conn.device.gatt && (conn.device as any).addEventListener?.("gattserverdisconnected", () => {
+        setBtConn(null);
+        toast({ title: "Bluetooth disconnected", description: "Heart rate monitor link ended." });
+      });
+      toast({ title: "Heart rate monitor connected", description: (conn.device as any).name ?? "Streaming live BPM." });
+    } catch (e: any) {
+      const msg = e?.message === "WEB_BLUETOOTH_UNSUPPORTED"
+        ? "Your browser does not support Web Bluetooth. Please use Chrome or Edge."
+        : e?.name === "NotFoundError"
+          ? "No device selected."
+          : e?.message ?? "Could not connect to heart rate monitor.";
+      toast({ title: "Bluetooth error", description: msg, variant: "destructive" });
+    } finally {
+      setBtConnecting(false);
+    }
+  }
+
+  function disconnectBluetoothHR() {
+    btConn?.disconnect();
+    setBtConn(null);
+    setBtBpm(null);
+    setConnected((prev) => {
+      const next = new Set(prev);
+      next.delete("bp_monitor");
+      saveConnected(next);
+      return next;
+    });
+  }
 
   useEffect(() => {
     (async () => {
@@ -267,18 +330,33 @@ const HealthSync = () => {
                     </div>
                     <p className="truncate text-xs text-muted-foreground">{d.description}</p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={isOn ? "outline" : "default"}
-                    onClick={() => (isOn ? syncDevice(d.id) : toggleDevice(d.id))}
-                    disabled={isSyncing}
-                  >
-                    {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : isOn ? "Sync" : "Pair"}
-                  </Button>
-                  {isOn && (
-                    <Button size="sm" variant="ghost" onClick={() => toggleDevice(d.id)} className="text-xs text-muted-foreground">
-                      Unlink
-                    </Button>
+                  {d.id === "bp_monitor" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant={btConn ? "outline" : "default"}
+                        onClick={btConn ? disconnectBluetoothHR : connectBluetoothHR}
+                        disabled={btConnecting}
+                      >
+                        {btConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : btConn ? "Disconnect" : "Pair"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        variant={isOn ? "outline" : "default"}
+                        onClick={() => (isOn ? syncDevice(d.id) : toggleDevice(d.id))}
+                        disabled={isSyncing}
+                      >
+                        {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : isOn ? "Sync" : "Pair"}
+                      </Button>
+                      {isOn && (
+                        <Button size="sm" variant="ghost" onClick={() => toggleDevice(d.id)} className="text-xs text-muted-foreground">
+                          Unlink
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               );
@@ -297,7 +375,7 @@ const HealthSync = () => {
                   Heart Rate
                 </CardDescription>
                 <CardTitle className="font-display text-3xl">
-                  {latestPulse?.pulse_bpm ?? livePulse[livePulse.length - 1]}{" "}
+                  {btBpm ?? latestPulse?.pulse_bpm ?? livePulse[livePulse.length - 1]}{" "}
                   <span className="text-sm font-medium text-muted-foreground">BPM</span>
                 </CardTitle>
               </div>
