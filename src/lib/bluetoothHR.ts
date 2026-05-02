@@ -1,9 +1,20 @@
 // Web Bluetooth heart rate monitor integration.
 // Standard GATT: Heart Rate Service (0x180D), Heart Rate Measurement char (0x2A37).
 
+// Minimal Web Bluetooth typings (avoids requiring @types/web-bluetooth).
+type AnyBtDevice = { gatt?: { connect: () => Promise<any>; disconnect: () => void } };
+type AnyBtChar = {
+  readValue: () => Promise<DataView>;
+  startNotifications: () => Promise<unknown>;
+  stopNotifications: () => Promise<unknown>;
+  addEventListener: (t: string, h: (e: Event) => void) => void;
+  removeEventListener: (t: string, h: (e: Event) => void) => void;
+  value?: DataView;
+};
+
 export interface HRConnection {
-  device: BluetoothDevice;
-  characteristic: BluetoothRemoteGATTCharacteristic;
+  device: AnyBtDevice;
+  characteristic: AnyBtChar;
   disconnect: () => void;
 }
 
