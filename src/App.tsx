@@ -12,6 +12,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/TermsOfService.tsx";
 import SafetyScan from "./pages/SafetyScan.tsx";
 import SafetySync from "./pages/SafetySync.tsx";
+import HealthSync from "./pages/HealthSync.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 
@@ -66,6 +67,14 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <SafetySync />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/health-sync"
+                element={
+                  <RequireAuth>
+                    <HealthSync />
                   </RequireAuth>
                 }
               />

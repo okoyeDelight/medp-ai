@@ -1,0 +1,1 @@
+ALTER TABLE public.vitals_logs ADD COLUMN IF NOT EXISTS glucose_mgdl integer;
