@@ -102,6 +102,7 @@ export type Database = {
         Row: {
           created_at: string
           diastolic: number | null
+          glucose_mgdl: number | null
           id: string
           measured_at: string
           notes: string | null
@@ -114,6 +115,7 @@ export type Database = {
         Insert: {
           created_at?: string
           diastolic?: number | null
+          glucose_mgdl?: number | null
           id?: string
           measured_at?: string
           notes?: string | null
@@ -126,6 +128,7 @@ export type Database = {
         Update: {
           created_at?: string
           diastolic?: number | null
+          glucose_mgdl?: number | null
           id?: string
           measured_at?: string
           notes?: string | null
