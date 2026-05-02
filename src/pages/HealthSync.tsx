@@ -151,7 +151,7 @@ const HealthSync = () => {
         setBtConn(null);
         toast({ title: "Bluetooth disconnected", description: "Heart rate monitor link ended." });
       });
-      toast({ title: "Heart rate monitor connected", description: conn.device.name ?? "Streaming live BPM." });
+      toast({ title: "Heart rate monitor connected", description: (conn.device as any).name ?? "Streaming live BPM." });
     } catch (e: any) {
       const msg = e?.message === "WEB_BLUETOOTH_UNSUPPORTED"
         ? "Your browser does not support Web Bluetooth. Please use Chrome or Edge."
