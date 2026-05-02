@@ -113,6 +113,68 @@ const HealthSync = () => {
   const [profile, setProfile] = useState<HealthProfile | null>(null);
   const [livePulse, setLivePulse] = useState<number[]>(() => seedPulse(72));
   const [reportOpen, setReportOpen] = useState(false);
+  const [btBpm, setBtBpm] = useState<number | null>(null);
+  const [btConn, setBtConn] = useState<HRConnection | null>(null);
+  const [btConnecting, setBtConnecting] = useState(false);
+
+  // Cleanup BT connection on unmount.
+  useEffect(() => {
+    return () => {
+      btConn?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function connectBluetoothHR() {
+    if (!isWebBluetoothSupported()) {
+      toast({
+        title: "Bluetooth not supported",
+        description: "Your browser does not support Web Bluetooth. Please use Chrome or Edge.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setBtConnecting(true);
+    try {
+      const conn = await connectToHeartRateMonitor((bpm) => {
+        setBtBpm(bpm);
+        setLivePulse((prev) => [...prev.slice(-29), bpm]);
+      });
+      setBtConn(conn);
+      setConnected((prev) => {
+        const next = new Set(prev);
+        next.add("bp_monitor");
+        saveConnected(next);
+        return next;
+      });
+      conn.device.gatt && (conn.device as any).addEventListener?.("gattserverdisconnected", () => {
+        setBtConn(null);
+        toast({ title: "Bluetooth disconnected", description: "Heart rate monitor link ended." });
+      });
+      toast({ title: "Heart rate monitor connected", description: conn.device.name ?? "Streaming live BPM." });
+    } catch (e: any) {
+      const msg = e?.message === "WEB_BLUETOOTH_UNSUPPORTED"
+        ? "Your browser does not support Web Bluetooth. Please use Chrome or Edge."
+        : e?.name === "NotFoundError"
+          ? "No device selected."
+          : e?.message ?? "Could not connect to heart rate monitor.";
+      toast({ title: "Bluetooth error", description: msg, variant: "destructive" });
+    } finally {
+      setBtConnecting(false);
+    }
+  }
+
+  function disconnectBluetoothHR() {
+    btConn?.disconnect();
+    setBtConn(null);
+    setBtBpm(null);
+    setConnected((prev) => {
+      const next = new Set(prev);
+      next.delete("bp_monitor");
+      saveConnected(next);
+      return next;
+    });
+  }
 
   useEffect(() => {
     (async () => {
