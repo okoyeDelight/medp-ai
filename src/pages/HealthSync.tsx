@@ -375,7 +375,7 @@ const HealthSync = () => {
                   Heart Rate
                 </CardDescription>
                 <CardTitle className="font-display text-3xl">
-                  {latestPulse?.pulse_bpm ?? livePulse[livePulse.length - 1]}{" "}
+                  {btBpm ?? latestPulse?.pulse_bpm ?? livePulse[livePulse.length - 1]}{" "}
                   <span className="text-sm font-medium text-muted-foreground">BPM</span>
                 </CardTitle>
               </div>
