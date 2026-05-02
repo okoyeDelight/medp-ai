@@ -330,18 +330,33 @@ const HealthSync = () => {
                     </div>
                     <p className="truncate text-xs text-muted-foreground">{d.description}</p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={isOn ? "outline" : "default"}
-                    onClick={() => (isOn ? syncDevice(d.id) : toggleDevice(d.id))}
-                    disabled={isSyncing}
-                  >
-                    {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : isOn ? "Sync" : "Pair"}
-                  </Button>
-                  {isOn && (
-                    <Button size="sm" variant="ghost" onClick={() => toggleDevice(d.id)} className="text-xs text-muted-foreground">
-                      Unlink
-                    </Button>
+                  {d.id === "bp_monitor" ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant={btConn ? "outline" : "default"}
+                        onClick={btConn ? disconnectBluetoothHR : connectBluetoothHR}
+                        disabled={btConnecting}
+                      >
+                        {btConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : btConn ? "Disconnect" : "Pair"}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        variant={isOn ? "outline" : "default"}
+                        onClick={() => (isOn ? syncDevice(d.id) : toggleDevice(d.id))}
+                        disabled={isSyncing}
+                      >
+                        {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : isOn ? "Sync" : "Pair"}
+                      </Button>
+                      {isOn && (
+                        <Button size="sm" variant="ghost" onClick={() => toggleDevice(d.id)} className="text-xs text-muted-foreground">
+                          Unlink
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               );
