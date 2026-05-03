@@ -1,62 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* MedP-AI Design System
- * Hybrid: clean medical white-space + bold Nigerian pharmacy green neobrutalism
+/* MedP-AI Design System — Medical Luxury
+ * Deep emerald (#22543D), refined neutrals, generous whitespace, soft shadows.
+ * SF Pro-style typography via -apple-system stack + Inter fallback.
  * All colors HSL.
  */
 
 @layer base {
   :root {
-    /* Surfaces — clean medical mint off-white */
-    --background: 150 30% 97%;
-    --foreground: 165 35% 10%;
+    /* Surfaces — clinical white with the faintest cool tint */
+    --background: 160 20% 99%;
+    --foreground: 158 35% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 165 35% 10%;
+    --card-foreground: 158 35% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 165 35% 10%;
+    --popover-foreground: 158 35% 9%;
 
-    /* Nigerian Pharmacy Green — primary action */
-    --primary: 145 75% 28%;
-    --primary-foreground: 60 50% 97%;
-    --primary-glow: 142 70% 40%;
+    /* Pharma Green — emerald #22543D ≈ hsl(151, 43%, 23%) */
+    --primary: 151 43% 23%;
+    --primary-foreground: 150 25% 98%;
+    --primary-glow: 151 50% 38%;
 
-    /* Soft mint secondary */
-    --secondary: 150 40% 92%;
-    --secondary-foreground: 165 40% 15%;
+    /* Soft sage secondary */
+    --secondary: 150 25% 95%;
+    --secondary-foreground: 158 40% 14%;
 
-    --muted: 150 20% 94%;
-    --muted-foreground: 165 15% 40%;
+    --muted: 155 18% 96%;
+    --muted-foreground: 158 12% 42%;
 
-    /* Warm chemist-shop yellow accent */
-    --accent: 45 95% 55%;
-    --accent-foreground: 165 50% 12%;
+    /* Refined gold accent (luxury, not chemist-yellow) */
+    --accent: 38 55% 55%;
+    --accent-foreground: 158 40% 12%;
 
     /* Safety gate signals */
-    --safe: 145 75% 32%;
-    --safe-foreground: 60 50% 97%;
-    --caution: 38 95% 50%;
+    --safe: 151 50% 30%;
+    --safe-foreground: 150 25% 98%;
+    --caution: 35 92% 50%;
     --caution-foreground: 30 60% 12%;
-    --danger: 358 80% 52%;
+    --danger: 0 75% 50%;
     --danger-foreground: 0 0% 100%;
 
-    --destructive: 358 80% 52%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 20% 85%;
-    --input: 150 20% 88%;
-    --ring: 145 75% 28%;
+    --border: 155 15% 90%;
+    --input: 155 15% 92%;
+    --ring: 151 43% 23%;
 
-    /* Neobrutalist hard shadow */
-    --shadow-brutal: 4px 4px 0 0 hsl(165 35% 10%);
-    --shadow-brutal-sm: 2px 2px 0 0 hsl(165 35% 10%);
-    --shadow-brutal-lg: 6px 6px 0 0 hsl(165 35% 10%);
-    --shadow-soft: 0 4px 20px -8px hsl(145 75% 28% / 0.25);
+    /* Brutal kept (legacy components still use it) but softened */
+    --shadow-brutal: 3px 3px 0 0 hsl(158 35% 9%);
+    --shadow-brutal-sm: 2px 2px 0 0 hsl(158 35% 9%);
+    --shadow-brutal-lg: 5px 5px 0 0 hsl(158 35% 9%);
+
+    /* Medical Luxury shadows */
+    --shadow-soft: 0 1px 2px hsl(158 35% 9% / 0.04), 0 8px 24px -12px hsl(151 43% 23% / 0.18);
+    --shadow-elev: 0 2px 4px hsl(158 35% 9% / 0.04), 0 12px 32px -8px hsl(151 43% 23% / 0.22);
+    --shadow-ring: 0 0 0 1px hsl(155 15% 90%), 0 1px 2px hsl(158 35% 9% / 0.04);
+
+    --gradient-luxe: linear-gradient(135deg, hsl(151 43% 23%) 0%, hsl(151 50% 32%) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(160 20% 99%) 0%, hsl(155 25% 97%) 100%);
 
     --radius: 0.875rem;
 
