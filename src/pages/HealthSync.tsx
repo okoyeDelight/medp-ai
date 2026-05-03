@@ -200,10 +200,16 @@ const HealthSync = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [v, l, p] = await Promise.all([fetchVitals(90), fetchLogs(30), fetchHealthProfile()]);
+        const [v, l, p, s] = await Promise.all([
+          fetchVitals(90),
+          fetchLogs(30),
+          fetchHealthProfile(),
+          fetchSafetyScore().catch(() => null),
+        ]);
         setVitals(v);
         setLogs(l);
         setProfile(p);
+        if (s) setScore(s);
       } catch (e) {
         console.error(e);
       }
