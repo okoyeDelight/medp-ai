@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { requireUserId } from "@/lib/auth";
 import type { Remedy } from "@/data/remedies";
+import { applyScoreDelta } from "@/lib/safetyScore";
 
 export type Feel = "better" | "same" | "worse";
 
@@ -32,6 +33,8 @@ export async function logDose(remedy: Remedy): Promise<string> {
     .single();
 
   if (error) throw error;
+  // Bump safety score for proactive logging.
+  applyScoreDelta(1, "herb_check", `Logged ${remedy.name}`).catch(() => {});
   return data.id;
 }
 

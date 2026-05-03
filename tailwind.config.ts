@@ -74,6 +74,8 @@ export default {
         "brutal-sm": "var(--shadow-brutal-sm)",
         "brutal-lg": "var(--shadow-brutal-lg)",
         soft: "var(--shadow-soft)",
+        elev: "var(--shadow-elev)",
+        ring: "var(--shadow-ring)",
       },
       borderRadius: {
         lg: "var(--radius)",
