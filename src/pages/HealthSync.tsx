@@ -247,6 +247,12 @@ const HealthSync = () => {
       title: "Sync complete",
       description: id === "all" ? "All connected devices refreshed." : `${DEVICES.find((d) => d.id === id)?.name} refreshed.`,
     });
+    try {
+      const next = await applyScoreDelta(1, "vitals_sync", `Sync · ${id}`);
+      setScore(next);
+    } catch {
+      // ignore
+    }
   }
 
   // Latest vitals snapshot.
