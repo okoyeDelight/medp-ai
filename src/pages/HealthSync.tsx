@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +30,29 @@ import {
   Watch,
   Eye,
   Download,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Radio,
+  Network,
+  AlertTriangle,
+  CheckCircle2,
+  Trophy,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { fetchVitals, bpCategory, glucoseCategory, affectsHeartRate, type VitalsLog } from "@/lib/vitals";
 import { fetchLogs, type DoseLog } from "@/lib/diary";
 import { fetchHealthProfile, type HealthProfile } from "@/lib/healthProfile";
 import { downloadReport } from "@/lib/doctorReport";
 import { connectToHeartRateMonitor, isWebBluetoothSupported, type HRConnection } from "@/lib/bluetoothHR";
+import {
+  fetchSafetyScore,
+  applyScoreDelta,
+  scoreTier,
+  type SafetyScore,
+} from "@/lib/safetyScore";
+import { runIntersectionCheck, tierColor } from "@/lib/pharmaLogic";
 
 type DeviceId = "apple" | "google" | "bp_monitor";
 interface Device {
