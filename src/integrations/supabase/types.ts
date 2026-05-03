@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      health_safety_scores: {
+        Row: {
+          context: Json
+          created_at: string
+          id: string
+          premium_discount_pct: number
+          score: number
+          updated_at: string
+          user_id: string
+          wellness_points: number
+        }
+        Insert: {
+          context?: Json
+          created_at?: string
+          id?: string
+          premium_discount_pct?: number
+          score?: number
+          updated_at?: string
+          user_id: string
+          wellness_points?: number
+        }
+        Update: {
+          context?: Json
+          created_at?: string
+          id?: string
+          premium_discount_pct?: number
+          score?: number
+          updated_at?: string
+          user_id?: string
+          wellness_points?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active_conditions: string[]
@@ -94,6 +127,36 @@ export type Database = {
           privacy_acknowledged_at?: string | null
           privacy_guard?: boolean
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      safety_score_events: {
+        Row: {
+          category: string
+          created_at: string
+          delta: number
+          id: string
+          metadata: Json
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          delta: number
+          id?: string
+          metadata?: Json
+          reason: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          delta?: number
+          id?: string
+          metadata?: Json
+          reason?: string
           user_id?: string
         }
         Relationships: []
