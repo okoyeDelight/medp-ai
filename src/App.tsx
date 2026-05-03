@@ -79,6 +79,14 @@ const App = () => (
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/connectivity"
+                element={
+                  <RequireAuth>
+                    <Connectivity />
+                  </RequireAuth>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
