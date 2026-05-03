@@ -282,22 +282,178 @@ const HealthSync = () => {
 
   const hmoLabel = profile?.hmo_provider ?? "your HMO";
 
+  // Pharma-Logic intersection across profile × biometrics × herbs.
+  const liveBpm = btBpm ?? latestPulse?.pulse_bpm ?? null;
+  const intersection = useMemo(
+    () =>
+      runIntersectionCheck(
+        profile,
+        {
+          bpm: liveBpm,
+          systolic: latestBp?.systolic ?? null,
+          diastolic: latestBp?.diastolic ?? null,
+          glucose: latestGlucose?.glucose_mgdl ?? null,
+        },
+        logs,
+      ),
+    [profile, liveBpm, latestBp, latestGlucose, logs],
+  );
+  const tier = tierColor(intersection.tier);
+  const scoreInfo = score ? scoreTier(score.score) : null;
+
+  async function toggleLiveStream(v: boolean) {
+    setLiveStream(v);
+    if (v) {
+      toast({
+        title: "Safety Feed live",
+        description: `${hmoLabel} doctor is now receiving your vitals & herbal intake.`,
+      });
+      try {
+        const next = await applyScoreDelta(2, "report_shared", "Live stream enabled");
+        setScore(next);
+      } catch {
+        // ignore
+      }
+    } else {
+      toast({ title: "Safety Feed paused", description: "Doctor link closed." });
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background pb-8">
       <AppHeader />
 
       <main className="container max-w-2xl space-y-6 px-4 pt-4">
         {/* Page header — Medical Luxury */}
-        <header className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <header className="space-y-1.5">
+          <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
             <Stethoscope className="h-3.5 w-3.5" />
-            Live Health Sync
+            Universal Clinical Gateway
           </div>
-          <h1 className="font-display text-3xl font-bold leading-tight text-foreground">Vitals Dashboard</h1>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-foreground">
+            Vitals Dashboard
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Real-time vitals from connected devices, correlated with your herbal diary.
+            Real-time vitals correlated with your herbal diary, conditions, and medications.
           </p>
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <button
+              onClick={() => setFhirOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[11px] font-medium text-primary transition hover:bg-primary/10"
+            >
+              <ShieldCheck className="h-3 w-3" /> Zero-Knowledge · FHIR
+            </button>
+            <Link
+              to="/connectivity"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[11px] font-medium text-muted-foreground transition hover:text-foreground"
+            >
+              <Network className="h-3 w-3" /> Connectivity Center
+            </Link>
+          </div>
         </header>
+
+        {/* Health Safety Score + Wellness Points */}
+        {score && scoreInfo && (
+          <Card className="luxe-card overflow-hidden">
+            <div className="luxe-gradient px-5 py-4 text-primary-foreground">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] opacity-80">
+                    Health Safety Score
+                  </p>
+                  <p className="font-display text-4xl font-bold leading-none">
+                    {score.score}
+                    <span className="ml-1 text-base opacity-70">/100</span>
+                  </p>
+                </div>
+                <Badge className="bg-primary-foreground/15 text-primary-foreground backdrop-blur">
+                  {scoreInfo.label}
+                </Badge>
+              </div>
+              <Progress value={score.score} className="mt-3 h-1.5 bg-primary-foreground/20 [&>div]:bg-primary-foreground" />
+            </div>
+            <CardContent className="grid grid-cols-2 gap-3 pt-4">
+              <div className="rounded-lg border border-border bg-muted/40 p-3">
+                <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                  <Sparkles className="h-3 w-3" /> Wellness Points
+                </p>
+                <p className="mt-1 font-display text-xl font-bold">{score.wellness_points}</p>
+              </div>
+              <div className="rounded-lg border border-[hsl(var(--accent)/0.4)] bg-[hsl(var(--accent)/0.08)] p-3">
+                <p className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--accent-foreground))]">
+                  <Trophy className="h-3 w-3" /> Premium Discount
+                </p>
+                <p className="mt-1 font-display text-xl font-bold">
+                  {score.premium_discount_pct.toFixed(1)}%
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pharma-Logic Intersection Check */}
+        <Card className={`border-2 ${tier.border} ${tier.bg} shadow-soft`}>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                {intersection.tier === "critical" ? (
+                  <AlertTriangle className="h-4 w-4 text-[hsl(var(--danger))]" />
+                ) : intersection.tier === "ok" ? (
+                  <CheckCircle2 className="h-4 w-4 text-[hsl(var(--safe))]" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+                Intersection Check
+              </CardTitle>
+              <Badge className={`${tier.badge} uppercase`}>{intersection.tier}</Badge>
+            </div>
+            <CardDescription className="text-xs">
+              Profile · Live biometrics · Herbal compounds
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-0">
+            <p className="font-semibold text-foreground">{intersection.title}</p>
+            <p className="text-sm text-muted-foreground">{intersection.detail}</p>
+            {intersection.triggers.length > 0 && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {intersection.triggers.map((t) => (
+                  <Badge key={t} variant="outline" className="font-mono-tech text-[10px]">
+                    {t}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Live Stream toggle */}
+        <Card className="luxe-card">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                liveStream ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              <Radio className={`h-5 w-5 ${liveStream ? "animate-pulse" : ""}`} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold">Live Stream to Provider</p>
+                {liveStream && (
+                  <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--safe))]">
+                    <span className="live-pulse-dot" /> Live
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {liveStream
+                  ? `${hmoLabel} clinical desk is receiving your Safety Feed.`
+                  : "Doctor will see vitals + herbal log in real time."}
+              </p>
+            </div>
+            <Switch checked={liveStream} onCheckedChange={toggleLiveStream} />
+          </CardContent>
+        </Card>
 
         {/* Emergency banner */}
         {isCritical && (
