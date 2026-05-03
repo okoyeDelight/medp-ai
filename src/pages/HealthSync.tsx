@@ -134,6 +134,9 @@ const HealthSync = () => {
   const [btBpm, setBtBpm] = useState<number | null>(null);
   const [btConn, setBtConn] = useState<HRConnection | null>(null);
   const [btConnecting, setBtConnecting] = useState(false);
+  const [score, setScore] = useState<SafetyScore | null>(null);
+  const [liveStream, setLiveStream] = useState(false);
+  const [fhirOpen, setFhirOpen] = useState(false);
 
   // Cleanup BT connection on unmount.
   useEffect(() => {
