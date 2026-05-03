@@ -679,9 +679,11 @@ const HealthSync = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Report Preview
+              Clinical Decision Support
             </DialogTitle>
-            <DialogDescription>For HMO doctor review · last 7 days</DialogDescription>
+            <DialogDescription>
+              For HMO doctor review · last 7 days · <span className="font-medium">Not a prescription</span>
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 rounded-md border bg-card p-4 text-sm">
@@ -713,6 +715,15 @@ const HealthSync = () => {
 
             <div>
               <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
+                Pharma-Logic Findings
+              </p>
+              <p className="text-sm">
+                <span className="font-medium">{intersection.title}:</span> {intersection.detail}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
                 Herbal History ({logs.length} entries)
               </p>
               <ul className="max-h-32 space-y-0.5 overflow-y-auto">
@@ -730,6 +741,10 @@ const HealthSync = () => {
                 ⚠ Critical BP flag included. {hmoLabel} Emergency Desk auto-notified.
               </div>
             )}
+
+            <p className="border-t pt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+              FHIR-formatted · Decision support only
+            </p>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
@@ -741,12 +756,48 @@ const HealthSync = () => {
                 downloadReport(logs, { name: profile?.display_name ?? undefined }, 7);
                 setReportOpen(false);
                 toast({ title: "Report downloaded", description: "PDF saved to your device." });
+                applyScoreDelta(2, "report_shared", "Clinical report exported")
+                  .then(setScore)
+                  .catch(() => {});
               }}
               className="gap-2"
             >
               <Download className="h-4 w-4" />
               Download PDF
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Zero-Knowledge / FHIR explainer */}
+      <Dialog open={fhirOpen} onOpenChange={setFhirOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Zero-Knowledge Privacy
+            </DialogTitle>
+            <DialogDescription>How your clinical data is protected</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <p>
+              MedP-AI processes your clinical data using <span className="font-semibold text-foreground">FHIR</span>{" "}
+              (Fast Healthcare Interoperability Resources) — the same global standard used by hospitals
+              and HMOs.
+            </p>
+            <ul className="space-y-1 pl-4">
+              <li>• Vitals encoded as FHIR <span className="font-mono">Observation</span> resources</li>
+              <li>• Herbs encoded as <span className="font-mono">MedicationStatement</span></li>
+              <li>• Doctor receives a signed <span className="font-mono">Bundle</span> — never raw exports</li>
+              <li>• Zero-knowledge proofs verify integrity without exposing identifiers</li>
+            </ul>
+            <p className="text-xs">
+              Reports are framed as <span className="font-medium text-foreground">Clinical Decision Support</span>{" "}
+              for your doctor — never as prescriptions.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setFhirOpen(false)}>Got it</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
