@@ -46,6 +46,7 @@ import { fetchLogs, type DoseLog } from "@/lib/diary";
 import { fetchHealthProfile, type HealthProfile } from "@/lib/healthProfile";
 import { downloadReport } from "@/lib/doctorReport";
 import { connectToHeartRateMonitor, isWebBluetoothSupported, type HRConnection } from "@/lib/bluetoothHR";
+import { sanitizeRowsForProvider, PROVIDER_ALLOWED_TABLES } from "@/lib/providerScope";
 import {
   fetchSafetyScore,
   applyScoreDelta,
@@ -310,9 +311,16 @@ const HealthSync = () => {
   async function toggleLiveStream(v: boolean) {
     setLiveStream(v);
     if (v) {
+      // Role-based scoping: only clinical tables/fields are emitted to a provider.
+      const vitalsPayload = sanitizeRowsForProvider("vitals_logs", (vitals as any) ?? []);
+      const dosePayload = sanitizeRowsForProvider("dose_logs", (logs as any) ?? []);
+      console.info("[live-stream → provider] scope:", PROVIDER_ALLOWED_TABLES, {
+        vitals: vitalsPayload.length,
+        doses: dosePayload.length,
+      });
       toast({
         title: "Safety Feed live",
-        description: `${hmoLabel} doctor is now receiving your vitals & herbal intake.`,
+        description: `${hmoLabel} doctor is now receiving clinical vitals & herbal intake only. Stop anytime.`,
       });
       try {
         const next = await applyScoreDelta(2, "report_shared", "Live stream enabled");
@@ -321,7 +329,7 @@ const HealthSync = () => {
         // ignore
       }
     } else {
-      toast({ title: "Safety Feed paused", description: "Doctor link closed." });
+      toast({ title: "Safety Feed paused", description: "Doctor link closed. No further data shared." });
     }
   }
 

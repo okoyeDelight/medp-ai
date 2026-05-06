@@ -158,6 +158,38 @@ const PrivacyPolicy = () => {
             </div>
 
             <div>
+              <h2 className="font-display text-2xl">6.1 Clinical Data Sharing — Live Stream to Provider</h2>
+              <p className="mt-2">
+                MedP-AI offers an optional <strong>"Live Stream to Provider"</strong> feature. When
+                you enable this toggle, you grant <strong>temporary, revocable access</strong> to a
+                limited set of your clinical data — including vitals readings, medication and
+                herbal-dose logs, symptom check-ins, and active condition flags — to the licensed
+                healthcare professional or HMO desk you have selected.
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  Access is scoped to <strong>clinical data only</strong>. Providers cannot view
+                  your account settings, authentication credentials, private diary notes, or any
+                  personal content unrelated to clinical safety.
+                </li>
+                <li>
+                  You may <strong>disconnect or "Stop Stream"</strong> at any time from the Health
+                  Sync dashboard. Revocation takes effect immediately and the provider's live
+                  session is terminated.
+                </li>
+                <li>
+                  A timestamped record of every stream session (start, stop, recipient) is kept in
+                  your account for audit and transparency.
+                </li>
+                <li>
+                  Emergency overrides (e.g. critical BP readings) may push a one-time alert to your
+                  HMO emergency desk even when the live stream is off, in line with safety duty of
+                  care.
+                </li>
+              </ul>
+            </div>
+
+            <div>
               <h2 className="font-display text-2xl">7. User Rights</h2>
               <p className="mt-2">Under Nigerian law, you have the right to:</p>
               <ul className="ml-6 mt-2 list-disc space-y-1">
@@ -204,11 +236,26 @@ const PrivacyPolicy = () => {
                 If you have questions about this policy or our data practices, please contact our
                 Data Protection Officer at:
               </p>
-              <p className="mt-2">
-                <strong>Email:</strong> [Your Startup Email Address]
-                <br />
-                <strong>Address:</strong> [Your Business Address/University Department], Nigeria
-              </p>
+              <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
+                <p>
+                  <strong>Data Controller / DPO:</strong> MedP-AI Privacy Office
+                </p>
+                <p className="mt-1">
+                  <strong>Email:</strong>{" "}
+                  <a className="underline" href="mailto:chinedubisiola04@gmail.com">
+                    chinedubisiola04@gmail.com
+                  </a>
+                </p>
+                <p className="mt-1">
+                  <strong>Phone:</strong>{" "}
+                  <a className="underline" href="tel:+2349079543695">
+                    +234 907 954 3695
+                  </a>
+                </p>
+                <p className="mt-1">
+                  <strong>Jurisdiction:</strong> Nigeria (NDPR)
+                </p>
+              </div>
             </div>
           </section>
         </article>

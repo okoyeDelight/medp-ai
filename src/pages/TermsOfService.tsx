@@ -116,6 +116,30 @@ const TermsOfService = () => {
             </div>
 
             <div>
+              <h2 className="font-display text-2xl">7a. Live Stream to Provider & Clinical Data Sharing</h2>
+              <p className="mt-2">
+                The App offers an optional <strong>"Live Stream to Provider"</strong> feature.
+                Enabling it grants <strong>temporary, revocable</strong> access to your clinical
+                logs (vitals, herbal/medication doses, symptom check-ins) to a healthcare
+                professional or HMO desk you select.
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  Providers receive <strong>clinical data only</strong> — never your account
+                  settings, login credentials, or private diary notes.
+                </li>
+                <li>
+                  You can <strong>"Stop Stream" or disconnect</strong> at any time from the Health
+                  Sync dashboard. Revocation is immediate.
+                </li>
+                <li>
+                  You acknowledge that providers act on the data shared in good faith and that
+                  MedP-AI is not a substitute for a clinical encounter.
+                </li>
+              </ul>
+            </div>
+
+            <div>
               <h2 className="font-display text-2xl">8. Third-Party Services</h2>
               <p className="mt-2">
                 The App integrates with third-party services (e.g. mapping and pharmacy data). We
@@ -153,9 +177,22 @@ const TermsOfService = () => {
             <div>
               <h2 className="font-display text-2xl">12. Contact</h2>
               <p className="mt-2">
-                For questions about these Terms, contact the MedP-AI team via the in-app feedback
-                channel.
+                For questions about these Terms or privacy matters, contact our Data Controller:
               </p>
+              <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
+                <p>
+                  <strong>Email:</strong>{" "}
+                  <a className="underline" href="mailto:chinedubisiola04@gmail.com">
+                    chinedubisiola04@gmail.com
+                  </a>
+                </p>
+                <p className="mt-1">
+                  <strong>Phone:</strong>{" "}
+                  <a className="underline" href="tel:+2349079543695">
+                    +234 907 954 3695
+                  </a>
+                </p>
+              </div>
             </div>
 
             <p className="border-t-2 border-foreground pt-4 text-xs text-muted-foreground">
