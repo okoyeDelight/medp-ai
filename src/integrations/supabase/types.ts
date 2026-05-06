@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      consultation_sessions: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          ends_at: string
+          hospital_id: string
+          id: string
+          patient_id: string
+          pin: string
+          pin_expires_at: string
+          provider_id: string | null
+          revoked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          ends_at: string
+          hospital_id: string
+          id?: string
+          patient_id: string
+          pin: string
+          pin_expires_at: string
+          provider_id?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          ends_at?: string
+          hospital_id?: string
+          id?: string
+          patient_id?: string
+          pin?: string
+          pin_expires_at?: string
+          provider_id?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_sessions_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dose_logs: {
         Row: {
           created_at: string
@@ -83,6 +133,251 @@ export type Database = {
           updated_at?: string
           user_id?: string
           wellness_points?: number
+        }
+        Relationships: []
+      }
+      hospital_admins: {
+        Row: {
+          created_at: string
+          hospital_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hospital_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hospital_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_admins_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospital_provider_whitelist: {
+        Row: {
+          added_by: string | null
+          contact: string
+          created_at: string
+          hospital_id: string
+          id: string
+        }
+        Insert: {
+          added_by?: string | null
+          contact: string
+          created_at?: string
+          hospital_id: string
+          id?: string
+        }
+        Update: {
+          added_by?: string | null
+          contact?: string
+          created_at?: string
+          hospital_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_provider_whitelist_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospital_providers: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          grant_method:
+            | Database["public"]["Enums"]["provider_grant_method"]
+            | null
+          hospital_id: string
+          id: string
+          onboarded_distance_m: number | null
+          onboarded_lat: number | null
+          onboarded_lng: number | null
+          staff_id_photo_path: string | null
+          status: Database["public"]["Enums"]["provider_status"]
+          temp_expires_at: string | null
+          updated_at: string
+          user_id: string
+          ward_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          grant_method?:
+            | Database["public"]["Enums"]["provider_grant_method"]
+            | null
+          hospital_id: string
+          id?: string
+          onboarded_distance_m?: number | null
+          onboarded_lat?: number | null
+          onboarded_lng?: number | null
+          staff_id_photo_path?: string | null
+          status?: Database["public"]["Enums"]["provider_status"]
+          temp_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          ward_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          grant_method?:
+            | Database["public"]["Enums"]["provider_grant_method"]
+            | null
+          hospital_id?: string
+          id?: string
+          onboarded_distance_m?: number | null
+          onboarded_lat?: number | null
+          onboarded_lng?: number | null
+          staff_id_photo_path?: string | null
+          status?: Database["public"]["Enums"]["provider_status"]
+          temp_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          ward_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_providers_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospital_providers_ward_id_fkey"
+            columns: ["ward_id"]
+            isOneToOne: false
+            referencedRelation: "hospital_wards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospital_qr_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          hospital_id: string
+          id: string
+          kind: Database["public"]["Enums"]["qr_kind"]
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          hospital_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["qr_kind"]
+          token: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          hospital_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["qr_kind"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_qr_tokens_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospital_wards: {
+        Row: {
+          created_at: string
+          hospital_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          hospital_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          hospital_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_wards_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitals: {
+        Row: {
+          city: string | null
+          country: string
+          created_at: string
+          emergency_dial: string
+          geofence_radius_m: number
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          emergency_dial?: string
+          geofence_radius_m?: number
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          country?: string
+          created_at?: string
+          emergency_dial?: string
+          geofence_radius_m?: number
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -161,6 +456,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vitals_logs: {
         Row: {
           created_at: string
@@ -209,9 +525,38 @@ export type Database = {
     }
     Functions: {
       delete_my_account: { Args: never; Returns: undefined }
+      has_active_consultation: {
+        Args: { _patient_id: string; _provider_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_hospital_admin: {
+        Args: { _hospital_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_verified_provider: { Args: { _user_id: string }; Returns: boolean }
+      provider_hospital_id: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "patient" | "provider" | "hospital_admin" | "platform_admin"
+      provider_grant_method:
+        | "implicit_qr"
+        | "passive_qr"
+        | "whitelist"
+        | "admin_approve"
+        | "staff_id"
+      provider_status:
+        | "pending_verification"
+        | "temporary"
+        | "active"
+        | "revoked"
+      qr_kind: "rotating" | "static"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -338,6 +683,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["patient", "provider", "hospital_admin", "platform_admin"],
+      provider_grant_method: [
+        "implicit_qr",
+        "passive_qr",
+        "whitelist",
+        "admin_approve",
+        "staff_id",
+      ],
+      provider_status: [
+        "pending_verification",
+        "temporary",
+        "active",
+        "revoked",
+      ],
+      qr_kind: ["rotating", "static"],
+    },
   },
 } as const
