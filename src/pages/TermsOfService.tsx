@@ -139,6 +139,8 @@ const TermsOfService = () => {
               </ul>
             </div>
 
+            <div>
+              <h2 className="font-display text-2xl">8. Third-Party Services</h2>
               <p className="mt-2">
                 The App integrates with third-party services (e.g. mapping and pharmacy data). We
                 are not responsible for the availability, accuracy, or policies of those
