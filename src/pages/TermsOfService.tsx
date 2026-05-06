@@ -177,9 +177,22 @@ const TermsOfService = () => {
             <div>
               <h2 className="font-display text-2xl">12. Contact</h2>
               <p className="mt-2">
-                For questions about these Terms, contact the MedP-AI team via the in-app feedback
-                channel.
+                For questions about these Terms or privacy matters, contact our Data Controller:
               </p>
+              <div className="mt-3 rounded-xl border border-border bg-muted/40 p-4">
+                <p>
+                  <strong>Email:</strong>{" "}
+                  <a className="underline" href="mailto:chinedubisiola04@gmail.com">
+                    chinedubisiola04@gmail.com
+                  </a>
+                </p>
+                <p className="mt-1">
+                  <strong>Phone:</strong>{" "}
+                  <a className="underline" href="tel:+2349079543695">
+                    +234 907 954 3695
+                  </a>
+                </p>
+              </div>
             </div>
 
             <p className="border-t-2 border-foreground pt-4 text-xs text-muted-foreground">
