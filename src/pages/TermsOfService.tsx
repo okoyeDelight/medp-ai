@@ -116,7 +116,29 @@ const TermsOfService = () => {
             </div>
 
             <div>
-              <h2 className="font-display text-2xl">8. Third-Party Services</h2>
+              <h2 className="font-display text-2xl">7a. Live Stream to Provider & Clinical Data Sharing</h2>
+              <p className="mt-2">
+                The App offers an optional <strong>"Live Stream to Provider"</strong> feature.
+                Enabling it grants <strong>temporary, revocable</strong> access to your clinical
+                logs (vitals, herbal/medication doses, symptom check-ins) to a healthcare
+                professional or HMO desk you select.
+              </p>
+              <ul className="ml-6 mt-2 list-disc space-y-1">
+                <li>
+                  Providers receive <strong>clinical data only</strong> — never your account
+                  settings, login credentials, or private diary notes.
+                </li>
+                <li>
+                  You can <strong>"Stop Stream" or disconnect</strong> at any time from the Health
+                  Sync dashboard. Revocation is immediate.
+                </li>
+                <li>
+                  You acknowledge that providers act on the data shared in good faith and that
+                  MedP-AI is not a substitute for a clinical encounter.
+                </li>
+              </ul>
+            </div>
+
               <p className="mt-2">
                 The App integrates with third-party services (e.g. mapping and pharmacy data). We
                 are not responsible for the availability, accuracy, or policies of those
