@@ -1,0 +1,40 @@
+/* Clinical Blue theme — scoped via .theme-clinical wrapper on provider routes. */
+.theme-clinical {
+  --background: 210 40% 98%;
+  --foreground: 215 45% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 45% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 45% 12%;
+
+  --primary: 212 78% 38%;            /* Clinical blue */
+  --primary-foreground: 210 40% 99%;
+  --primary-glow: 212 85% 52%;
+
+  --secondary: 210 35% 94%;
+  --secondary-foreground: 215 45% 14%;
+
+  --muted: 210 30% 95%;
+  --muted-foreground: 215 18% 42%;
+
+  --accent: 196 70% 48%;
+  --accent-foreground: 215 45% 10%;
+
+  --safe: 158 60% 32%;
+  --safe-foreground: 0 0% 100%;
+  --caution: 35 92% 50%;
+  --caution-foreground: 30 60% 12%;
+  --danger: 0 78% 50%;
+  --danger-foreground: 0 0% 100%;
+
+  --destructive: 0 78% 50%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 212 25% 88%;
+  --input: 212 25% 90%;
+  --ring: 212 78% 38%;
+
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+}
