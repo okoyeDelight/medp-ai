@@ -14,8 +14,12 @@ import SafetyScan from "./pages/SafetyScan.tsx";
 import SafetySync from "./pages/SafetySync.tsx";
 import HealthSync from "./pages/HealthSync.tsx";
 import Connectivity from "./pages/Connectivity.tsx";
+import ProviderAuth from "./pages/ProviderAuth.tsx";
+import ProviderPending from "./pages/ProviderPending.tsx";
+import HospitalDashboard from "./pages/HospitalDashboard.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
+import { RequireProvider } from "@/components/RequireProvider";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +89,23 @@ const App = () => (
                   <RequireAuth>
                     <Connectivity />
                   </RequireAuth>
+                }
+              />
+              <Route path="/provider/auth" element={<ProviderAuth />} />
+              <Route
+                path="/provider/pending"
+                element={
+                  <RequireAuth>
+                    <ProviderPending />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/hospital-dashboard"
+                element={
+                  <RequireProvider>
+                    <HospitalDashboard />
+                  </RequireProvider>
                 }
               />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
