@@ -535,6 +535,29 @@ export default function HospitalDashboard() {
               </div>
               <div className="mt-1 text-xs opacity-80">Provider device location for response coordination.</div>
             </div>
+            <div className="rounded-lg bg-destructive-foreground/10 p-4 text-left text-sm">
+              <div className="flex items-center gap-2 font-display text-xs uppercase tracking-wider opacity-90">
+                <ClipboardList className="h-4 w-4" /> Recent Herbal Regimen (last 5)
+              </div>
+              {emergencyHerbs.length === 0 ? (
+                <p className="mt-1 text-xs opacity-80">No recent herbal entries on file.</p>
+              ) : (
+                <ul className="mt-1 space-y-0.5 text-xs">
+                  {emergencyHerbs.map((h) => (
+                    <li key={h.id} className="flex justify-between gap-2">
+                      <span className="truncate">
+                        {h.remedy_name}
+                        {h.remedy_local_name ? ` (${h.remedy_local_name})` : ""} · {h.dose}
+                      </span>
+                      <span className="opacity-70 shrink-0">
+                        {new Date(h.taken_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-1 text-[10px] opacity-70">Clinical context for emergency triage.</p>
+            </div>
             <a
               href="tel:112"
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive-foreground px-4 py-3 font-display text-destructive"
