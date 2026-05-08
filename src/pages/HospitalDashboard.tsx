@@ -24,6 +24,7 @@ const MAX_STRIKES = 3;
 const LOCKOUT_MS = 5 * 60 * 1000;   // 5 min after 3 strikes
 const HR_CRITICAL_HIGH = 120;
 const HR_CRITICAL_LOW = 40;
+const STALE_MS = 10_000; // >10s old = reconnecting
 
 interface SessionRow {
   id: string;
@@ -61,7 +62,9 @@ export default function HospitalDashboard() {
   const [unlockValue, setUnlockValue] = useState("");
   const [unlockMode, setUnlockMode] = useState<"quickpin" | "password">("quickpin");
   const [emergency, setEmergency] = useState<{ patientId: string; bpm: number } | null>(null);
+  const [emergencyHerbs, setEmergencyHerbs] = useState<Array<{ id: string; remedy_name: string; remedy_local_name: string; taken_at: string; dose: string }>>([]);
   const [providerLocation, setProviderLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
   const idleTimer = useRef<number | null>(null);
 
   // ── load provider status + sessions ──────────────────────────────────────
@@ -130,6 +133,14 @@ export default function HospitalDashboard() {
     if (bpm > HR_CRITICAL_HIGH || bpm < HR_CRITICAL_LOW) {
       setEmergency({ patientId, bpm });
       setMasked(false); // critical bypass
+      // Fetch recent herbal regimen for clinical context (RLS-scoped via consultation)
+      supabase
+        .from("dose_logs")
+        .select("id,remedy_name,remedy_local_name,taken_at,dose")
+        .eq("user_id", patientId)
+        .order("taken_at", { ascending: false })
+        .limit(5)
+        .then(({ data }) => setEmergencyHerbs((data as any) ?? []));
       // capture provider GPS for dispatch
       if (!providerLocation && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -140,6 +151,12 @@ export default function HospitalDashboard() {
       }
     }
   }
+
+  // Tick for live-connection staleness indicator
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
 
   // ── ward-mode inactivity mask (180s) ─────────────────────────────────────
   const resetIdle = useCallback(() => {
@@ -339,49 +356,66 @@ export default function HospitalDashboard() {
           )}
         </section>
 
-        {activeSession && (
-          <section className="space-y-3">
-            <h2 className="flex items-center gap-2 font-display text-lg">
-              <Activity className="h-5 w-5 text-primary" /> Live Clinical Feed
-            </h2>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">
-                  PT-{activeSession.patient_id.slice(0, 6).toUpperCase()} · vitals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="h-3 w-3" /> HR
+        {activeSession && (() => {
+          const ageMs = currentVitals ? now - new Date(currentVitals.measured_at).getTime() : Infinity;
+          const stale = ageMs > STALE_MS;
+          return (
+            <section className="space-y-3">
+              <h2 className="flex items-center gap-2 font-display text-lg">
+                <Activity className="h-5 w-5 text-primary" /> Live Clinical Feed
+              </h2>
+              <Card className={stale ? "opacity-60 grayscale transition-all" : "transition-all"}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm">
+                    PT-{activeSession.patient_id.slice(0, 6).toUpperCase()} · vitals
+                  </CardTitle>
+                  {stale ? (
+                    <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground">
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Reconnecting to Patient…
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-[hsl(var(--safe))] text-[hsl(var(--safe-foreground))]">
+                      <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                      Live
+                    </Badge>
+                  )}
+                </CardHeader>
+                <CardContent className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                      <Heart className="h-3 w-3" /> HR
+                    </div>
+                    <div className="font-display text-3xl">
+                      {currentVitals?.pulse_bpm ?? "—"}
+                      <span className="ml-1 text-xs text-muted-foreground">bpm</span>
+                    </div>
                   </div>
-                  <div className="font-display text-3xl">
-                    {currentVitals?.pulse_bpm ?? "—"}
-                    <span className="ml-1 text-xs text-muted-foreground">bpm</span>
+                  <div>
+                    <div className="text-xs text-muted-foreground">BP</div>
+                    <div className="font-display text-3xl">
+                      {currentVitals?.systolic ?? "—"}/{currentVitals?.diastolic ?? "—"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">BP</div>
-                  <div className="font-display text-3xl">
-                    {currentVitals?.systolic ?? "—"}/{currentVitals?.diastolic ?? "—"}
+                  <div>
+                    <div className="text-xs text-muted-foreground">Updated</div>
+                    <div className="font-mono-tech text-sm">
+                      {currentVitals ? `${Math.max(0, Math.round(ageMs / 1000))}s ago` : "—"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Updated</div>
-                  <div className="font-mono-tech text-sm">
-                    {currentVitals
-                      ? new Date(currentVitals.measured_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                      : "—"}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Timer className="h-3 w-3" /> Inactivity mask engages after 180s — clinical-only data, no profile
-              or diary access.
-            </p>
-          </section>
-        )}
+                </CardContent>
+              </Card>
+              {stale && (
+                <p className="text-xs text-muted-foreground">
+                  Signal stale (&gt;10s). Treatment decisions paused until fresh data arrives.
+                </p>
+              )}
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Timer className="h-3 w-3" /> Inactivity mask engages after 180s — clinical-only data, no profile
+                or diary access.
+              </p>
+            </section>
+          );
+        })()}
       </main>
 
       {/* ── Ward-mode mask overlay ──────────────────────────────────────── */}
@@ -500,6 +534,29 @@ export default function HospitalDashboard() {
                   : "Acquiring GPS…"}
               </div>
               <div className="mt-1 text-xs opacity-80">Provider device location for response coordination.</div>
+            </div>
+            <div className="rounded-lg bg-destructive-foreground/10 p-4 text-left text-sm">
+              <div className="flex items-center gap-2 font-display text-xs uppercase tracking-wider opacity-90">
+                <ClipboardList className="h-4 w-4" /> Recent Herbal Regimen (last 5)
+              </div>
+              {emergencyHerbs.length === 0 ? (
+                <p className="mt-1 text-xs opacity-80">No recent herbal entries on file.</p>
+              ) : (
+                <ul className="mt-1 space-y-0.5 text-xs">
+                  {emergencyHerbs.map((h) => (
+                    <li key={h.id} className="flex justify-between gap-2">
+                      <span className="truncate">
+                        {h.remedy_name}
+                        {h.remedy_local_name ? ` (${h.remedy_local_name})` : ""} · {h.dose}
+                      </span>
+                      <span className="opacity-70 shrink-0">
+                        {new Date(h.taken_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-1 text-[10px] opacity-70">Clinical context for emergency triage.</p>
             </div>
             <a
               href="tel:112"

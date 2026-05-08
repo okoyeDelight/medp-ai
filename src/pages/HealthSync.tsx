@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Trophy,
+  PowerOff,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -45,6 +46,7 @@ import { fetchVitals, bpCategory, glucoseCategory, affectsHeartRate, type Vitals
 import { fetchLogs, type DoseLog } from "@/lib/diary";
 import { fetchHealthProfile, type HealthProfile } from "@/lib/healthProfile";
 import { downloadReport } from "@/lib/doctorReport";
+import { supabase } from "@/integrations/supabase/client";
 import { connectToHeartRateMonitor, isWebBluetoothSupported, type HRConnection } from "@/lib/bluetoothHR";
 import { sanitizeRowsForProvider, PROVIDER_ALLOWED_TABLES } from "@/lib/providerScope";
 import {
@@ -333,6 +335,29 @@ const HealthSync = () => {
     }
   }
 
+  async function terminateAllSessions() {
+    const ok = window.confirm(
+      "Terminate all active provider sessions?\n\nThis instantly revokes every Live Stream, voids active Consultation PINs, and disconnects any doctor currently watching your Safety Feed.",
+    );
+    if (!ok) return;
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { error } = await supabase
+      .from("consultation_sessions")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("patient_id", u.user.id)
+      .is("revoked_at", null);
+    if (error) {
+      toast({ title: "Could not terminate sessions", description: error.message, variant: "destructive" });
+      return;
+    }
+    setLiveStream(false);
+    toast({
+      title: "All clinical sessions terminated",
+      description: "Provider links revoked and PINs invalidated.",
+    });
+  }
+
   return (
     <div className="min-h-screen bg-background pb-8">
       <AppHeader />
@@ -467,6 +492,20 @@ const HealthSync = () => {
             </div>
             <Switch checked={liveStream} onCheckedChange={toggleLiveStream} />
           </CardContent>
+          <div className="border-t border-border/60 px-4 py-3">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={terminateAllSessions}
+              className="w-full gap-2"
+            >
+              <PowerOff className="h-4 w-4" />
+              Terminate All Active Sessions
+            </Button>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              Instantly revokes every active provider link and Consultation PIN tied to your account.
+            </p>
+          </div>
         </Card>
 
         {/* Emergency banner */}

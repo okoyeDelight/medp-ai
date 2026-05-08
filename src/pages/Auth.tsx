@@ -34,11 +34,20 @@ const Auth = () => {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/", { replace: true });
-    });
+    const route = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return;
+      // Auto-redirect providers to clinical desk
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("role", "provider");
+      if (roles?.length) navigate("/hospital-dashboard", { replace: true });
+      else navigate("/", { replace: true });
+    };
+    route();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s) navigate("/", { replace: true });
+      if (s) route();
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
