@@ -356,49 +356,66 @@ export default function HospitalDashboard() {
           )}
         </section>
 
-        {activeSession && (
-          <section className="space-y-3">
-            <h2 className="flex items-center gap-2 font-display text-lg">
-              <Activity className="h-5 w-5 text-primary" /> Live Clinical Feed
-            </h2>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">
-                  PT-{activeSession.patient_id.slice(0, 6).toUpperCase()} · vitals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-                    <Heart className="h-3 w-3" /> HR
+        {activeSession && (() => {
+          const ageMs = currentVitals ? now - new Date(currentVitals.measured_at).getTime() : Infinity;
+          const stale = ageMs > STALE_MS;
+          return (
+            <section className="space-y-3">
+              <h2 className="flex items-center gap-2 font-display text-lg">
+                <Activity className="h-5 w-5 text-primary" /> Live Clinical Feed
+              </h2>
+              <Card className={stale ? "opacity-60 grayscale transition-all" : "transition-all"}>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm">
+                    PT-{activeSession.patient_id.slice(0, 6).toUpperCase()} · vitals
+                  </CardTitle>
+                  {stale ? (
+                    <Badge variant="outline" className="border-muted-foreground/40 text-muted-foreground">
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Reconnecting to Patient…
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-[hsl(var(--safe))] text-[hsl(var(--safe-foreground))]">
+                      <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+                      Live
+                    </Badge>
+                  )}
+                </CardHeader>
+                <CardContent className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                      <Heart className="h-3 w-3" /> HR
+                    </div>
+                    <div className="font-display text-3xl">
+                      {currentVitals?.pulse_bpm ?? "—"}
+                      <span className="ml-1 text-xs text-muted-foreground">bpm</span>
+                    </div>
                   </div>
-                  <div className="font-display text-3xl">
-                    {currentVitals?.pulse_bpm ?? "—"}
-                    <span className="ml-1 text-xs text-muted-foreground">bpm</span>
+                  <div>
+                    <div className="text-xs text-muted-foreground">BP</div>
+                    <div className="font-display text-3xl">
+                      {currentVitals?.systolic ?? "—"}/{currentVitals?.diastolic ?? "—"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">BP</div>
-                  <div className="font-display text-3xl">
-                    {currentVitals?.systolic ?? "—"}/{currentVitals?.diastolic ?? "—"}
+                  <div>
+                    <div className="text-xs text-muted-foreground">Updated</div>
+                    <div className="font-mono-tech text-sm">
+                      {currentVitals ? `${Math.max(0, Math.round(ageMs / 1000))}s ago` : "—"}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Updated</div>
-                  <div className="font-mono-tech text-sm">
-                    {currentVitals
-                      ? new Date(currentVitals.measured_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                      : "—"}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Timer className="h-3 w-3" /> Inactivity mask engages after 180s — clinical-only data, no profile
-              or diary access.
-            </p>
-          </section>
-        )}
+                </CardContent>
+              </Card>
+              {stale && (
+                <p className="text-xs text-muted-foreground">
+                  Signal stale (&gt;10s). Treatment decisions paused until fresh data arrives.
+                </p>
+              )}
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Timer className="h-3 w-3" /> Inactivity mask engages after 180s — clinical-only data, no profile
+                or diary access.
+              </p>
+            </section>
+          );
+        })()}
       </main>
 
       {/* ── Ward-mode mask overlay ──────────────────────────────────────── */}
