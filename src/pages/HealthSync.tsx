@@ -46,6 +46,7 @@ import { fetchVitals, bpCategory, glucoseCategory, affectsHeartRate, type Vitals
 import { fetchLogs, type DoseLog } from "@/lib/diary";
 import { fetchHealthProfile, type HealthProfile } from "@/lib/healthProfile";
 import { downloadReport } from "@/lib/doctorReport";
+import { supabase } from "@/integrations/supabase/client";
 import { connectToHeartRateMonitor, isWebBluetoothSupported, type HRConnection } from "@/lib/bluetoothHR";
 import { sanitizeRowsForProvider, PROVIDER_ALLOWED_TABLES } from "@/lib/providerScope";
 import {
