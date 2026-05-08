@@ -62,7 +62,9 @@ export default function HospitalDashboard() {
   const [unlockValue, setUnlockValue] = useState("");
   const [unlockMode, setUnlockMode] = useState<"quickpin" | "password">("quickpin");
   const [emergency, setEmergency] = useState<{ patientId: string; bpm: number } | null>(null);
+  const [emergencyHerbs, setEmergencyHerbs] = useState<Array<{ id: string; remedy_name: string; remedy_local_name: string; taken_at: string; dose: string }>>([]);
   const [providerLocation, setProviderLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
   const idleTimer = useRef<number | null>(null);
 
   // ── load provider status + sessions ──────────────────────────────────────
