@@ -335,9 +335,28 @@ const HealthSync = () => {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-background pb-8">
-      <AppHeader />
+  async function terminateAllSessions() {
+    const ok = window.confirm(
+      "Terminate all active provider sessions?\n\nThis instantly revokes every Live Stream, voids active Consultation PINs, and disconnects any doctor currently watching your Safety Feed.",
+    );
+    if (!ok) return;
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { error } = await supabase
+      .from("consultation_sessions")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("patient_id", u.user.id)
+      .is("revoked_at", null);
+    if (error) {
+      toast({ title: "Could not terminate sessions", description: error.message, variant: "destructive" });
+      return;
+    }
+    setLiveStream(false);
+    toast({
+      title: "All clinical sessions terminated",
+      description: "Provider links revoked and PINs invalidated.",
+    });
+  }
 
       <main className="container max-w-2xl space-y-6 px-4 pt-4">
         {/* Page header — Medical Luxury */}
