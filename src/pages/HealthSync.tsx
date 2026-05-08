@@ -492,6 +492,20 @@ const HealthSync = () => {
             </div>
             <Switch checked={liveStream} onCheckedChange={toggleLiveStream} />
           </CardContent>
+          <div className="border-t border-border/60 px-4 py-3">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={terminateAllSessions}
+              className="w-full gap-2"
+            >
+              <PowerOff className="h-4 w-4" />
+              Terminate All Active Sessions
+            </Button>
+            <p className="mt-1.5 text-[10px] text-muted-foreground">
+              Instantly revokes every active provider link and Consultation PIN tied to your account.
+            </p>
+          </div>
         </Card>
 
         {/* Emergency banner */}
