@@ -358,6 +358,10 @@ const HealthSync = () => {
     });
   }
 
+  return (
+    <div className="min-h-screen bg-background pb-8">
+      <AppHeader />
+
       <main className="container max-w-2xl space-y-6 px-4 pt-4">
         {/* Page header — Medical Luxury */}
         <header className="space-y-1.5">
