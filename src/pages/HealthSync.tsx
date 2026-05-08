@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Trophy,
+  PowerOff,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
