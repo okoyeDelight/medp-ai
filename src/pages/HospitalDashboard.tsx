@@ -24,6 +24,7 @@ const MAX_STRIKES = 3;
 const LOCKOUT_MS = 5 * 60 * 1000;   // 5 min after 3 strikes
 const HR_CRITICAL_HIGH = 120;
 const HR_CRITICAL_LOW = 40;
+const STALE_MS = 10_000; // >10s old = reconnecting
 
 interface SessionRow {
   id: string;
