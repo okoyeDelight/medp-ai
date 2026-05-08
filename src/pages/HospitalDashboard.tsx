@@ -133,6 +133,14 @@ export default function HospitalDashboard() {
     if (bpm > HR_CRITICAL_HIGH || bpm < HR_CRITICAL_LOW) {
       setEmergency({ patientId, bpm });
       setMasked(false); // critical bypass
+      // Fetch recent herbal regimen for clinical context (RLS-scoped via consultation)
+      supabase
+        .from("dose_logs")
+        .select("id,remedy_name,remedy_local_name,taken_at,dose")
+        .eq("user_id", patientId)
+        .order("taken_at", { ascending: false })
+        .limit(5)
+        .then(({ data }) => setEmergencyHerbs((data as any) ?? []));
       // capture provider GPS for dispatch
       if (!providerLocation && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -143,6 +151,12 @@ export default function HospitalDashboard() {
       }
     }
   }
+
+  // Tick for live-connection staleness indicator
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
 
   // ── ward-mode inactivity mask (180s) ─────────────────────────────────────
   const resetIdle = useCallback(() => {
