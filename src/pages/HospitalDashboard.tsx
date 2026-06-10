@@ -14,6 +14,7 @@ import {
   MapPin, PhoneCall, ShieldAlert, Stethoscope, Timer, Loader2,
 } from "lucide-react";
 import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
+import { terminateIfStale } from "@/lib/consultationSession";
 
 // ── constants ───────────────────────────────────────────────────────────────
 const IDLE_MS = 180_000;            // 180s ward-mode mask
