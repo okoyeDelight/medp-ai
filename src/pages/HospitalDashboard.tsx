@@ -14,28 +14,35 @@ import {
   MapPin, PhoneCall, ShieldAlert, Stethoscope, Timer, Loader2,
 } from "lucide-react";
 import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
+import { terminateIfStale } from "@/lib/consultationSession";
 
 // ── constants ───────────────────────────────────────────────────────────────
 const IDLE_MS = 180_000;            // 180s ward-mode mask
 const QUICK_PIN_KEY = "medp.provider.quickPin";
-const PIN_STRIKE_KEY = "medp.provider.pinStrikes";
-const PIN_LOCKOUT_KEY = "medp.provider.pinLockoutUntil";
+const PIN_STRIKE_KEY = "medp.provider.pinStrikes";       // legacy global
+const PIN_LOCKOUT_KEY = "medp.provider.pinLockoutUntil"; // legacy global
+const PER_PATIENT_STRIKE_KEY = (pid: string) => `medp.provider.pinStrikes.${pid}`;
+const PER_PATIENT_LOCKOUT_KEY = (pid: string) => `medp.provider.pinLockoutUntil.${pid}`;
 const MAX_STRIKES = 3;
-const LOCKOUT_MS = 5 * 60 * 1000;   // 5 min after 3 strikes
+const PATIENT_LOCKOUT_MS = 15 * 60 * 1000; // 15 min per-patient lockout
 const HR_CRITICAL_HIGH = 120;
 const HR_CRITICAL_LOW = 40;
 const STALE_MS = 10_000; // >10s old = reconnecting
+const HEARTBEAT_STALE_MS = 120_000; // session terminated if heartbeat > 120s
+const EMERGENCY_BYPASS_MS = 5 * 60 * 1000; // ignore stale heartbeat for 5 min during emergency
 
 interface SessionRow {
   id: string;
   patient_id: string;
   hospital_id: string;
-  pin: string;
+  pin: string | null;
   pin_expires_at: string;
   ends_at: string;
   claimed_at: string | null;
   provider_id: string | null;
   revoked_at: string | null;
+  last_heartbeat: string;
+  status: "active" | "terminated";
 }
 
 interface VitalsRow {
@@ -66,6 +73,7 @@ export default function HospitalDashboard() {
   const [providerLocation, setProviderLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const idleTimer = useRef<number | null>(null);
+  const emergencyStartedAtRef = useRef<number>(0);
 
   // ── load provider status + sessions ──────────────────────────────────────
   useEffect(() => {
@@ -76,8 +84,9 @@ export default function HospitalDashboard() {
     setLoading(true);
     const { data, error } = await supabase
       .from("consultation_sessions")
-      .select("id,patient_id,hospital_id,pin,pin_expires_at,ends_at,claimed_at,provider_id,revoked_at")
+      .select("id,patient_id,hospital_id,pin,pin_expires_at,ends_at,claimed_at,provider_id,revoked_at,last_heartbeat,status")
       .is("revoked_at", null)
+      .eq("status", "active")
       .gt("ends_at", new Date().toISOString())
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
@@ -132,6 +141,7 @@ export default function HospitalDashboard() {
     if (bpm == null) return;
     if (bpm > HR_CRITICAL_HIGH || bpm < HR_CRITICAL_LOW) {
       setEmergency({ patientId, bpm });
+      emergencyStartedAtRef.current = Date.now();
       setMasked(false); // critical bypass
       // Fetch recent herbal regimen for clinical context (RLS-scoped via consultation)
       supabase
@@ -158,6 +168,62 @@ export default function HospitalDashboard() {
     return () => window.clearInterval(t);
   }, []);
 
+  // ── State-Wipe Watcher ───────────────────────────────────────────────────
+  // If the active session is terminated (patient toggle, TTL, heartbeat loss)
+  // wipe local patient cache and bounce back to the dashboard. During an
+  // emergency, ignore heartbeat staleness for 5 minutes so the doctor doesn't
+  // lose the signal while trying to help.
+  function wipePatientState(reason: string) {
+    setActiveSession(null);
+    setVitalsByPatient({});
+    setEmergencyHerbs([]);
+    setPinDialogFor(null);
+    setPinInput("");
+    emergencyStartedAtRef.current = 0;
+    toast.error(`Session ended — ${reason}. Patient data cleared.`);
+    navigate("/hospital-dashboard", { replace: true });
+  }
+
+  useEffect(() => {
+    if (!activeSession) return;
+    const ch = supabase
+      .channel(`active-session-${activeSession.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "consultation_sessions", filter: `id=eq.${activeSession.id}` },
+        (payload) => {
+          const row = payload.new as SessionRow;
+          if (row.status === "terminated" || row.revoked_at || !row.pin) {
+            wipePatientState("PIN nullified by patient or server");
+          } else {
+            setActiveSession((cur) => (cur ? { ...cur, ...row } : cur));
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id]);
+
+  // Heartbeat-stale watchdog (with emergency bypass)
+  useEffect(() => {
+    if (!activeSession) return;
+    const t = window.setInterval(async () => {
+      const ageMs = Date.now() - new Date(activeSession.last_heartbeat).getTime();
+      const inEmergency =
+        !!emergency && Date.now() - emergencyStartedAtRef.current < EMERGENCY_BYPASS_MS;
+      if (inEmergency) return; // 5-min emergency bypass
+      if (ageMs > HEARTBEAT_STALE_MS) {
+        const r = await terminateIfStale(activeSession.id);
+        if (r?.terminated || r?.status === "terminated") {
+          wipePatientState("patient heartbeat lost (>120s)");
+        }
+      }
+    }, 5_000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id, emergency]);
+
   // ── ward-mode inactivity mask (180s) ─────────────────────────────────────
   const resetIdle = useCallback(() => {
     if (emergency) return;
@@ -175,34 +241,60 @@ export default function HospitalDashboard() {
     };
   }, [resetIdle]);
 
-  // ── PIN handshake ────────────────────────────────────────────────────────
+  // ── PIN handshake (per-patient 3-strike, 15 min lockout) ─────────────────
+  function getPatientStrikes(pid: string) {
+    return Number(localStorage.getItem(PER_PATIENT_STRIKE_KEY(pid)) ?? 0);
+  }
+  function getPatientLockout(pid: string) {
+    return Number(localStorage.getItem(PER_PATIENT_LOCKOUT_KEY(pid)) ?? 0);
+  }
   function pinLocked() {
-    return lockoutUntil > Date.now();
+    const pid = pinDialogFor?.patient_id;
+    if (!pid) return lockoutUntil > Date.now();
+    return getPatientLockout(pid) > Date.now();
   }
   function recordStrike() {
-    const next = strikes + 1;
+    const pid = pinDialogFor?.patient_id;
+    if (!pid) return;
+    const next = getPatientStrikes(pid) + 1;
+    localStorage.setItem(PER_PATIENT_STRIKE_KEY(pid), String(next));
     setStrikes(next);
-    localStorage.setItem(PIN_STRIKE_KEY, String(next));
     if (next >= MAX_STRIKES) {
-      const until = Date.now() + LOCKOUT_MS;
+      const until = Date.now() + PATIENT_LOCKOUT_MS;
+      localStorage.setItem(PER_PATIENT_LOCKOUT_KEY(pid), String(until));
       setLockoutUntil(until);
-      localStorage.setItem(PIN_LOCKOUT_KEY, String(until));
-      toast.error("Locked for 5 minutes after 3 incorrect PINs.");
+      toast.error("Locked for 15 minutes on this patient after 3 wrong PINs.");
     } else {
       toast.error(`Wrong PIN. ${MAX_STRIKES - next} attempt(s) left.`);
     }
   }
   function clearStrikes() {
+    const pid = pinDialogFor?.patient_id;
+    if (pid) {
+      localStorage.removeItem(PER_PATIENT_STRIKE_KEY(pid));
+      localStorage.removeItem(PER_PATIENT_LOCKOUT_KEY(pid));
+    }
     setStrikes(0);
     setLockoutUntil(0);
     localStorage.removeItem(PIN_STRIKE_KEY);
     localStorage.removeItem(PIN_LOCKOUT_KEY);
   }
 
+  // Sync strike/lockout state when the dialog opens for a different patient
+  useEffect(() => {
+    if (!pinDialogFor) return;
+    setStrikes(getPatientStrikes(pinDialogFor.patient_id));
+    setLockoutUntil(getPatientLockout(pinDialogFor.patient_id));
+  }, [pinDialogFor?.patient_id]);
+
   async function handlePinSubmit() {
     if (!pinDialogFor) return;
     if (pinLocked()) return;
     if (!/^\d{4}$/.test(pinInput)) { toast.error("Enter the 4-digit PIN."); return; }
+    if (!pinDialogFor.pin) {
+      toast.error("PIN nullified. Ask the patient to regenerate.");
+      return;
+    }
     if (pinInput !== pinDialogFor.pin) { recordStrike(); setPinInput(""); return; }
     if (new Date(pinDialogFor.pin_expires_at) < new Date()) {
       toast.error("PIN expired. Ask the patient to regenerate.");

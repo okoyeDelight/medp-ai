@@ -39,6 +39,9 @@ import {
   CheckCircle2,
   Trophy,
   PowerOff,
+  Copy,
+  Check,
+  KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -56,6 +59,14 @@ import {
   type SafetyScore,
 } from "@/lib/safetyScore";
 import { runIntersectionCheck, tierColor } from "@/lib/pharmaLogic";
+import {
+  startConsultationSession,
+  heartbeat,
+  terminateSession,
+  terminateIfStale,
+  HEARTBEAT_INTERVAL_MS,
+  type ConsultationSession,
+} from "@/lib/consultationSession";
 
 type DeviceId = "apple" | "google" | "bp_monitor";
 interface Device {
@@ -139,6 +150,9 @@ const HealthSync = () => {
   const [btConnecting, setBtConnecting] = useState(false);
   const [score, setScore] = useState<SafetyScore | null>(null);
   const [liveStream, setLiveStream] = useState(false);
+  const [session, setSession] = useState<ConsultationSession | null>(null);
+  const [pinCopied, setPinCopied] = useState(false);
+  const [nowTick, setNowTick] = useState(Date.now());
   const [fhirOpen, setFhirOpen] = useState(false);
 
   // Cleanup BT connection on unmount.
@@ -311,27 +325,106 @@ const HealthSync = () => {
   const scoreInfo = score ? scoreTier(score.score) : null;
 
   async function toggleLiveStream(v: boolean) {
-    setLiveStream(v);
     if (v) {
-      // Role-based scoping: only clinical tables/fields are emitted to a provider.
-      const vitalsPayload = sanitizeRowsForProvider("vitals_logs", (vitals as any) ?? []);
-      const dosePayload = sanitizeRowsForProvider("dose_logs", (logs as any) ?? []);
-      console.info("[live-stream → provider] scope:", PROVIDER_ALLOWED_TABLES, {
-        vitals: vitalsPayload.length,
-        doses: dosePayload.length,
-      });
-      toast({
-        title: "Safety Feed live",
-        description: `${hmoLabel} doctor is now receiving clinical vitals & herbal intake only. Stop anytime.`,
-      });
       try {
-        const next = await applyScoreDelta(2, "report_shared", "Live stream enabled");
-        setScore(next);
-      } catch {
-        // ignore
+        const s = await startConsultationSession();
+        setSession(s);
+        setLiveStream(true);
+        const vitalsPayload = sanitizeRowsForProvider("vitals_logs", (vitals as any) ?? []);
+        const dosePayload = sanitizeRowsForProvider("dose_logs", (logs as any) ?? []);
+        console.info("[live-stream → provider] scope:", PROVIDER_ALLOWED_TABLES, {
+          vitals: vitalsPayload.length,
+          doses: dosePayload.length,
+        });
+        toast({
+          title: "Safety Feed live",
+          description: `PIN ${s.pin} ready for the clinical desk. Heartbeat: every 30s.`,
+        });
+        try {
+          const next = await applyScoreDelta(2, "report_shared", "Live stream enabled");
+          setScore(next);
+        } catch {
+          // ignore
+        }
+      } catch (e: any) {
+        toast({ title: "Couldn't start stream", description: e?.message ?? "Try again.", variant: "destructive" });
       }
     } else {
-      toast({ title: "Safety Feed paused", description: "Doctor link closed. No further data shared." });
+      if (session) await terminateSession(session.id).catch(() => {});
+      setSession(null);
+      setLiveStream(false);
+      toast({ title: "Safety Feed paused", description: "Doctor link closed. PIN nullified." });
+    }
+  }
+
+  // Heartbeat + countdown tick + auto-terminate watcher
+  useEffect(() => {
+    if (!session || !liveStream) return;
+    // Initial heartbeat right away
+    heartbeat(session.id).catch(() => {});
+    const hb = window.setInterval(() => {
+      heartbeat(session.id).catch(() => {});
+    }, HEARTBEAT_INTERVAL_MS);
+    const tick = window.setInterval(() => setNowTick(Date.now()), 1000);
+    // Listen for server-side termination
+    const ch = supabase
+      .channel(`patient-session-${session.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "consultation_sessions", filter: `id=eq.${session.id}` },
+        (payload) => {
+          const row = payload.new as any;
+          if (row.status === "terminated") {
+            setSession(null);
+            setLiveStream(false);
+            toast({ title: "Stream terminated", description: "Session expired or was revoked. PIN cleared." });
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      window.clearInterval(hb);
+      window.clearInterval(tick);
+      supabase.removeChannel(ch);
+    };
+  }, [session?.id, liveStream]);
+
+  // PIN expiry watchdog (client-side fallback)
+  useEffect(() => {
+    if (!session) return;
+    const expMs = new Date(session.pin_expires_at).getTime() - nowTick;
+    if (expMs <= 0) {
+      terminateIfStale(session.id).then((r) => {
+        if (r?.terminated) {
+          setSession(null);
+          setLiveStream(false);
+          toast({ title: "PIN expired", description: "2-hour stream window ended." });
+        }
+      });
+    }
+  }, [nowTick, session?.id]);
+
+  const pinCountdown = useMemo(() => {
+    if (!session) return null;
+    const ms = new Date(session.pin_expires_at).getTime() - nowTick;
+    if (ms <= 0) return "00:00";
+    const total = Math.floor(ms / 1000);
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return h > 0
+      ? `${h}h ${String(m).padStart(2, "0")}m`
+      : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }, [session?.pin_expires_at, nowTick]);
+
+  async function copyPin() {
+    if (!session?.pin) return;
+    try {
+      await navigator.clipboard.writeText(session.pin);
+      setPinCopied(true);
+      window.setTimeout(() => setPinCopied(false), 1500);
+    } catch {
+      // ignore
     }
   }
 
@@ -492,6 +585,30 @@ const HealthSync = () => {
             </div>
             <Switch checked={liveStream} onCheckedChange={toggleLiveStream} />
           </CardContent>
+          {liveStream && session?.pin && (
+            <div className="border-t border-border/60 bg-primary/5 px-4 py-4">
+              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-primary">
+                <KeyRound className="h-3 w-3" /> Doctor Handshake PIN
+              </div>
+              <button
+                onClick={copyPin}
+                className="mt-2 flex w-full items-center justify-between gap-3 rounded-lg border border-primary/30 bg-card px-4 py-3 text-left transition hover:bg-primary/10"
+                aria-label="Tap to copy PIN"
+              >
+                <span className="font-mono-tech text-3xl font-bold tracking-[0.4em] text-foreground">
+                  {session.pin}
+                </span>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
+                  {pinCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {pinCopied ? "Copied" : "Tap to copy"}
+                </span>
+              </button>
+              <p className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Share with the doctor at the clinical desk.</span>
+                <span className="font-mono-tech">Expires in: {pinCountdown}</span>
+              </p>
+            </div>
+          )}
           <div className="border-t border-border/60 px-4 py-3">
             <Button
               variant="destructive"
