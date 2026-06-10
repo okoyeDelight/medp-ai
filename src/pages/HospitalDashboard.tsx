@@ -18,24 +18,30 @@ import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
 // ── constants ───────────────────────────────────────────────────────────────
 const IDLE_MS = 180_000;            // 180s ward-mode mask
 const QUICK_PIN_KEY = "medp.provider.quickPin";
-const PIN_STRIKE_KEY = "medp.provider.pinStrikes";
-const PIN_LOCKOUT_KEY = "medp.provider.pinLockoutUntil";
+const PIN_STRIKE_KEY = "medp.provider.pinStrikes";       // legacy global
+const PIN_LOCKOUT_KEY = "medp.provider.pinLockoutUntil"; // legacy global
+const PER_PATIENT_STRIKE_KEY = (pid: string) => `medp.provider.pinStrikes.${pid}`;
+const PER_PATIENT_LOCKOUT_KEY = (pid: string) => `medp.provider.pinLockoutUntil.${pid}`;
 const MAX_STRIKES = 3;
-const LOCKOUT_MS = 5 * 60 * 1000;   // 5 min after 3 strikes
+const PATIENT_LOCKOUT_MS = 15 * 60 * 1000; // 15 min per-patient lockout
 const HR_CRITICAL_HIGH = 120;
 const HR_CRITICAL_LOW = 40;
 const STALE_MS = 10_000; // >10s old = reconnecting
+const HEARTBEAT_STALE_MS = 120_000; // session terminated if heartbeat > 120s
+const EMERGENCY_BYPASS_MS = 5 * 60 * 1000; // ignore stale heartbeat for 5 min during emergency
 
 interface SessionRow {
   id: string;
   patient_id: string;
   hospital_id: string;
-  pin: string;
+  pin: string | null;
   pin_expires_at: string;
   ends_at: string;
   claimed_at: string | null;
   provider_id: string | null;
   revoked_at: string | null;
+  last_heartbeat: string;
+  status: "active" | "terminated";
 }
 
 interface VitalsRow {
