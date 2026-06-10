@@ -21,11 +21,13 @@ export type Database = {
           ends_at: string
           hospital_id: string
           id: string
+          last_heartbeat: string
           patient_id: string
-          pin: string
+          pin: string | null
           pin_expires_at: string
           provider_id: string | null
           revoked_at: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -34,11 +36,13 @@ export type Database = {
           ends_at: string
           hospital_id: string
           id?: string
+          last_heartbeat?: string
           patient_id: string
-          pin: string
+          pin?: string | null
           pin_expires_at: string
           provider_id?: string | null
           revoked_at?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -47,11 +51,13 @@ export type Database = {
           ends_at?: string
           hospital_id?: string
           id?: string
+          last_heartbeat?: string
           patient_id?: string
-          pin?: string
+          pin?: string | null
           pin_expires_at?: string
           provider_id?: string | null
           revoked_at?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
@@ -541,7 +547,15 @@ export type Database = {
         Returns: boolean
       }
       is_verified_provider: { Args: { _user_id: string }; Returns: boolean }
+      patient_heartbeat: { Args: { _session_id: string }; Returns: undefined }
       provider_hospital_id: { Args: { _user_id: string }; Returns: string }
+      terminate_if_stale: {
+        Args: { _session_id: string }
+        Returns: {
+          status: string
+          terminated: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "patient" | "provider" | "hospital_admin" | "platform_admin"
