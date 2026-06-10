@@ -139,6 +139,7 @@ export default function HospitalDashboard() {
     if (bpm == null) return;
     if (bpm > HR_CRITICAL_HIGH || bpm < HR_CRITICAL_LOW) {
       setEmergency({ patientId, bpm });
+      emergencyStartedAtRef.current = Date.now();
       setMasked(false); // critical bypass
       // Fetch recent herbal regimen for clinical context (RLS-scoped via consultation)
       supabase
@@ -164,6 +165,62 @@ export default function HospitalDashboard() {
     const t = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(t);
   }, []);
+
+  // ── State-Wipe Watcher ───────────────────────────────────────────────────
+  // If the active session is terminated (patient toggle, TTL, heartbeat loss)
+  // wipe local patient cache and bounce back to the dashboard. During an
+  // emergency, ignore heartbeat staleness for 5 minutes so the doctor doesn't
+  // lose the signal while trying to help.
+  function wipePatientState(reason: string) {
+    setActiveSession(null);
+    setVitalsByPatient({});
+    setEmergencyHerbs([]);
+    setPinDialogFor(null);
+    setPinInput("");
+    emergencyStartedAtRef.current = 0;
+    toast.error(`Session ended — ${reason}. Patient data cleared.`);
+    navigate("/hospital-dashboard", { replace: true });
+  }
+
+  useEffect(() => {
+    if (!activeSession) return;
+    const ch = supabase
+      .channel(`active-session-${activeSession.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "consultation_sessions", filter: `id=eq.${activeSession.id}` },
+        (payload) => {
+          const row = payload.new as SessionRow;
+          if (row.status === "terminated" || row.revoked_at || !row.pin) {
+            wipePatientState("PIN nullified by patient or server");
+          } else {
+            setActiveSession((cur) => (cur ? { ...cur, ...row } : cur));
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id]);
+
+  // Heartbeat-stale watchdog (with emergency bypass)
+  useEffect(() => {
+    if (!activeSession) return;
+    const t = window.setInterval(async () => {
+      const ageMs = Date.now() - new Date(activeSession.last_heartbeat).getTime();
+      const inEmergency =
+        !!emergency && Date.now() - emergencyStartedAtRef.current < EMERGENCY_BYPASS_MS;
+      if (inEmergency) return; // 5-min emergency bypass
+      if (ageMs > HEARTBEAT_STALE_MS) {
+        const r = await terminateIfStale(activeSession.id);
+        if (r?.terminated || r?.status === "terminated") {
+          wipePatientState("patient heartbeat lost (>120s)");
+        }
+      }
+    }, 5_000);
+    return () => window.clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSession?.id, emergency]);
 
   // ── ward-mode inactivity mask (180s) ─────────────────────────────────────
   const resetIdle = useCallback(() => {
