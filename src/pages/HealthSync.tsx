@@ -39,6 +39,9 @@ import {
   CheckCircle2,
   Trophy,
   PowerOff,
+  Copy,
+  Check,
+  KeyRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -56,6 +59,14 @@ import {
   type SafetyScore,
 } from "@/lib/safetyScore";
 import { runIntersectionCheck, tierColor } from "@/lib/pharmaLogic";
+import {
+  startConsultationSession,
+  heartbeat,
+  terminateSession,
+  terminateIfStale,
+  HEARTBEAT_INTERVAL_MS,
+  type ConsultationSession,
+} from "@/lib/consultationSession";
 
 type DeviceId = "apple" | "google" | "bp_monitor";
 interface Device {
@@ -139,6 +150,9 @@ const HealthSync = () => {
   const [btConnecting, setBtConnecting] = useState(false);
   const [score, setScore] = useState<SafetyScore | null>(null);
   const [liveStream, setLiveStream] = useState(false);
+  const [session, setSession] = useState<ConsultationSession | null>(null);
+  const [pinCopied, setPinCopied] = useState(false);
+  const [nowTick, setNowTick] = useState(Date.now());
   const [fhirOpen, setFhirOpen] = useState(false);
 
   // Cleanup BT connection on unmount.
