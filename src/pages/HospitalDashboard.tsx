@@ -73,6 +73,7 @@ export default function HospitalDashboard() {
   const [providerLocation, setProviderLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const idleTimer = useRef<number | null>(null);
+  const emergencyStartedAtRef = useRef<number>(0);
 
   // ── load provider status + sessions ──────────────────────────────────────
   useEffect(() => {
