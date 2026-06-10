@@ -82,8 +82,9 @@ export default function HospitalDashboard() {
     setLoading(true);
     const { data, error } = await supabase
       .from("consultation_sessions")
-      .select("id,patient_id,hospital_id,pin,pin_expires_at,ends_at,claimed_at,provider_id,revoked_at")
+      .select("id,patient_id,hospital_id,pin,pin_expires_at,ends_at,claimed_at,provider_id,revoked_at,last_heartbeat,status")
       .is("revoked_at", null)
+      .eq("status", "active")
       .gt("ends_at", new Date().toISOString())
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
@@ -181,34 +182,60 @@ export default function HospitalDashboard() {
     };
   }, [resetIdle]);
 
-  // ── PIN handshake ────────────────────────────────────────────────────────
+  // ── PIN handshake (per-patient 3-strike, 15 min lockout) ─────────────────
+  function getPatientStrikes(pid: string) {
+    return Number(localStorage.getItem(PER_PATIENT_STRIKE_KEY(pid)) ?? 0);
+  }
+  function getPatientLockout(pid: string) {
+    return Number(localStorage.getItem(PER_PATIENT_LOCKOUT_KEY(pid)) ?? 0);
+  }
   function pinLocked() {
-    return lockoutUntil > Date.now();
+    const pid = pinDialogFor?.patient_id;
+    if (!pid) return lockoutUntil > Date.now();
+    return getPatientLockout(pid) > Date.now();
   }
   function recordStrike() {
-    const next = strikes + 1;
+    const pid = pinDialogFor?.patient_id;
+    if (!pid) return;
+    const next = getPatientStrikes(pid) + 1;
+    localStorage.setItem(PER_PATIENT_STRIKE_KEY(pid), String(next));
     setStrikes(next);
-    localStorage.setItem(PIN_STRIKE_KEY, String(next));
     if (next >= MAX_STRIKES) {
-      const until = Date.now() + LOCKOUT_MS;
+      const until = Date.now() + PATIENT_LOCKOUT_MS;
+      localStorage.setItem(PER_PATIENT_LOCKOUT_KEY(pid), String(until));
       setLockoutUntil(until);
-      localStorage.setItem(PIN_LOCKOUT_KEY, String(until));
-      toast.error("Locked for 5 minutes after 3 incorrect PINs.");
+      toast.error("Locked for 15 minutes on this patient after 3 wrong PINs.");
     } else {
       toast.error(`Wrong PIN. ${MAX_STRIKES - next} attempt(s) left.`);
     }
   }
   function clearStrikes() {
+    const pid = pinDialogFor?.patient_id;
+    if (pid) {
+      localStorage.removeItem(PER_PATIENT_STRIKE_KEY(pid));
+      localStorage.removeItem(PER_PATIENT_LOCKOUT_KEY(pid));
+    }
     setStrikes(0);
     setLockoutUntil(0);
     localStorage.removeItem(PIN_STRIKE_KEY);
     localStorage.removeItem(PIN_LOCKOUT_KEY);
   }
 
+  // Sync strike/lockout state when the dialog opens for a different patient
+  useEffect(() => {
+    if (!pinDialogFor) return;
+    setStrikes(getPatientStrikes(pinDialogFor.patient_id));
+    setLockoutUntil(getPatientLockout(pinDialogFor.patient_id));
+  }, [pinDialogFor?.patient_id]);
+
   async function handlePinSubmit() {
     if (!pinDialogFor) return;
     if (pinLocked()) return;
     if (!/^\d{4}$/.test(pinInput)) { toast.error("Enter the 4-digit PIN."); return; }
+    if (!pinDialogFor.pin) {
+      toast.error("PIN nullified. Ask the patient to regenerate.");
+      return;
+    }
     if (pinInput !== pinDialogFor.pin) { recordStrike(); setPinInput(""); return; }
     if (new Date(pinDialogFor.pin_expires_at) < new Date()) {
       toast.error("PIN expired. Ask the patient to regenerate.");
