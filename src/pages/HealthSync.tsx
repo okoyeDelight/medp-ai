@@ -585,6 +585,30 @@ const HealthSync = () => {
             </div>
             <Switch checked={liveStream} onCheckedChange={toggleLiveStream} />
           </CardContent>
+          {liveStream && session?.pin && (
+            <div className="border-t border-border/60 bg-primary/5 px-4 py-4">
+              <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-primary">
+                <KeyRound className="h-3 w-3" /> Doctor Handshake PIN
+              </div>
+              <button
+                onClick={copyPin}
+                className="mt-2 flex w-full items-center justify-between gap-3 rounded-lg border border-primary/30 bg-card px-4 py-3 text-left transition hover:bg-primary/10"
+                aria-label="Tap to copy PIN"
+              >
+                <span className="font-mono-tech text-3xl font-bold tracking-[0.4em] text-foreground">
+                  {session.pin}
+                </span>
+                <span className="flex items-center gap-1 text-[11px] font-medium text-primary">
+                  {pinCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {pinCopied ? "Copied" : "Tap to copy"}
+                </span>
+              </button>
+              <p className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Share with the doctor at the clinical desk.</span>
+                <span className="font-mono-tech">Expires in: {pinCountdown}</span>
+              </p>
+            </div>
+          )}
           <div className="border-t border-border/60 px-4 py-3">
             <Button
               variant="destructive"
