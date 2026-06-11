@@ -98,7 +98,8 @@ const Auth = () => {
         return;
       }
       if (mode === "signup") {
-        const parsed = signUpSchema.safeParse({ displayName, email, password });
+        const schema = role === "hcp" ? hcpSchema : signUpSchema;
+        const parsed = schema.safeParse({ displayName, email, password, licenseNumber });
         if (!parsed.success) {
           toast({ title: "Check your details", description: parsed.error.issues[0].message, variant: "destructive" });
           return;
@@ -108,13 +109,25 @@ const Auth = () => {
           password: parsed.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: parsed.data.displayName },
+            data: {
+              display_name: parsed.data.displayName,
+              account_type: role,
+              license_number: role === "hcp" ? (parsed.data as any).licenseNumber : null,
+            },
           },
         });
         if (error) throw error;
         persistRememberPreference();
-        toast({ title: "Welcome 🎉", description: "Account created. You're signed in." });
+        if (role === "hcp" && email.toLowerCase() !== FOUNDER_EMAIL) {
+          toast({
+            title: "Account under review",
+            description: "Awaiting PCN/MDCN license verification before clinical access is granted.",
+          });
+        } else {
+          toast({ title: "Welcome 🎉", description: "Account created. You're signed in." });
+        }
       } else {
+
         const parsed = signInSchema.safeParse({ email, password });
         if (!parsed.success) {
           toast({ title: "Check your details", description: parsed.error.issues[0].message, variant: "destructive" });
