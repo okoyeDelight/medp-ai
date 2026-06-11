@@ -374,26 +374,37 @@ export default function HospitalDashboard() {
   const currentVitals = activeSession ? vitalsByPatient[activeSession.patient_id] : undefined;
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-clinical min-h-screen bg-background">
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
-        <div className="container flex max-w-5xl items-center justify-between py-3">
+        <div className="container flex max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-sm">Clinical Desk</div>
+              <div className="font-display text-sm">
+                {founderMode ? "Verified Clinician Workspace" : "Clinical Desk"}
+              </div>
               <div className="text-xs text-muted-foreground">
-                {status?.hospitalName ?? "Hospital"} · Verified provider
+                {status?.hospitalName ?? "Hospital"} ·{" "}
+                {providerEmail ?? "Verified provider"}
               </div>
             </div>
           </div>
-          <Button variant="destructive" size="sm" onClick={endShift}>
-            <LogOut className="mr-2 h-4 w-4" /> End Shift
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-[hsl(var(--safe))] text-[hsl(var(--safe-foreground))] gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+              Secure Session Active
+            </Badge>
+            <Button variant="destructive" size="sm" onClick={endShift}>
+              <LogOut className="mr-2 h-4 w-4" /> End Shift
+            </Button>
+          </div>
         </div>
       </header>
+
+
 
       {/* ── Body ────────────────────────────────────────────────────────── */}
       <main
