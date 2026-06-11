@@ -32,12 +32,15 @@ const REMEMBER_KEY = "medp.rememberMe";
 const Auth = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [role, setRole] = useState<"patient" | "hcp">("patient");
   const [displayName, setDisplayName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
+
 
   useEffect(() => {
     const route = async () => {
