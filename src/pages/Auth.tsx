@@ -11,15 +11,21 @@ import { AppHeader } from "@/components/AppHeader";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 
+const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+
 const signUpSchema = z.object({
   displayName: z.string().trim().min(2, "Min 2 characters").max(60),
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(8, "Min 8 characters").max(128),
 });
+const hcpSchema = signUpSchema.extend({
+  licenseNumber: z.string().trim().min(4, "License # required").max(60),
+});
 const signInSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(1, "Required").max(128),
 });
+
 
 const REMEMBER_KEY = "medp.rememberMe";
 
