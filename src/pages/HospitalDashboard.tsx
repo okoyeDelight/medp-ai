@@ -15,8 +15,12 @@ import {
 } from "lucide-react";
 import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
 import { terminateIfStale } from "@/lib/consultationSession";
+import { ClinicalWorkspace } from "@/components/clinical/ClinicalWorkspace";
+import "@/styles/clinical.css";
 
-// ── constants ───────────────────────────────────────────────────────────────
+const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+
+
 const IDLE_MS = 180_000;            // 180s ward-mode mask
 const QUICK_PIN_KEY = "medp.provider.quickPin";
 const PIN_STRIKE_KEY = "medp.provider.pinStrikes";       // legacy global
