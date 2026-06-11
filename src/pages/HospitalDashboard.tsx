@@ -79,10 +79,15 @@ export default function HospitalDashboard() {
   const idleTimer = useRef<number | null>(null);
   const emergencyStartedAtRef = useRef<number>(0);
 
+  const [providerEmail, setProviderEmail] = useState<string | null>(null);
+  const founderMode = providerEmail?.toLowerCase() === FOUNDER_EMAIL;
+
   // ── load provider status + sessions ──────────────────────────────────────
   useEffect(() => {
     fetchProviderStatus().then(setStatus);
+    supabase.auth.getUser().then(({ data }) => setProviderEmail(data.user?.email ?? null));
   }, []);
+
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
