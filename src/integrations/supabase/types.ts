@@ -109,6 +109,60 @@ export type Database = {
         }
         Relationships: []
       }
+      drug_herb_interactions: {
+        Row: {
+          affected_systems: string[]
+          citation: string | null
+          clinical_advice: string
+          created_at: string
+          drug_name: string
+          drug_name_lc: string | null
+          herb_id: string
+          herb_name: string
+          id: string
+          last_synced_at: string
+          mechanism: string
+          severity: Database["public"]["Enums"]["interaction_severity"]
+          source_api: string
+          updated_at: string
+          verification_status: Database["public"]["Enums"]["interaction_verification"]
+        }
+        Insert: {
+          affected_systems?: string[]
+          citation?: string | null
+          clinical_advice: string
+          created_at?: string
+          drug_name: string
+          drug_name_lc?: string | null
+          herb_id: string
+          herb_name: string
+          id?: string
+          last_synced_at?: string
+          mechanism: string
+          severity: Database["public"]["Enums"]["interaction_severity"]
+          source_api?: string
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["interaction_verification"]
+        }
+        Update: {
+          affected_systems?: string[]
+          citation?: string | null
+          clinical_advice?: string
+          created_at?: string
+          drug_name?: string
+          drug_name_lc?: string | null
+          herb_id?: string
+          herb_name?: string
+          id?: string
+          last_synced_at?: string
+          mechanism?: string
+          severity?: Database["public"]["Enums"]["interaction_severity"]
+          source_api?: string
+          updated_at?: string
+          verification_status?: Database["public"]["Enums"]["interaction_verification"]
+        }
+        Relationships: []
+      }
       health_safety_scores: {
         Row: {
           context: Json
@@ -387,6 +441,50 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_care_team: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          hospital_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          status: Database["public"]["Enums"]["care_team_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          hospital_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          status?: Database["public"]["Enums"]["care_team_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          hospital_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          status?: Database["public"]["Enums"]["care_team_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_care_team_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_conditions: string[]
@@ -546,6 +644,10 @@ export type Database = {
         Args: { _hospital_id: string; _user_id: string }
         Returns: boolean
       }
+      is_on_care_team: {
+        Args: { _patient_id: string; _provider_id: string }
+        Returns: boolean
+      }
       is_verified_provider: { Args: { _user_id: string }; Returns: boolean }
       patient_heartbeat: { Args: { _session_id: string }; Returns: undefined }
       provider_hospital_id: { Args: { _user_id: string }; Returns: string }
@@ -559,6 +661,9 @@ export type Database = {
     }
     Enums: {
       app_role: "patient" | "provider" | "hospital_admin" | "platform_admin"
+      care_team_status: "active" | "scheduled" | "historical"
+      interaction_severity: "severe" | "moderate" | "mild"
+      interaction_verification: "pending" | "verified"
       provider_grant_method:
         | "implicit_qr"
         | "passive_qr"
@@ -699,6 +804,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["patient", "provider", "hospital_admin", "platform_admin"],
+      care_team_status: ["active", "scheduled", "historical"],
+      interaction_severity: ["severe", "moderate", "mild"],
+      interaction_verification: ["pending", "verified"],
       provider_grant_method: [
         "implicit_qr",
         "passive_qr",
