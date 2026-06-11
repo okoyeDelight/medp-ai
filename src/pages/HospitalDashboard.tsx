@@ -15,8 +15,12 @@ import {
 } from "lucide-react";
 import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
 import { terminateIfStale } from "@/lib/consultationSession";
+import { ClinicalWorkspace } from "@/components/clinical/ClinicalWorkspace";
+import "@/styles/clinical.css";
 
-// ── constants ───────────────────────────────────────────────────────────────
+const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+
+
 const IDLE_MS = 180_000;            // 180s ward-mode mask
 const QUICK_PIN_KEY = "medp.provider.quickPin";
 const PIN_STRIKE_KEY = "medp.provider.pinStrikes";       // legacy global
@@ -75,10 +79,20 @@ export default function HospitalDashboard() {
   const idleTimer = useRef<number | null>(null);
   const emergencyStartedAtRef = useRef<number>(0);
 
+  const [providerEmail, setProviderEmail] = useState<string | null>(null);
+  const [providerUserId, setProviderUserId] = useState<string | null>(null);
+  const founderMode = providerEmail?.toLowerCase() === FOUNDER_EMAIL;
+
   // ── load provider status + sessions ──────────────────────────────────────
   useEffect(() => {
     fetchProviderStatus().then(setStatus);
+    supabase.auth.getUser().then(({ data }) => {
+      setProviderEmail(data.user?.email ?? null);
+      setProviderUserId(data.user?.id ?? null);
+    });
   }, []);
+
+
 
   const loadSessions = useCallback(async () => {
     setLoading(true);
@@ -365,34 +379,46 @@ export default function HospitalDashboard() {
   const currentVitals = activeSession ? vitalsByPatient[activeSession.patient_id] : undefined;
 
   return (
-    <div className="min-h-screen">
+    <div className="theme-clinical min-h-screen bg-background">
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
-        <div className="container flex max-w-5xl items-center justify-between py-3">
+        <div className="container flex max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-sm">Clinical Desk</div>
+              <div className="font-display text-sm">
+                {founderMode ? "Verified Clinician Workspace" : "Clinical Desk"}
+              </div>
               <div className="text-xs text-muted-foreground">
-                {status?.hospitalName ?? "Hospital"} · Verified provider
+                {status?.hospitalName ?? "Hospital"} ·{" "}
+                {providerEmail ?? "Verified provider"}
               </div>
             </div>
           </div>
-          <Button variant="destructive" size="sm" onClick={endShift}>
-            <LogOut className="mr-2 h-4 w-4" /> End Shift
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-[hsl(var(--safe))] text-[hsl(var(--safe-foreground))] gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+              Secure Session Active
+            </Badge>
+            <Button variant="destructive" size="sm" onClick={endShift}>
+              <LogOut className="mr-2 h-4 w-4" /> End Shift
+            </Button>
+          </div>
         </div>
       </header>
 
+
+
       {/* ── Body ────────────────────────────────────────────────────────── */}
       <main
-        className={`container max-w-5xl py-6 transition-all ${
+        className={`container max-w-6xl space-y-6 py-6 transition-all ${
           masked && !emergency ? "pointer-events-none select-none blur-md" : ""
         }`}
         aria-hidden={masked && !emergency}
       >
+
         <section className="mb-6">
           <h2 className="mb-3 flex items-center gap-2 font-display text-lg">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -508,7 +534,28 @@ export default function HospitalDashboard() {
             </section>
           );
         })()}
+
+        {status?.hospitalId && (
+          <ClinicalWorkspace
+            hospitalId={status.hospitalId}
+            providerId={providerUserId ?? ""}
+            activePatientId={activeSession?.patient_id ?? null}
+            activeSessionId={activeSession?.id ?? null}
+            founderMode={founderMode}
+            onPickPatient={(pid, sid) => {
+              const match = sessions.find((s) => s.id === sid || s.patient_id === pid);
+              if (match && match.claimed_at && match.provider_id) {
+                setActiveSession(match);
+              } else if (match) {
+                setPinDialogFor(match);
+              } else {
+                toast.info("This patient is on your roster but has no active clinical stream right now.");
+              }
+            }}
+          />
+        )}
       </main>
+
 
       {/* ── Ward-mode mask overlay ──────────────────────────────────────── */}
       {masked && !emergency && (

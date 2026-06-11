@@ -11,39 +11,56 @@ import { AppHeader } from "@/components/AppHeader";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 
+const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+
 const signUpSchema = z.object({
   displayName: z.string().trim().min(2, "Min 2 characters").max(60),
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(8, "Min 8 characters").max(128),
+});
+const hcpSchema = signUpSchema.extend({
+  licenseNumber: z.string().trim().min(4, "License # required").max(60),
 });
 const signInSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(1, "Required").max(128),
 });
 
+
 const REMEMBER_KEY = "medp.rememberMe";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [role, setRole] = useState<"patient" | "hcp">("patient");
   const [displayName, setDisplayName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [remember, setRemember] = useState(true);
   const [busy, setBusy] = useState(false);
 
+
   useEffect(() => {
     const route = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) return;
-      // Auto-redirect providers to clinical desk
+      const userEmail = data.session.user.email?.toLowerCase();
+      // Founder bypass: server-side trigger has already seeded provider role
+      // after email confirmation. Route them straight to the clinical desk.
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("role", "provider");
-      if (roles?.length) navigate("/hospital-dashboard", { replace: true });
-      else navigate("/", { replace: true });
+      if (roles?.length) {
+        navigate("/hospital-dashboard", { replace: true });
+      } else if (userEmail === FOUNDER_EMAIL) {
+        // Founder is logged in but email not yet verified → pending
+        navigate("/provider/pending", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     };
     route();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -51,6 +68,8 @@ const Auth = () => {
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
+
 
   function persistRememberPreference() {
     // We always store the session in localStorage (Supabase client default).
@@ -79,7 +98,8 @@ const Auth = () => {
         return;
       }
       if (mode === "signup") {
-        const parsed = signUpSchema.safeParse({ displayName, email, password });
+        const schema = role === "hcp" ? hcpSchema : signUpSchema;
+        const parsed = schema.safeParse({ displayName, email, password, licenseNumber });
         if (!parsed.success) {
           toast({ title: "Check your details", description: parsed.error.issues[0].message, variant: "destructive" });
           return;
@@ -89,13 +109,25 @@ const Auth = () => {
           password: parsed.data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { display_name: parsed.data.displayName },
+            data: {
+              display_name: parsed.data.displayName,
+              account_type: role,
+              license_number: role === "hcp" ? (parsed.data as any).licenseNumber : null,
+            },
           },
         });
         if (error) throw error;
         persistRememberPreference();
-        toast({ title: "Welcome 🎉", description: "Account created. You're signed in." });
+        if (role === "hcp" && email.toLowerCase() !== FOUNDER_EMAIL) {
+          toast({
+            title: "Account under review",
+            description: "Awaiting PCN/MDCN license verification before clinical access is granted.",
+          });
+        } else {
+          toast({ title: "Welcome 🎉", description: "Account created. You're signed in." });
+        }
       } else {
+
         const parsed = signInSchema.safeParse({ email, password });
         if (!parsed.success) {
           toast({ title: "Check your details", description: parsed.error.issues[0].message, variant: "destructive" });
@@ -168,19 +200,56 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
             {mode === "signup" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="displayName">Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
-                  className="border-2 border-foreground"
-                  autoComplete="name"
-                  required
-                />
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRole("patient")}
+                    className={`rounded-lg border-2 border-foreground px-2 py-2 text-xs font-display uppercase ${
+                      role === "patient" ? "bg-primary text-primary-foreground shadow-brutal-sm" : "bg-card"
+                    }`}
+                  >I am a Patient</button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("hcp")}
+                    className={`rounded-lg border-2 border-foreground px-2 py-2 text-xs font-display uppercase ${
+                      role === "hcp" ? "bg-primary text-primary-foreground shadow-brutal-sm" : "bg-card"
+                    }`}
+                  >I am a Healthcare Professional</button>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="displayName">
+                    {role === "hcp" ? "Full Name" : "Name"}
+                  </Label>
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder={role === "hcp" ? "Dr. Jane Adekunle" : "Your name"}
+                    className="border-2 border-foreground"
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+                {role === "hcp" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="license">Medical License Number (MDCN / PCN)</Label>
+                    <Input
+                      id="license"
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      placeholder="MDCN-123456 or PCN-78910"
+                      className="border-2 border-foreground"
+                      required
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Verified against the official council registry before clinical access is granted.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
+
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
