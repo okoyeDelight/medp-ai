@@ -538,7 +538,7 @@ export default function HospitalDashboard() {
         {status?.hospitalId && (
           <ClinicalWorkspace
             hospitalId={status.hospitalId}
-            providerId={(activeSession?.provider_id ?? "") || ""}
+            providerId={providerUserId ?? ""}
             activePatientId={activeSession?.patient_id ?? null}
             activeSessionId={activeSession?.id ?? null}
             founderMode={founderMode}
