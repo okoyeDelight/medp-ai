@@ -46,13 +46,21 @@ const Auth = () => {
     const route = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) return;
-      // Auto-redirect providers to clinical desk
+      const userEmail = data.session.user.email?.toLowerCase();
+      // Founder bypass: server-side trigger has already seeded provider role
+      // after email confirmation. Route them straight to the clinical desk.
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("role", "provider");
-      if (roles?.length) navigate("/hospital-dashboard", { replace: true });
-      else navigate("/", { replace: true });
+      if (roles?.length) {
+        navigate("/hospital-dashboard", { replace: true });
+      } else if (userEmail === FOUNDER_EMAIL) {
+        // Founder is logged in but email not yet verified → pending
+        navigate("/provider/pending", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     };
     route();
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -60,6 +68,8 @@ const Auth = () => {
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
+
 
   function persistRememberPreference() {
     // We always store the session in localStorage (Supabase client default).
