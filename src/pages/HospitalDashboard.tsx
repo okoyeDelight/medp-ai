@@ -408,11 +408,12 @@ export default function HospitalDashboard() {
 
       {/* ── Body ────────────────────────────────────────────────────────── */}
       <main
-        className={`container max-w-5xl py-6 transition-all ${
+        className={`container max-w-6xl space-y-6 py-6 transition-all ${
           masked && !emergency ? "pointer-events-none select-none blur-md" : ""
         }`}
         aria-hidden={masked && !emergency}
       >
+
         <section className="mb-6">
           <h2 className="mb-3 flex items-center gap-2 font-display text-lg">
             <ClipboardList className="h-5 w-5 text-primary" />
