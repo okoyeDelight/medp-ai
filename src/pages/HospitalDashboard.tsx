@@ -529,7 +529,28 @@ export default function HospitalDashboard() {
             </section>
           );
         })()}
+
+        {status?.hospitalId && (
+          <ClinicalWorkspace
+            hospitalId={status.hospitalId}
+            providerId={(activeSession?.provider_id ?? "") || ""}
+            activePatientId={activeSession?.patient_id ?? null}
+            activeSessionId={activeSession?.id ?? null}
+            founderMode={founderMode}
+            onPickPatient={(pid, sid) => {
+              const match = sessions.find((s) => s.id === sid || s.patient_id === pid);
+              if (match && match.claimed_at && match.provider_id) {
+                setActiveSession(match);
+              } else if (match) {
+                setPinDialogFor(match);
+              } else {
+                toast.info("This patient is on your roster but has no active clinical stream right now.");
+              }
+            }}
+          />
+        )}
       </main>
+
 
       {/* ── Ward-mode mask overlay ──────────────────────────────────────── */}
       {masked && !emergency && (
