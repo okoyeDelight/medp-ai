@@ -200,19 +200,56 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
             {mode === "signup" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="displayName">Name</Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
-                  className="border-2 border-foreground"
-                  autoComplete="name"
-                  required
-                />
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRole("patient")}
+                    className={`rounded-lg border-2 border-foreground px-2 py-2 text-xs font-display uppercase ${
+                      role === "patient" ? "bg-primary text-primary-foreground shadow-brutal-sm" : "bg-card"
+                    }`}
+                  >I am a Patient</button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("hcp")}
+                    className={`rounded-lg border-2 border-foreground px-2 py-2 text-xs font-display uppercase ${
+                      role === "hcp" ? "bg-primary text-primary-foreground shadow-brutal-sm" : "bg-card"
+                    }`}
+                  >I am a Healthcare Professional</button>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="displayName">
+                    {role === "hcp" ? "Full Name" : "Name"}
+                  </Label>
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder={role === "hcp" ? "Dr. Jane Adekunle" : "Your name"}
+                    className="border-2 border-foreground"
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+                {role === "hcp" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="license">Medical License Number (MDCN / PCN)</Label>
+                    <Input
+                      id="license"
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      placeholder="MDCN-123456 or PCN-78910"
+                      className="border-2 border-foreground"
+                      required
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Verified against the official council registry before clinical access is granted.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
+
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
