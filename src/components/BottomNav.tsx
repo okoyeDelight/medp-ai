@@ -1,10 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Activity, Home, NotebookPen, Shield, User } from "lucide-react";
+import { Activity, Home, NotebookPen, Pill, Shield, User } from "lucide-react";
 
 export function BottomNav() {
   const { pathname } = useLocation();
   // Hide patient nav on provider/clinical routes
-  if (pathname.startsWith("/provider") || pathname.startsWith("/hospital-dashboard")) {
+  if (pathname.startsWith("/provider") || pathname.startsWith("/hospital-dashboard") || pathname.startsWith("/pharmacy/")) {
     return null;
   }
   const base =
@@ -24,6 +24,10 @@ export function BottomNav() {
           <NavLink to="/safety-scan" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             <Shield className="h-5 w-5" strokeWidth={2.5} />
             Safety
+          </NavLink>
+          <NavLink to="/chemists" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <Pill className="h-5 w-5" strokeWidth={2.5} />
+            Chemist
           </NavLink>
           <NavLink to="/health-sync" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             <Activity className="h-5 w-5" strokeWidth={2.5} />
