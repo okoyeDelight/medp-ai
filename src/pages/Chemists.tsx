@@ -74,10 +74,11 @@ export default function Chemists() {
   }, [activeSession?.id, activeSession?.status]);
 
   const sorted = useMemo(() => {
-    if (!loc) return pharms;
-    return [...pharms]
-      .map((p) => ({ p, d: p.lat != null && p.lng != null ? distanceKm(loc, { lat: p.lat, lng: p.lng }) : Infinity }))
-      .sort((a, b) => a.d - b.d);
+    const withDist = pharms.map((p) => ({
+      p,
+      d: loc && p.lat != null && p.lng != null ? distanceKm(loc, { lat: p.lat, lng: p.lng }) : Infinity,
+    }));
+    return withDist.sort((a, b) => a.d - b.d);
   }, [pharms, loc]);
 
   async function startChat(pharm: Pharmacy) {
