@@ -53,11 +53,8 @@ const Auth = () => {
         .from("user_roles")
         .select("role")
         .eq("role", "provider");
-      if (roles?.length) {
+      if (roles?.length || userEmail === FOUNDER_EMAIL) {
         navigate("/hospital-dashboard", { replace: true });
-      } else if (userEmail === FOUNDER_EMAIL) {
-        // Founder is logged in but email not yet verified → pending
-        navigate("/provider/pending", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
