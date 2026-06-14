@@ -12,8 +12,13 @@ export default function ProviderPending() {
   const [status, setStatus] = useState<ProviderStatus | null>(null);
 
   useEffect(() => {
-    fetchProviderStatus().then(setStatus);
-  }, []);
+    fetchProviderStatus().then((s) => {
+      setStatus(s);
+      if (s.isFounder || (s.isProvider && s.hospitalId)) {
+        navigate("/hospital-dashboard", { replace: true });
+      }
+    });
+  }, [navigate]);
 
   async function logout() {
     await supabase.auth.signOut();
