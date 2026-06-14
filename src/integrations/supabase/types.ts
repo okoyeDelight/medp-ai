@@ -485,6 +485,139 @@ export type Database = {
           },
         ]
       }
+      pharmacies: {
+        Row: {
+          address: string | null
+          created_at: string
+          duty_status: string
+          id: string
+          is_licensed_pharmacy: boolean
+          lat: number | null
+          license_number: string
+          lng: number | null
+          name: string
+          owner_user_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          duty_status?: string
+          id?: string
+          is_licensed_pharmacy?: boolean
+          lat?: number | null
+          license_number: string
+          lng?: number | null
+          name: string
+          owner_user_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          duty_status?: string
+          id?: string
+          is_licensed_pharmacy?: boolean
+          lat?: number | null
+          license_number?: string
+          lng?: number | null
+          name?: string
+          owner_user_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pharmacy_chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string | null
+          sender_role: string
+          session_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role: string
+          session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_chat_sessions: {
+        Row: {
+          accepted_at: string | null
+          archived_transcript: Json | null
+          created_at: string
+          ended_at: string | null
+          id: string
+          interaction_report: Json | null
+          patient_id: string
+          pharmacist_user_id: string
+          pharmacy_id: string
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          archived_transcript?: Json | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          interaction_report?: Json | null
+          patient_id: string
+          pharmacist_user_id: string
+          pharmacy_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          archived_transcript?: Json | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          interaction_report?: Json | null
+          patient_id?: string
+          pharmacist_user_id?: string
+          pharmacy_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_chat_sessions_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_conditions: string[]
@@ -646,6 +779,10 @@ export type Database = {
       }
       is_on_care_team: {
         Args: { _patient_id: string; _provider_id: string }
+        Returns: boolean
+      }
+      is_pharmacy_chat_participant: {
+        Args: { _session_id: string }
         Returns: boolean
       }
       is_verified_provider: { Args: { _user_id: string }; Returns: boolean }

@@ -17,6 +17,8 @@ import Connectivity from "./pages/Connectivity.tsx";
 import ProviderAuth from "./pages/ProviderAuth.tsx";
 import ProviderPending from "./pages/ProviderPending.tsx";
 import HospitalDashboard from "./pages/HospitalDashboard.tsx";
+import Chemists from "./pages/Chemists.tsx";
+import PharmacyDashboard from "./pages/PharmacyDashboard.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
@@ -106,6 +108,22 @@ const App = () => (
                   <RequireProvider>
                     <HospitalDashboard />
                   </RequireProvider>
+                }
+              />
+              <Route
+                path="/chemists"
+                element={
+                  <RequireAuth>
+                    <Chemists />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/pharmacy/dashboard"
+                element={
+                  <RequireAuth>
+                    <PharmacyDashboard />
+                  </RequireAuth>
                 }
               />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
