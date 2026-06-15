@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   type ChatMessage,
+  type InteractionReport,
   type PharmacyChatSession,
   endChatSession,
   fetchMessages,
@@ -10,7 +11,13 @@ import {
 } from "@/lib/telepharmacy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, ShieldCheck, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, Send, ShieldCheck, X, Sparkles, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -19,9 +26,12 @@ interface Props {
   role: "patient" | "pharmacist";
   counterpartyName: string;
   onClosed: () => void;
+  quickReplies?: string[];
 }
 
-export function SecureChatPanel({ session, meId, role, counterpartyName, onClosed }: Props) {
+export function SecureChatPanel({ session, meId, role, counterpartyName, onClosed, quickReplies }: Props) {
+  const [showContext, setShowContext] = useState(false);
+  const report: InteractionReport | null = session.interaction_report;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -110,17 +120,46 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
     <div className="flex h-full flex-col rounded-xl border bg-card">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
             <ShieldCheck className="h-3.5 w-3.5" /> Secure medical channel
           </div>
-          <div className="font-display text-sm">{counterpartyName}</div>
+          <div className="font-display text-sm truncate">{counterpartyName}</div>
         </div>
-        <Button size="sm" variant="destructive" onClick={handleEnd} disabled={ending}>
-          {ending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <X className="mr-1 h-3.5 w-3.5" />}
-          End & File
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {role === "pharmacist" && report && (
+            <Button size="sm" variant="outline" onClick={() => setShowContext((v) => !v)}>
+              <ClipboardList className="mr-1 h-3.5 w-3.5" />
+              {showContext ? "Hide" : "Context"}
+            </Button>
+          )}
+          <Button size="sm" variant="destructive" onClick={handleEnd} disabled={ending}>
+            {ending ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <X className="mr-1 h-3.5 w-3.5" />}
+            End & File
+          </Button>
+        </div>
       </div>
+
+      {/* Optional clinical context side-rail (pharmacist) */}
+      {role === "pharmacist" && showContext && report && (
+        <div className="border-b bg-primary/5 px-4 py-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            Patient clinical context
+          </div>
+          <div className="grid gap-1 text-[11px] text-foreground">
+            <div><span className="text-muted-foreground">Patient:</span> {report.patient_label}</div>
+            <div><span className="text-muted-foreground">HR:</span> {report.vitals.hr ?? "—"} bpm · <span className="text-muted-foreground">BP:</span> {report.vitals.bp ?? "—"}</div>
+            <div className="text-muted-foreground">Recent herbal intake:</div>
+            <ul className="ml-3 list-disc">
+              {report.herbal_intake.length === 0
+                ? <li className="text-muted-foreground">(none logged)</li>
+                : report.herbal_intake.map((h, i) => (
+                    <li key={i}>{h.name}{h.dose ? ` — ${h.dose}` : ""}</li>
+                  ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div ref={scrollerRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
@@ -150,6 +189,22 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
 
       {/* Composer */}
       <form onSubmit={handleSend} className="flex gap-2 border-t p-3">
+        {role === "pharmacist" && quickReplies && quickReplies.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="icon" title="Quick replies">
+                <Sparkles className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-w-xs">
+              {quickReplies.map((q, i) => (
+                <DropdownMenuItem key={i} onClick={() => setDraft(q)} className="whitespace-normal text-xs">
+                  {q}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
