@@ -488,8 +488,11 @@ export type Database = {
       pharmacies: {
         Row: {
           address: string | null
+          auto_duty: boolean
           created_at: string
           duty_status: string
+          hours_close: string | null
+          hours_open: string | null
           id: string
           is_licensed_pharmacy: boolean
           lat: number | null
@@ -498,12 +501,19 @@ export type Database = {
           name: string
           owner_user_id: string
           phone: string | null
+          price_naira: number
+          pricing_mode: string
+          quick_replies: string[]
+          service_radius_km: number
           updated_at: string
         }
         Insert: {
           address?: string | null
+          auto_duty?: boolean
           created_at?: string
           duty_status?: string
+          hours_close?: string | null
+          hours_open?: string | null
           id?: string
           is_licensed_pharmacy?: boolean
           lat?: number | null
@@ -512,12 +522,19 @@ export type Database = {
           name: string
           owner_user_id: string
           phone?: string | null
+          price_naira?: number
+          pricing_mode?: string
+          quick_replies?: string[]
+          service_radius_km?: number
           updated_at?: string
         }
         Update: {
           address?: string | null
+          auto_duty?: boolean
           created_at?: string
           duty_status?: string
+          hours_close?: string | null
+          hours_open?: string | null
           id?: string
           is_licensed_pharmacy?: boolean
           lat?: number | null
@@ -526,6 +543,10 @@ export type Database = {
           name?: string
           owner_user_id?: string
           phone?: string | null
+          price_naira?: number
+          pricing_mode?: string
+          quick_replies?: string[]
+          service_radius_km?: number
           updated_at?: string
         }
         Relationships: []
