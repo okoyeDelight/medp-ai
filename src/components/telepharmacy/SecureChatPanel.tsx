@@ -29,7 +29,9 @@ interface Props {
   quickReplies?: string[];
 }
 
-export function SecureChatPanel({ session, meId, role, counterpartyName, onClosed }: Props) {
+export function SecureChatPanel({ session, meId, role, counterpartyName, onClosed, quickReplies }: Props) {
+  const [showContext, setShowContext] = useState(false);
+  const report: InteractionReport | null = session.interaction_report;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
