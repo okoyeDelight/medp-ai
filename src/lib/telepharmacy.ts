@@ -11,6 +11,36 @@ export interface Pharmacy {
   lng: number | null;
   address: string | null;
   phone: string | null;
+  service_radius_km: number;
+  hours_open: string | null;
+  hours_close: string | null;
+  auto_duty: boolean;
+  pricing_mode: "free" | "paid";
+  price_naira: number;
+  quick_replies: string[];
+}
+
+/** Returns true if current local time falls inside [open, close). Supports overnight ranges. */
+export function isWithinDutyHours(p: Pick<Pharmacy, "hours_open" | "hours_close">): boolean {
+  if (!p.hours_open || !p.hours_close) return true;
+  const now = new Date();
+  const [oh, om] = p.hours_open.split(":").map(Number);
+  const [ch, cm] = p.hours_close.split(":").map(Number);
+  const cur = now.getHours() * 60 + now.getMinutes();
+  const open = oh * 60 + (om || 0);
+  const close = ch * 60 + (cm || 0);
+  return open <= close ? cur >= open && cur < close : cur >= open || cur < close;
+}
+
+export async function fetchSessionHistory(pharmacistUserId: string): Promise<PharmacyChatSession[]> {
+  const { data } = await supabase
+    .from("pharmacy_chat_sessions" as any)
+    .select("*")
+    .eq("pharmacist_user_id", pharmacistUserId)
+    .in("status", ["ended", "declined"])
+    .order("ended_at", { ascending: false })
+    .limit(100);
+  return (data as unknown as PharmacyChatSession[]) ?? [];
 }
 
 export interface PharmacyChatSession {
