@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   type ChatMessage,
+  type InteractionReport,
   type PharmacyChatSession,
   endChatSession,
   fetchMessages,
@@ -10,7 +11,13 @@ import {
 } from "@/lib/telepharmacy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, ShieldCheck, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, Send, ShieldCheck, X, Sparkles, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -19,6 +26,7 @@ interface Props {
   role: "patient" | "pharmacist";
   counterpartyName: string;
   onClosed: () => void;
+  quickReplies?: string[];
 }
 
 export function SecureChatPanel({ session, meId, role, counterpartyName, onClosed }: Props) {
