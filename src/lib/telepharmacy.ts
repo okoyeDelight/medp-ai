@@ -208,10 +208,19 @@ export async function buildInteractionReport(patientId: string, displayName: str
   };
 }
 
+export function safetyEmoji(level: InteractionReport["safety_level"]): string {
+  return level === "red" ? "🔴" : level === "yellow" ? "🟡" : level === "green" ? "🟢" : "⚪";
+}
+
+export function safetyLabel(level: InteractionReport["safety_level"]): string {
+  return level === "red" ? "DANGER" : level === "yellow" ? "CAUTION" : level === "green" ? "SAFE" : "UNKNOWN";
+}
+
 export function formatReportAsMessage(r: InteractionReport): string {
   const lines = [
     "📋 MEDP-AI CLINICAL CONTEXT",
     `Patient: ${r.patient_label}`,
+    `Safety Gate: ${safetyEmoji(r.safety_level)} ${safetyLabel(r.safety_level)}${r.safety_summary ? ` — ${r.safety_summary}` : ""}`,
     "",
     "Recent herbal intake:",
     r.herbal_intake.length === 0
