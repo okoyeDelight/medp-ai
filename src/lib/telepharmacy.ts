@@ -69,6 +69,8 @@ export interface InteractionReport {
   herbal_intake: { name: string; lastTaken?: string; dose?: string }[];
   symptoms: string[];
   vitals: { hr?: number; bp?: string; measured_at?: string };
+  safety_level: "red" | "yellow" | "green" | null;
+  safety_summary?: string;
   generated_at: string;
 }
 
@@ -160,6 +162,31 @@ export async function buildInteractionReport(patientId: string, displayName: str
     .order("taken_at", { ascending: false })
     .limit(5);
 
+  // Derive Safety Gate result from latest health_safety_scores (best-effort).
+  let safety_level: InteractionReport["safety_level"] = null;
+  let safety_summary: string | undefined;
+  try {
+    const { data: score } = await supabase
+      .from("health_safety_scores" as any)
+      .select("*")
+      .eq("user_id", patientId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (score) {
+      const s: any = score;
+      const band = (s.band ?? s.level ?? "").toString().toLowerCase();
+      if (band === "red" || band === "yellow" || band === "green") {
+        safety_level = band as "red" | "yellow" | "green";
+      } else if (typeof s.score === "number") {
+        safety_level = s.score >= 80 ? "green" : s.score >= 50 ? "yellow" : "red";
+      }
+      safety_summary = s.summary ?? s.note ?? undefined;
+    }
+  } catch {
+    /* table/columns may differ — fail silent */
+  }
+
   return {
     patient_label: displayName || "Patient",
     herbal_intake: (doses ?? []).map((d: any) => ({
@@ -175,6 +202,8 @@ export async function buildInteractionReport(patientId: string, displayName: str
           measured_at: (v as any).measured_at,
         }
       : {},
+    safety_level,
+    safety_summary,
     generated_at: new Date().toISOString(),
   };
 }
