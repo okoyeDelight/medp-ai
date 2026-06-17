@@ -119,6 +119,16 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
     }
   }
 
+  const safetyLevel = report?.safety_level ?? null;
+  const safetyChipClasses =
+    safetyLevel === "red"
+      ? "border-red-600 bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+      : safetyLevel === "yellow"
+        ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+        : safetyLevel === "green"
+          ? "border-emerald-600 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          : "border-muted-foreground/30 bg-muted text-muted-foreground";
+
   return (
     <div className="flex h-full flex-col rounded-xl border bg-card">
       {/* Header */}
@@ -127,7 +137,19 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
           <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
             <ShieldCheck className="h-3.5 w-3.5" /> Secure medical channel
           </div>
-          <div className="font-display text-sm truncate">{counterpartyName}</div>
+          <div className="flex items-center gap-2">
+            <div className="font-display text-sm truncate">{counterpartyName}</div>
+            {report && (
+              <Badge
+                variant="outline"
+                className={`gap-1 border ${safetyChipClasses} px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide`}
+                title="Safety Gate result"
+              >
+                <span aria-hidden>{safetyEmoji(safetyLevel)}</span>
+                {safetyLabel(safetyLevel)}
+              </Badge>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1.5">
           {role === "pharmacist" && report && (
@@ -146,11 +168,23 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
       {/* Optional clinical context side-rail (pharmacist) */}
       {role === "pharmacist" && showContext && report && (
         <div className="border-b bg-primary/5 px-4 py-3">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
-            Patient clinical context
+          <div className="mb-1 flex items-center justify-between">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-primary">
+              Patient clinical context
+            </div>
+            <Badge
+              variant="outline"
+              className={`gap-1 border ${safetyChipClasses} px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wide`}
+            >
+              <span aria-hidden>{safetyEmoji(safetyLevel)}</span>
+              Safety Gate · {safetyLabel(safetyLevel)}
+            </Badge>
           </div>
           <div className="grid gap-1 text-[11px] text-foreground">
             <div><span className="text-muted-foreground">Patient:</span> {report.patient_label}</div>
+            {report.safety_summary && (
+              <div><span className="text-muted-foreground">Safety note:</span> {report.safety_summary}</div>
+            )}
             <div><span className="text-muted-foreground">HR:</span> {report.vitals.hr ?? "—"} bpm · <span className="text-muted-foreground">BP:</span> {report.vitals.bp ?? "—"}</div>
             <div className="text-muted-foreground">Recent herbal intake:</div>
             <ul className="ml-3 list-disc">
@@ -163,6 +197,7 @@ export function SecureChatPanel({ session, meId, role, counterpartyName, onClose
           </div>
         </div>
       )}
+
 
       {/* Messages */}
       <div ref={scrollerRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-3">
