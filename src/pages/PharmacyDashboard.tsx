@@ -153,6 +153,32 @@ export default function PharmacyDashboard() {
   const live = useMemo(() => sessions.filter((s) => s.status === "active"), [sessions]);
   useRingTone(pending.length > 0 && !active);
 
+  // Auto-decline pending requests after 60s, with a visible toast.
+  const autoDeclinedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const id = setInterval(() => {
+      const now = Date.now();
+      for (const s of pending) {
+        if (autoDeclinedRef.current.has(s.id)) continue;
+        const ageSec = (now - new Date(s.started_at).getTime()) / 1000;
+        if (ageSec >= 60) {
+          autoDeclinedRef.current.add(s.id);
+          const label = s.interaction_report?.patient_label ?? "Patient";
+          declineChatSession(s.id)
+            .then(() =>
+              toast.warning(`⏱ Auto-declined: ${label} waited 60s with no response`, {
+                description: "The request was released so the patient can try another pharmacy.",
+                duration: 8000,
+              }),
+            )
+            .catch(() => autoDeclinedRef.current.delete(s.id));
+        }
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [pending]);
+
+
   // ── Loading / unauth ───────────────────────────────────────────
   if (authLoading || loading) {
     return (
