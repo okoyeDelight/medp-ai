@@ -424,6 +424,17 @@ export default function PharmacyDashboard() {
                               onClick={async () => {
                                 await acceptChatSession(s.id);
                                 setActive({ ...s, status: "active", accepted_at: new Date().toISOString() });
+                                const isDemo = (s.interaction_report?.patient_label ?? "").startsWith("🧪");
+                                if (isDemo) {
+                                  setTimeout(() => {
+                                    sendMessage({
+                                      sessionId: s.id,
+                                      senderId: meId!,
+                                      role: "patient",
+                                      body: "Hi pharmacist 🙏 I've been feeling dizzy and a bit of palpitations since I took the bitter-leaf extract this morning. Is it safe to take my BP meds with it?",
+                                    }).catch(() => {});
+                                  }, 1500);
+                                }
                               }}
                             >
                               <Check className="mr-1 h-3.5 w-3.5" /> Accept
