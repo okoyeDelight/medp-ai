@@ -688,3 +688,68 @@ function SettingsForm({ pharm, onSaved }: { pharm: Pharmacy; onSaved: (p: Pharma
     </Card>
   );
 }
+
+// ── One-click demo: seeds a pending session against your own pharmacy ──
+function DemoModeButton({
+  meId,
+  pharm,
+  onSeeded,
+}: {
+  meId: string;
+  pharm: Pharmacy;
+  onSeeded: (s: PharmacyChatSession) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Card className="border-2 border-dashed border-primary/50 bg-primary/5">
+      <CardContent className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="font-display text-sm">Demo mode</span>
+            <Badge variant="outline" className="text-[10px]">testing</Badge>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Simulates a patient ringing your pharmacy with auto-injected clinical context.
+            Accept within 60s — or wait to see auto-decline.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              const report = await buildInteractionReport(meId, "🧪 Demo Patient (Ada)");
+              // Force a yellow safety band so the badge is obvious in the demo.
+              if (!report.safety_level) {
+                report.safety_level = "yellow";
+                report.safety_summary = "Bitter-leaf × antihypertensive — monitor BP";
+              }
+              if (report.herbal_intake.length === 0) {
+                report.herbal_intake = [
+                  { name: "Bitter leaf extract", dose: "1 cup", lastTaken: new Date().toISOString() },
+                  { name: "Moringa tea", dose: "200 ml", lastTaken: new Date(Date.now() - 3600_000).toISOString() },
+                ];
+              }
+              if (!report.vitals.hr) report.vitals = { hr: 96, bp: "142/91", measured_at: new Date().toISOString() };
+              const s = await initiateChatSession({ patientId: meId, pharmacy: pharm, report });
+              onSeeded(s);
+              toast.success("🧪 Demo request ringing — check Inbox", {
+                description: "Ignore for 60s to watch auto-decline, or Accept to open chat with a scripted patient reply.",
+              });
+            } catch (e) {
+              toast.error(e instanceof Error ? e.message : "Demo failed");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+          Run demo
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+}
