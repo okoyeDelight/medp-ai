@@ -38,6 +38,7 @@ import {
   Settings as SettingsIcon,
   Clock,
   Save,
+  Sparkles,
 } from "lucide-react";
 import { SecureChatPanel } from "@/components/telepharmacy/SecureChatPanel";
 import { toast } from "sonner";
