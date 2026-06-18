@@ -357,6 +357,13 @@ export default function PharmacyDashboard() {
           </CardContent>
         </Card>
 
+        {/* One-click demo — simulates a patient request end-to-end in this session */}
+        <DemoModeButton
+          meId={meId!}
+          pharm={pharm}
+          onSeeded={(s) => setSessions((prev) => [s, ...prev])}
+        />
+
         <Tabs defaultValue="inbox">
           <TabsList className="w-full">
             <TabsTrigger value="inbox" className="flex-1">
