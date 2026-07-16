@@ -117,7 +117,7 @@ const Auth = () => {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${nextPath ?? "/"}`,
             data: {
               display_name: parsed.data.displayName,
               account_type: role,
@@ -172,7 +172,9 @@ const Auth = () => {
     persistRememberPreference();
     setBusy(true);
     try {
-      await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/` });
+      await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}${nextPath ?? "/"}`,
+      });
     } catch (err) {
       toast({
         title: "Google sign-in failed",
