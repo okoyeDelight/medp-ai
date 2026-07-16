@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://lfpwbzyxtasanttxfbwi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "medp-ai-mcp",
+      "version": "0.1.0",
+      "title": "MedP-AI"
+    },
+    "tools": [
+      {
+        "name": "get_profile",
+        "title": "Get my MedP-AI profile",
+        "description": "Return the signed-in user's MedP-AI profile: display name, active conditions, active medications, HMO info, and privacy state.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_vitals",
+        "title": "List recent vitals",
+        "description": "List the signed-in user's most recent vitals (pulse, blood pressure, glucose) ordered by measurement time, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "description": "Max rows to return (1-50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_vital",
+        "title": "Log a vitals reading",
+        "description": "Record a new vitals reading (pulse, blood pressure, glucose) for the signed-in user. All fields are optional but at least one measurement must be provided.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "pulse_bpm": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 250,
+              "description": "Heart rate in beats per minute."
+            },
+            "systolic": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 260,
+              "description": "Systolic blood pressure (mmHg)."
+            },
+            "diastolic": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 180,
+              "description": "Diastolic blood pressure (mmHg)."
+            },
+            "glucose_mgdl": {
+              "type": "integer",
+              "minimum": 20,
+              "maximum": 800,
+              "description": "Blood glucose (mg/dL)."
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 60,
+              "description": "Where the reading came from (e.g. 'manual', 'wearable')."
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 500
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_doses",
+        "title": "List recent herbal doses",
+        "description": "List the signed-in user's most recent herbal remedy doses from the MedP-AI diary, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_safety_score",
+        "title": "Get my Health Safety Score",
+        "description": "Return the signed-in user's current MedP-AI Health Safety Score, wellness points, and premium discount percentage.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
