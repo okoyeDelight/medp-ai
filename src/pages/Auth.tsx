@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -31,6 +31,15 @@ const REMEMBER_KEY = "medp.rememberMe";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Same-origin relative redirect (e.g. /.lovable/oauth/consent?authorization_id=…).
+  const nextPath = useMemo(() => {
+    const raw = searchParams.get("next");
+    if (!raw) return null;
+    // Must be a relative path — reject anything that could escape the origin.
+    if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+    return raw;
+  }, [searchParams]);
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [role, setRole] = useState<"patient" | "hcp">("patient");
   const [displayName, setDisplayName] = useState("");
@@ -46,9 +55,12 @@ const Auth = () => {
     const route = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) return;
+      // If we were sent here to complete an OAuth consent flow, honor that first.
+      if (nextPath) {
+        navigate(nextPath, { replace: true });
+        return;
+      }
       const userEmail = data.session.user.email?.toLowerCase();
-      // Founder bypass: server-side trigger has already seeded provider role
-      // after email confirmation. Route them straight to the clinical desk.
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
@@ -64,7 +76,7 @@ const Auth = () => {
       if (s) route();
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, nextPath]);
 
 
 
@@ -105,7 +117,7 @@ const Auth = () => {
           email: parsed.data.email,
           password: parsed.data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${nextPath ?? "/"}`,
             data: {
               display_name: parsed.data.displayName,
               account_type: role,
@@ -160,7 +172,9 @@ const Auth = () => {
     persistRememberPreference();
     setBusy(true);
     try {
-      await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/` });
+      await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}${nextPath ?? "/"}`,
+      });
     } catch (err) {
       toast({
         title: "Google sign-in failed",
