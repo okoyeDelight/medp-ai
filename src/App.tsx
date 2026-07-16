@@ -19,6 +19,7 @@ import ProviderPending from "./pages/ProviderPending.tsx";
 import HospitalDashboard from "./pages/HospitalDashboard.tsx";
 import Chemists from "./pages/Chemists.tsx";
 import PharmacyDashboard from "./pages/PharmacyDashboard.tsx";
+import OAuthConsent from "./pages/OAuthConsent.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
@@ -35,6 +36,7 @@ const App = () => (
           <div className="flex-1">
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-of-service" element={<TermsOfService />} />
               <Route
