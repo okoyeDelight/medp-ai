@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Security hardening: CSP + defence-in-depth headers.
+         (HSTS must be set as a real HTTP header at the CDN — meta HSTS is ignored by browsers.) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://*.lovable.app https://*.lovable.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; worker-src 'self' blob:; frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(self), bluetooth=(self)" />
+
     <title>MedP-AI — Pidgin Herbal Pharmacist for Nigeria</title>
     <meta name="description" content="MedP-AI: your pocket Nigerian chemist. Get safe local herbal remedies in Pidgin with herb-drug safety checks." />
     <meta name="author" content="MedP-AI" />
