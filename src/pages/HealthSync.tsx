@@ -58,7 +58,7 @@ import {
   scoreTier,
   type SafetyScore,
 } from "@/lib/safetyScore";
-import { runIntersectionCheck, tierColor } from "@/lib/pharmaLogic";
+import { runIntersectionCheck, tierColor, OK_ALERT, type IntersectionAlert } from "@/lib/pharmaLogic";
 import {
   startConsultationSession,
   heartbeat,
@@ -305,22 +305,34 @@ const HealthSync = () => {
 
   const hmoLabel = profile?.hmo_provider ?? "your HMO";
 
-  // Pharma-Logic intersection across profile × biometrics × herbs.
+  // Pharma-Logic intersection now runs server-side (Edge Function).
   const liveBpm = btBpm ?? latestPulse?.pulse_bpm ?? null;
-  const intersection = useMemo(
-    () =>
-      runIntersectionCheck(
-        profile,
-        {
-          bpm: liveBpm,
-          systolic: latestBp?.systolic ?? null,
-          diastolic: latestBp?.diastolic ?? null,
-          glucose: latestGlucose?.glucose_mgdl ?? null,
-        },
-        logs,
-      ),
-    [profile, liveBpm, latestBp, latestGlucose, logs],
-  );
+  const [intersection, setIntersection] = useState<IntersectionAlert>(OK_ALERT);
+  const [intersectionLoading, setIntersectionLoading] = useState(false);
+  const [intersectionError, setIntersectionError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setIntersectionLoading(true);
+    setIntersectionError(null);
+    runIntersectionCheck(
+      {
+        bpm: liveBpm,
+        systolic: latestBp?.systolic ?? null,
+        diastolic: latestBp?.diastolic ?? null,
+        glucose: latestGlucose?.glucose_mgdl ?? null,
+      },
+      logs,
+    )
+      .then((res) => { if (!cancelled) setIntersection(res); })
+      .catch((e: any) => {
+        if (!cancelled) {
+          setIntersection(OK_ALERT);
+          setIntersectionError(e?.message ?? "Safety engine offline.");
+        }
+      })
+      .finally(() => { if (!cancelled) setIntersectionLoading(false); });
+    return () => { cancelled = true; };
+  }, [liveBpm, latestBp?.systolic, latestBp?.diastolic, latestGlucose?.glucose_mgdl, logs]);
   const tier = tierColor(intersection.tier);
   const scoreInfo = score ? scoreTier(score.score) : null;
 

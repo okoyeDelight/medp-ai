@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // PWA registration — but NEVER inside Lovable preview iframes.
 // In published / installed builds it activates and powers offline + push.
@@ -33,4 +34,8 @@ if (isInIframe || isPreviewHost) {
     });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+);

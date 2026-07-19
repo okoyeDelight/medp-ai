@@ -1,6 +1,6 @@
 // Clinical Drug ↔ Herb Interaction lookup.
-// Reads from local Supabase cache (drug_herb_interactions) — populated by
-// the future Nightly ETL Pipeline (Source_API + Last_Synced_Date metadata).
+// Proprietary lookup runs in the `drug-interactions` Edge Function
+// (JWT-verified, Zod-validated). This module is a thin async client + UI helpers.
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -27,22 +27,12 @@ export async function searchDrugInteractions(
 ): Promise<DrugHerbInteraction[]> {
   const drug = drugName.trim();
   if (!drug) return [];
-  let q = supabase
-    .from("drug_herb_interactions" as any)
-    .select("*")
-    .ilike("drug_name", `%${drug}%`);
-  if (herbIds.length > 0) q = q.in("herb_id", herbIds);
-  const { data, error } = await q;
-  if (error) {
-    console.error("[drugInteractions] query failed", error);
-    return [];
-  }
-  return ((data as unknown as DrugHerbInteraction[]) ?? []).sort(severityRank);
-}
-
-function severityRank(a: DrugHerbInteraction, b: DrugHerbInteraction) {
-  const order: Record<Severity, number> = { severe: 0, moderate: 1, mild: 2 };
-  return order[a.severity] - order[b.severity];
+  const { data, error } = await supabase.functions.invoke("drug-interactions", {
+    body: { drug_name: drug, herb_ids: herbIds ?? [] },
+  });
+  if (error) throw new Error(error.message ?? "Interaction lookup failed.");
+  if ((data as any)?.error) throw new Error(String((data as any).error));
+  return ((data as any)?.results ?? []) as DrugHerbInteraction[];
 }
 
 export function severityTokens(sev: Severity) {
@@ -74,7 +64,7 @@ export function severityTokens(sev: Severity) {
   }
 }
 
-/** Preparation / dosage clinical reference for herbs we surface. */
+/** Static clinical reference used only for UI display (no decisioning). */
 export interface HerbalReference {
   herbId: string;
   herbName: string;
@@ -87,53 +77,42 @@ export interface HerbalReference {
 
 export const HERBAL_REFERENCE: Record<string, HerbalReference> = {
   hibiscus: {
-    herbId: "hibiscus",
-    herbName: "Hibiscus / Zobo",
+    herbId: "hibiscus", herbName: "Hibiscus / Zobo",
     maxDailyDose: "≤ 720 mL infusion / 24h (≈3 cups)",
     extraction: "Infusion",
     toxicityWarnings: [
       "Hepatotoxic at >2 g dried calyces/kg in animal models",
       "Hypotension risk with antihypertensives",
     ],
-    notes: "Steep 2 g dried calyces in 200 mL water at 90 °C for 5 min. Avoid boiling.",
-    source: "WHO Monograph Vol.2 / MedP-AI Clinical Database v1.2",
+    notes: "Steep 2 g dried calyces in 200 mL water at 90 °C for 5 min.",
+    source: "WHO Monograph Vol.2",
   },
   agbo: {
-    herbId: "agbo",
-    herbName: "Agbo (mixed infusion)",
+    herbId: "agbo", herbName: "Agbo (mixed infusion)",
     maxDailyDose: "Not standardised — discourage in cardiac/hepatic patients",
     extraction: "Decoction",
-    toxicityWarnings: [
-      "Variable botanical purity",
-      "Reports of acute kidney injury and arrhythmia",
-    ],
+    toxicityWarnings: ["Variable botanical purity", "Reports of acute kidney injury"],
     notes: "No validated dose. Recommend cessation pending clinician review.",
     source: "PCN Reference Protocol §4.4",
   },
   ginger: {
-    herbId: "ginger",
-    herbName: "Ginger (Zingiber officinale)",
+    herbId: "ginger", herbName: "Ginger (Zingiber officinale)",
     maxDailyDose: "≤ 4 g dried rhizome / 24h",
     extraction: "Infusion",
-    toxicityWarnings: [
-      "Antiplatelet — bleeding risk",
-      "GI irritation at high dose",
-    ],
+    toxicityWarnings: ["Antiplatelet — bleeding risk", "GI irritation at high dose"],
     notes: "Steep 1 g powdered rhizome in 150 mL water for 5 min.",
     source: "WHO Monograph Vol.1",
   },
   garlic: {
-    herbId: "garlic",
-    herbName: "Garlic (Allium sativum)",
+    herbId: "garlic", herbName: "Garlic (Allium sativum)",
     maxDailyDose: "≤ 4 g fresh / 24h",
     extraction: "Powder",
     toxicityWarnings: ["CYP2C9 inhibition", "Bleeding risk"],
-    notes: "Crush fresh; do not exceed 4 g/day in patients on anticoagulants.",
+    notes: "Do not exceed 4 g/day in patients on anticoagulants.",
     source: "MedP-AI Clinical Database v1.2",
   },
   bitterleaf: {
-    herbId: "bitterleaf",
-    herbName: "Bitter Leaf (Vernonia amygdalina)",
+    herbId: "bitterleaf", herbName: "Bitter Leaf (Vernonia amygdalina)",
     maxDailyDose: "≤ 200 mL fresh juice / 24h",
     extraction: "Infusion",
     toxicityWarnings: ["Hypoglycaemia", "Hepatic strain at chronic high dose"],
@@ -141,8 +120,7 @@ export const HERBAL_REFERENCE: Record<string, HerbalReference> = {
     source: "PubMed PMID 24299811",
   },
   scentleaf: {
-    herbId: "scentleaf",
-    herbName: "Scent Leaf (Ocimum gratissimum)",
+    herbId: "scentleaf", herbName: "Scent Leaf (Ocimum gratissimum)",
     maxDailyDose: "≤ 6 g fresh leaves / 24h",
     extraction: "Infusion",
     toxicityWarnings: ["Variable vitamin-K content"],
@@ -150,8 +128,7 @@ export const HERBAL_REFERENCE: Record<string, HerbalReference> = {
     source: "MedP-AI Clinical Database v1.2",
   },
   dogonyaro: {
-    herbId: "dogonyaro",
-    herbName: "Dogonyaro (Neem)",
+    herbId: "dogonyaro", herbName: "Dogonyaro (Neem)",
     maxDailyDose: "≤ 50 mL decoction / 24h, short-course only",
     extraction: "Decoction",
     toxicityWarnings: ["Hepatotoxic with prolonged use", "Avoid in pregnancy"],
