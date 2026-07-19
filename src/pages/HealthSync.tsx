@@ -58,7 +58,7 @@ import {
   scoreTier,
   type SafetyScore,
 } from "@/lib/safetyScore";
-import { runIntersectionCheck, tierColor } from "@/lib/pharmaLogic";
+import { runIntersectionCheck, tierColor, OK_ALERT, type IntersectionAlert } from "@/lib/pharmaLogic";
 import {
   startConsultationSession,
   heartbeat,
