@@ -14,6 +14,15 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  // Production hardening: strip source maps + console/debugger.
+  build: {
+    sourcemap: false,
+    minify: "esbuild",
+  },
+  esbuild:
+    mode === "production"
+      ? { drop: ["console", "debugger"], legalComments: "none" }
+      : {},
   plugins: [
     react(),
     mcpPlugin(),
