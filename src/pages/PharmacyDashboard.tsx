@@ -43,6 +43,11 @@ import {
 import { SecureChatPanel } from "@/components/telepharmacy/SecureChatPanel";
 import { toast } from "sonner";
 import "@/styles/clinical.css";
+import {
+  fetchPharmacistHandoffs, acceptHandoff, type PharmacyHandoff,
+} from "@/lib/triage";
+import { ClinicianChat } from "@/pages/TriageDesk";
+import { Stethoscope, FileText } from "lucide-react";
 
 /** Single short beep using WebAudio — no asset required. */
 function useRingTone(active: boolean) {
