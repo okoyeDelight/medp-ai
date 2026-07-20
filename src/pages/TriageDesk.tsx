@@ -138,8 +138,8 @@ export default function TriageDesk() {
   }
 
   return (
-    <div className="clinical-scope min-h-screen bg-gradient-to-b from-clinical-bg to-clinical-bg-soft pb-16">
-      <header className="sticky top-0 z-40 border-b border-clinical-border/60 bg-clinical-surface/95 backdrop-blur">
+    <div className="theme-clinical min-h-screen bg-gradient-to-b from-clinical-bg to-clinical-bg-soft pb-16">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="container flex items-center gap-3 py-3">
           {view !== "desk" ? (
             <Button variant="ghost" size="sm" onClick={() => setView("desk")}>
@@ -147,14 +147,14 @@ export default function TriageDesk() {
             </Button>
           ) : (
             <>
-              <div className="rounded-md bg-clinical-primary/10 p-2 text-clinical-primary">
+              <div className="rounded-md bg-primary/10 p-2 text-primary">
                 <Stethoscope className="h-5 w-5" />
               </div>
               <div>
                 <div className="text-sm font-semibold">Clinical Triage Desk</div>
                 <div className="text-xs text-muted-foreground">{providerStatus?.hospitalName ?? "Verifying…"}</div>
               </div>
-              <Badge variant="outline" className="ml-auto border-clinical-primary/40 bg-clinical-primary/5 text-clinical-primary">
+              <Badge variant="outline" className="ml-auto border-primary/40 bg-primary/5 text-primary">
                 Dr. {doctorNameRef.current}
               </Badge>
             </>
@@ -165,10 +165,10 @@ export default function TriageDesk() {
       <main className="container max-w-5xl space-y-6 py-6">
         {view === "desk" && (
           <>
-            <Card className="border-clinical-primary/30 bg-clinical-surface">
+            <Card className="border-primary/30 bg-card">
               <CardContent className="p-6 sm:p-10">
                 <div className="mx-auto max-w-md space-y-5 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-clinical-primary/10 text-clinical-primary">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <KeyRound className="h-7 w-7" />
                   </div>
                   <div>
@@ -196,7 +196,7 @@ export default function TriageDesk() {
                   ) : (
                     <Button
                       size="lg" onClick={handleClaim} disabled={claiming || pinInput.length !== 4}
-                      className="w-full bg-clinical-primary text-white hover:bg-clinical-primary/90"
+                      className="w-full bg-primary text-white hover:bg-primary/90"
                     >
                       {claiming ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting…</> : "Unlock Patient Case"}
                     </Button>
@@ -211,7 +211,7 @@ export default function TriageDesk() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Users className="h-4 w-4 text-clinical-primary" /> My active consultations
+                  <Users className="h-4 w-4 text-primary" /> My active consultations
                 </CardTitle>
                 <CardDescription>Patients whose PINs you've claimed and are still open.</CardDescription>
               </CardHeader>
@@ -226,9 +226,9 @@ export default function TriageDesk() {
                       <button
                         key={t.id}
                         onClick={() => openTriage(t)}
-                        className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition hover:border-clinical-primary/50 hover:bg-clinical-primary/5"
+                        className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition hover:border-primary/50 hover:bg-primary/5"
                       >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-clinical-primary/10 text-clinical-primary">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <Stethoscope className="h-5 w-5" />
                         </div>
                         <div className="flex-1">
@@ -279,14 +279,14 @@ function ConsultationView({ triage, onConclude }: { triage: TriageSession; onCon
   const rep = triage.interaction_report;
   return (
     <div className="space-y-4">
-      <Card className="border-clinical-primary/30">
+      <Card className="border-primary/30">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg">{rep?.patient_label ?? "Patient"}</CardTitle>
               <CardDescription>Case unlocked · {new Date(triage.claimed_at ?? triage.created_at).toLocaleString()}</CardDescription>
             </div>
-            <Badge className="bg-clinical-primary text-white">
+            <Badge className="bg-primary text-white">
               {safetyEmoji(rep?.safety_level ?? null)} {safetyLabel(rep?.safety_level ?? null)}
             </Badge>
           </div>
@@ -313,8 +313,8 @@ function ConsultationView({ triage, onConclude }: { triage: TriageSession; onCon
             )}
           </div>
           {rep?.safety_summary && (
-            <div className="rounded-lg border bg-clinical-primary/5 p-3 sm:col-span-2">
-              <div className="text-xs uppercase text-clinical-primary">Safety summary</div>
+            <div className="rounded-lg border bg-primary/5 p-3 sm:col-span-2">
+              <div className="text-xs uppercase text-primary">Safety summary</div>
               <div className="mt-1 text-sm">{rep.safety_summary}</div>
             </div>
           )}
@@ -400,7 +400,7 @@ function PharmacyDiscovery({
       <Card className="overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <MapPin className="h-4 w-4 text-clinical-primary" /> Nearby on-duty pharmacies
+            <MapPin className="h-4 w-4 text-primary" /> Nearby on-duty pharmacies
           </CardTitle>
           <CardDescription>Based on patient's approximate location.</CardDescription>
         </CardHeader>
@@ -442,7 +442,7 @@ function PharmacyDiscovery({
               <button
                 key={p.id}
                 onClick={() => setPrescriptionOpen(p)}
-                className="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition hover:border-clinical-primary/50 hover:bg-clinical-primary/5"
+                className="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary/50 hover:bg-primary/5"
               >
                 <div className="mt-0.5 h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]" />
                 <div className="flex-1">
@@ -606,11 +606,11 @@ export function ClinicianChat({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="border-b bg-clinical-primary/5 py-3">
+      <CardHeader className="border-b bg-primary/5 py-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Radio className="h-4 w-4 text-clinical-primary" />
+              <Radio className="h-4 w-4 text-primary" />
               Doctor ↔ Pharmacist · {patientName}
             </CardTitle>
             <CardDescription className="text-xs">
@@ -663,7 +663,7 @@ export function ClinicianChat({
 function MessageBubble({ m, me }: { m: DoctorPharmacistMessage; me: "doctor" | "pharmacist" }) {
   if (m.sender_role === "system") {
     return (
-      <div className="mx-auto max-w-[85%] rounded-md border border-clinical-primary/30 bg-clinical-primary/5 p-2 text-center text-[11px] text-clinical-primary">
+      <div className="mx-auto max-w-[85%] rounded-md border border-primary/30 bg-primary/5 p-2 text-center text-[11px] text-primary">
         {m.body}
       </div>
     );
@@ -672,7 +672,7 @@ function MessageBubble({ m, me }: { m: DoctorPharmacistMessage; me: "doctor" | "
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
       <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-        isMe ? "bg-clinical-primary text-white" : "bg-white text-foreground"
+        isMe ? "bg-primary text-white" : "bg-white text-foreground"
       }`}>
         <div className="text-[10px] uppercase opacity-70">{m.sender_role}</div>
         <div className="whitespace-pre-wrap">{m.body}</div>
