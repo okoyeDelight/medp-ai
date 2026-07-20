@@ -15,7 +15,8 @@ import { RemedyDetail } from "@/components/RemedyDetail";
 import { PlantScanner } from "@/components/PlantScanner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { LegalFooter } from "@/components/LegalFooter";
-import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Stethoscope, Wand2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -125,6 +126,13 @@ const Index = () => {
               <p className="text-sm text-muted-foreground">
                 Tell us for simple English or Pidgin. We go suggest local herbs wey safe for you.
               </p>
+              <Link
+                to="/triage"
+                className="mt-2 inline-flex w-full items-center justify-between gap-2 rounded-lg border-2 border-foreground bg-primary px-4 py-3 font-display text-primary-foreground shadow-brutal-sm transition hover:translate-y-[-1px]"
+              >
+                <span className="flex items-center gap-2"><Stethoscope className="h-4 w-4" /> See a Doctor · Triage PIN</span>
+                <ChevronRight className="h-4 w-4" />
+              </Link>
             </section>
 
             {/* Input */}

@@ -20,6 +20,8 @@ import HospitalDashboard from "./pages/HospitalDashboard.tsx";
 import Chemists from "./pages/Chemists.tsx";
 import PharmacyDashboard from "./pages/PharmacyDashboard.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
+import PatientTriage from "./pages/PatientTriage.tsx";
+import TriageDesk from "./pages/TriageDesk.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
@@ -127,6 +129,14 @@ const App = () => (
                     <PharmacyDashboard />
                   </RequireAuth>
                 }
+              />
+              <Route
+                path="/triage"
+                element={<RequireAuth><PatientTriage /></RequireAuth>}
+              />
+              <Route
+                path="/triage-desk"
+                element={<RequireProvider><TriageDesk /></RequireProvider>}
               />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

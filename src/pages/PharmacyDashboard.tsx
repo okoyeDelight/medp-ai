@@ -43,6 +43,11 @@ import {
 import { SecureChatPanel } from "@/components/telepharmacy/SecureChatPanel";
 import { toast } from "sonner";
 import "@/styles/clinical.css";
+import {
+  fetchPharmacistHandoffs, acceptHandoff, type PharmacyHandoff,
+} from "@/lib/triage";
+import { ClinicianChat } from "@/pages/TriageDesk";
+import { Stethoscope, FileText } from "lucide-react";
 
 /** Single short beep using WebAudio — no asset required. */
 function useRingTone(active: boolean) {
@@ -84,6 +89,8 @@ export default function PharmacyDashboard() {
   const [sessions, setSessions] = useState<PharmacyChatSession[]>([]);
   const [history, setHistory] = useState<PharmacyChatSession[]>([]);
   const [active, setActive] = useState<PharmacyChatSession | null>(null);
+  const [handoffs, setHandoffs] = useState<PharmacyHandoff[]>([]);
+  const [activeHandoff, setActiveHandoff] = useState<PharmacyHandoff | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [historyQuery, setHistoryQuery] = useState("");
@@ -143,6 +150,20 @@ export default function PharmacyDashboard() {
     if (!meId) return;
     fetchSessionHistory(meId).then(setHistory);
   }, [meId]);
+
+  // Doctor→Pharmacist handoffs (realtime)
+  useEffect(() => {
+    if (!meId) return;
+    const load = () => fetchPharmacistHandoffs(meId).then(setHandoffs);
+    load();
+    const ch = supabase.channel("pharm-handoffs-" + meId)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "pharmacy_handoffs", filter: `pharmacist_user_id=eq.${meId}` },
+        () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [meId]);
+
 
   // Auto-duty toggling based on hours
   useEffect(() => {
@@ -295,6 +316,21 @@ export default function PharmacyDashboard() {
     );
   }
 
+  // ── Doctor handoff chat ────────────────────────────────────────
+  if (activeHandoff && meId) {
+    return (
+      <div className="theme-clinical min-h-screen bg-background">
+        <main className="container max-w-3xl py-4">
+          <ClinicianChat
+            handoff={activeHandoff}
+            role="pharmacist"
+            onExit={() => setActiveHandoff(null)}
+          />
+        </main>
+      </div>
+    );
+  }
+
   const today = new Date().toDateString();
   const todayCount = history.filter((s) => s.ended_at && new Date(s.ended_at).toDateString() === today).length;
   const avgMin =
@@ -380,6 +416,61 @@ export default function PharmacyDashboard() {
 
           {/* ── INBOX ─────────────────────────────────────────── */}
           <TabsContent value="inbox" className="space-y-4">
+            {/* Doctor → Pharmacist handoffs */}
+            <Card className="border-primary/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="font-display flex items-center gap-2 text-base">
+                  <Stethoscope className="h-4 w-4 text-primary" /> Doctor Handoffs
+                  {handoffs.filter((h) => h.status === "pending").length > 0 && (
+                    <Badge className="animate-pulse bg-primary text-primary-foreground">
+                      {handoffs.filter((h) => h.status === "pending").length} incoming
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {handoffs.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No doctor handoffs.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {handoffs.map((h) => {
+                      const rep = h.interaction_report;
+                      const label = rep?.patient_label ?? "Patient";
+                      const drugs = h.prescription?.items?.map((i) => i.drug).filter(Boolean).join(", ") || "No drugs listed";
+                      return (
+                        <li key={h.id} className="rounded-lg border p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium">
+                                {label} · <span className="text-xs text-muted-foreground">Rx: {drugs}</span>
+                              </div>
+                              <div className="text-[11px] text-muted-foreground">
+                                Received {fmtElapsed(h.created_at)} ago · Dispense PIN <span className="font-mono">{h.dispense_pin}</span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <Badge variant={h.status === "pending" ? "default" : "secondary"} className="capitalize">
+                                {h.status}
+                              </Badge>
+                              {h.status === "pending" ? (
+                                <Button size="sm" onClick={async () => { await acceptHandoff(h.id); setActiveHandoff({ ...h, status: "accepted", accepted_at: new Date().toISOString() }); }}>
+                                  <Check className="mr-1 h-3.5 w-3.5" /> Accept
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="outline" onClick={() => setActiveHandoff(h)}>
+                                  <FileText className="mr-1 h-3.5 w-3.5" /> Open
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="font-display text-base">
