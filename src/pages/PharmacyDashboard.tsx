@@ -89,6 +89,8 @@ export default function PharmacyDashboard() {
   const [sessions, setSessions] = useState<PharmacyChatSession[]>([]);
   const [history, setHistory] = useState<PharmacyChatSession[]>([]);
   const [active, setActive] = useState<PharmacyChatSession | null>(null);
+  const [handoffs, setHandoffs] = useState<PharmacyHandoff[]>([]);
+  const [activeHandoff, setActiveHandoff] = useState<PharmacyHandoff | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [historyQuery, setHistoryQuery] = useState("");
