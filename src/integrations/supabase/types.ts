@@ -70,6 +70,41 @@ export type Database = {
           },
         ]
       }
+      doctor_pharmacist_messages: {
+        Row: {
+          body: string
+          created_at: string
+          handoff_id: string
+          id: string
+          sender_id: string | null
+          sender_role: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          handoff_id: string
+          id?: string
+          sender_id?: string | null
+          sender_role: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          handoff_id?: string
+          id?: string
+          sender_id?: string | null
+          sender_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_pharmacist_messages_handoff_id_fkey"
+            columns: ["handoff_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_handoffs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dose_logs: {
         Row: {
           created_at: string
@@ -639,6 +674,78 @@ export type Database = {
           },
         ]
       }
+      pharmacy_handoffs: {
+        Row: {
+          accepted_at: string | null
+          cancelled_at: string | null
+          created_at: string
+          dispense_pin: string
+          dispensed_at: string | null
+          doctor_id: string
+          id: string
+          interaction_report: Json | null
+          patient_id: string
+          pharmacist_user_id: string
+          pharmacy_id: string
+          prescription: Json | null
+          ready_at: string | null
+          status: string
+          triage_session_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          dispense_pin: string
+          dispensed_at?: string | null
+          doctor_id: string
+          id?: string
+          interaction_report?: Json | null
+          patient_id: string
+          pharmacist_user_id: string
+          pharmacy_id: string
+          prescription?: Json | null
+          ready_at?: string | null
+          status?: string
+          triage_session_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          dispense_pin?: string
+          dispensed_at?: string | null
+          doctor_id?: string
+          id?: string
+          interaction_report?: Json | null
+          patient_id?: string
+          pharmacist_user_id?: string
+          pharmacy_id?: string
+          prescription?: Json | null
+          ready_at?: string | null
+          status?: string
+          triage_session_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_handoffs_pharmacy_id_fkey"
+            columns: ["pharmacy_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_handoffs_triage_session_id_fkey"
+            columns: ["triage_session_id"]
+            isOneToOne: false
+            referencedRelation: "triage_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active_conditions: string[]
@@ -714,6 +821,97 @@ export type Database = {
         }
         Relationships: []
       }
+      triage_documents: {
+        Row: {
+          file_name: string
+          generated_at: string
+          handoff_id: string
+          id: string
+          kind: string
+          storage_path: string
+        }
+        Insert: {
+          file_name: string
+          generated_at?: string
+          handoff_id: string
+          id?: string
+          kind: string
+          storage_path: string
+        }
+        Update: {
+          file_name?: string
+          generated_at?: string
+          handoff_id?: string
+          id?: string
+          kind?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triage_documents_handoff_id_fkey"
+            columns: ["handoff_id"]
+            isOneToOne: false
+            referencedRelation: "pharmacy_handoffs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      triage_sessions: {
+        Row: {
+          cancelled_at: string | null
+          claimed_at: string | null
+          concluded_at: string | null
+          created_at: string
+          doctor_id: string | null
+          hospital_id: string | null
+          id: string
+          interaction_report: Json | null
+          patient_id: string
+          pin_expires_at: string
+          status: string
+          triage_pin: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          claimed_at?: string | null
+          concluded_at?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          hospital_id?: string | null
+          id?: string
+          interaction_report?: Json | null
+          patient_id: string
+          pin_expires_at?: string
+          status?: string
+          triage_pin?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          claimed_at?: string | null
+          concluded_at?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          hospital_id?: string | null
+          id?: string
+          interaction_report?: Json | null
+          patient_id?: string
+          pin_expires_at?: string
+          status?: string
+          triage_pin?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triage_sessions_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -782,7 +980,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_triage_pin: { Args: { _pin: string }; Returns: string }
       delete_my_account: { Args: never; Returns: undefined }
+      expire_stale_triage: { Args: never; Returns: number }
       has_active_consultation: {
         Args: { _patient_id: string; _provider_id: string }
         Returns: boolean
@@ -794,6 +994,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_handoff_clinician: { Args: { _handoff_id: string }; Returns: boolean }
       is_hospital_admin: {
         Args: { _hospital_id: string; _user_id: string }
         Returns: boolean
