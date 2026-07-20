@@ -316,6 +316,21 @@ export default function PharmacyDashboard() {
     );
   }
 
+  // ── Doctor handoff chat ────────────────────────────────────────
+  if (activeHandoff && meId) {
+    return (
+      <div className="theme-clinical min-h-screen bg-background">
+        <main className="container max-w-3xl py-4">
+          <ClinicianChat
+            handoff={activeHandoff}
+            role="pharmacist"
+            onExit={() => setActiveHandoff(null)}
+          />
+        </main>
+      </div>
+    );
+  }
+
   const today = new Date().toDateString();
   const todayCount = history.filter((s) => s.ended_at && new Date(s.ended_at).toDateString() === today).length;
   const avgMin =
