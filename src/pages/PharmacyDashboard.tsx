@@ -151,6 +151,20 @@ export default function PharmacyDashboard() {
     fetchSessionHistory(meId).then(setHistory);
   }, [meId]);
 
+  // Doctor→Pharmacist handoffs (realtime)
+  useEffect(() => {
+    if (!meId) return;
+    const load = () => fetchPharmacistHandoffs(meId).then(setHandoffs);
+    load();
+    const ch = supabase.channel("pharm-handoffs-" + meId)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "pharmacy_handoffs", filter: `pharmacist_user_id=eq.${meId}` },
+        () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [meId]);
+
+
   // Auto-duty toggling based on hours
   useEffect(() => {
     if (!pharm?.auto_duty) return;
