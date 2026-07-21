@@ -1,10 +1,12 @@
 // ============================================================================
-// MedP-AI Triage & O2O Handoff library
-// - Patient generates a 4-digit Triage PIN (10 min TTL)
-// - Doctor claims by PIN (server-side SECURITY DEFINER RPC)
-// - Doctor concludes consultation -> creates a pharmacy_handoff w/ Dispense PIN
-// - Ephemeral doctor <-> pharmacist chat per handoff
-// - Dual PDF engine (patient copy + clinical record) uploaded to triage-pdfs
+// MedP-AI Triage & O2O Handoff library — Live Queue + Two-Way Handshake
+// - Patient enters the waiting room with anonymized age/gender/symptom class
+// - Full interaction report is stored in the private `triage_reports` table
+// - Verified doctors see a live anonymized queue (RLS filters columns)
+// - Doctor "requests connection" -> optimistic atomic lock via request_triage()
+// - Patient accept/decline -> accept_triage() / decline_triage()
+// - Doctor concludes -> may issue a 72h follow-up ticket. Patient controls redemption.
+// - Pharmacy handoff flow + dual PDF engine (unchanged)
 // ============================================================================
 import { supabase } from "@/integrations/supabase/client";
 import type { InteractionReport } from "@/lib/telepharmacy";
@@ -24,9 +26,30 @@ export interface TriageSession {
   concluded_at: string | null;
   cancelled_at: string | null;
   status: TriageStatus;
-  interaction_report: InteractionReport | null;
+  age_band: string | null;
+  gender: string | null;
+  symptom_category: string | null;
+  requested_by: string | null;
+  requested_at: string | null;
+  patient_accepted_at: string | null;
+  provider_last_name: string | null;
+  provider_license: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface FollowupToken {
+  id: string;
+  triage_session_id: string | null;
+  patient_id: string;
+  doctor_id: string;
+  doctor_last_name: string | null;
+  doctor_license: string | null;
+  token: string;
+  expires_at: string;
+  redeemed_at: string | null;
+  redeemed_session_id: string | null;
+  created_at: string;
 }
 
 export interface Prescription {
@@ -68,32 +91,65 @@ function random4(): string {
   return String(buf[0] % 10_000).padStart(4, "0");
 }
 
-// ---------- Patient: create / cancel triage ----------
-export async function createTriageSession(report: InteractionReport): Promise<TriageSession> {
+// ---------- Symptom category (anonymized) ----------
+export const SYMPTOM_CATEGORIES = [
+  "General/Wellness",
+  "Fever/Malaria-like",
+  "Respiratory (cough/breathing)",
+  "Cardiac (chest/palpitations)",
+  "Gastro (stomach/vomit)",
+  "Pain (headache/body)",
+  "Skin/Rash",
+  "Women's health",
+  "Mental health",
+  "Injury",
+  "Chronic follow-up",
+] as const;
+
+export const AGE_BANDS = ["0-12", "13-17", "18-29", "30-44", "45-59", "60-74", "75+"] as const;
+export const GENDERS = ["female", "male", "other", "prefer-not-to-say"] as const;
+
+// ---------- Patient: waiting-room entry ----------
+export async function enterWaitingRoom(opts: {
+  ageBand: string; gender: string; symptomCategory: string; report: InteractionReport;
+}): Promise<TriageSession> {
   const { data: userData } = await supabase.auth.getUser();
   const uid = userData.user?.id;
   if (!uid) throw new Error("You must be signed in.");
 
-  // Cancel any prior waiting sessions (only one active at a time).
+  // Cancel any prior waiting sessions (one active at a time).
   await supabase
     .from("triage_sessions")
     .update({ status: "cancelled", cancelled_at: new Date().toISOString(), triage_pin: null })
     .eq("patient_id", uid)
     .eq("status", "waiting");
 
-  const pin = random4();
+  const pin = random4(); // still generated as an internal reference / backup path
   const { data, error } = await supabase
     .from("triage_sessions")
     .insert({
       patient_id: uid,
       triage_pin: pin,
-      pin_expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
-      interaction_report: report as any,
-    })
+      pin_expires_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+      age_band: opts.ageBand,
+      gender: opts.gender,
+      symptom_category: opts.symptomCategory,
+    } as any)
     .select()
     .single();
   if (error) throw error;
-  return data as unknown as TriageSession;
+
+  // Upload private report (only patient + accepted doctor can read).
+  const session = data as unknown as TriageSession;
+  const { error: repErr } = await supabase
+    .from("triage_reports")
+    .insert({
+      triage_session_id: session.id,
+      patient_id: uid,
+      report: opts.report as any,
+    } as any);
+  if (repErr) throw repErr;
+  return session;
 }
 
 export async function cancelTriageSession(sessionId: string): Promise<void> {
@@ -119,11 +175,32 @@ export async function getMyActiveTriage(): Promise<TriageSession | null> {
   return (data as unknown as TriageSession) ?? null;
 }
 
-// ---------- Doctor: claim PIN ----------
-export async function claimTriagePin(pin: string): Promise<string> {
-  const { data, error } = await supabase.rpc("claim_triage_pin" as any, { _pin: pin });
-  if (error) throw new Error(error.message || "Invalid or expired PIN");
+// ---------- Doctor: live queue + handshake ----------
+export async function fetchQueue(): Promise<TriageSession[]> {
+  const { data } = await supabase
+    .from("triage_sessions")
+    .select("*")
+    .eq("status", "waiting")
+    .gt("pin_expires_at", new Date().toISOString())
+    .order("created_at", { ascending: true });
+  return (data as unknown as TriageSession[]) ?? [];
+}
+
+export async function requestTriage(sessionId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("request_triage" as any, { _session_id: sessionId });
+  if (error) throw new Error(error.message || "Could not request patient");
   return data as unknown as string;
+}
+
+export async function acceptTriage(sessionId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("accept_triage" as any, { _session_id: sessionId });
+  if (error) throw new Error(error.message || "Could not accept");
+  return data as unknown as string;
+}
+
+export async function declineTriage(sessionId: string): Promise<void> {
+  const { error } = await supabase.rpc("decline_triage" as any, { _session_id: sessionId });
+  if (error) throw error;
 }
 
 export async function fetchTriageById(id: string): Promise<TriageSession | null> {
@@ -144,7 +221,17 @@ export async function fetchDoctorActiveTriages(): Promise<TriageSession[]> {
   return (data as unknown as TriageSession[]) ?? [];
 }
 
-// ---------- Doctor: conclude & create pharmacy handoff ----------
+// Only readable once the patient has accepted (RLS-enforced).
+export async function fetchTriageReport(sessionId: string): Promise<InteractionReport | null> {
+  const { data } = await supabase
+    .from("triage_reports")
+    .select("report")
+    .eq("triage_session_id", sessionId)
+    .maybeSingle();
+  return ((data as any)?.report as InteractionReport) ?? null;
+}
+
+// ---------- Doctor: conclude & follow-up tokens ----------
 export async function concludeTriage(sessionId: string): Promise<void> {
   const { error } = await supabase
     .from("triage_sessions")
@@ -153,11 +240,42 @@ export async function concludeTriage(sessionId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function issueFollowupToken(sessionId: string, hours = 72): Promise<string> {
+  const { data, error } = await supabase.rpc("issue_followup_token" as any, {
+    _session_id: sessionId,
+    _hours: hours,
+  });
+  if (error) throw error;
+  return data as unknown as string;
+}
+
+export async function fetchMyFollowupTokens(): Promise<FollowupToken[]> {
+  const { data: userData } = await supabase.auth.getUser();
+  const uid = userData.user?.id;
+  if (!uid) return [];
+  const { data } = await supabase
+    .from("followup_tokens")
+    .select("*")
+    .eq("patient_id", uid)
+    .is("redeemed_at", null)
+    .gt("expires_at", new Date().toISOString())
+    .order("created_at", { ascending: false });
+  return (data as unknown as FollowupToken[]) ?? [];
+}
+
+export async function redeemFollowupToken(tokenId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("redeem_followup_token" as any, { _token_id: tokenId });
+  if (error) throw error;
+  return data as unknown as string;
+}
+
+// ---------- Handoff (pharmacy) ----------
 export async function createPharmacyHandoff(opts: {
   triage: TriageSession;
   pharmacyId: string;
   pharmacistUserId: string;
   prescription: Prescription;
+  interactionReport?: InteractionReport | null;
 }): Promise<PharmacyHandoff> {
   const { data: userData } = await supabase.auth.getUser();
   const uid = userData.user?.id;
@@ -173,15 +291,14 @@ export async function createPharmacyHandoff(opts: {
       pharmacist_user_id: opts.pharmacistUserId,
       dispense_pin: dispensePin,
       prescription: opts.prescription as any,
-      interaction_report: opts.triage.interaction_report as any,
-    })
+      interaction_report: (opts.interactionReport ?? null) as any,
+    } as any)
     .select()
     .single();
   if (error) throw error;
   return data as unknown as PharmacyHandoff;
 }
 
-// ---------- Handoff status & lookups ----------
 export async function fetchHandoffById(id: string): Promise<PharmacyHandoff | null> {
   const { data } = await supabase.from("pharmacy_handoffs").select("*").eq("id", id).maybeSingle();
   return (data as unknown as PharmacyHandoff) ?? null;
@@ -216,7 +333,6 @@ export async function updateHandoffStatus(id: string, patch: Partial<PharmacyHan
   const { error } = await supabase.from("pharmacy_handoffs").update(patch as any).eq("id", id);
   if (error) throw error;
 }
-
 export async function acceptHandoff(id: string) {
   await updateHandoffStatus(id, { status: "accepted", accepted_at: new Date().toISOString() });
 }
@@ -262,7 +378,7 @@ const FOOTER =
   "Academic & clinical decision support tool. Not a substitute for professional diagnosis.\nSupport: chinedubisiola04@gmail.com · +2349079543695";
 
 function drawHeader(doc: jsPDF, title: string) {
-  doc.setFillColor(15, 82, 186); // clinical blue
+  doc.setFillColor(15, 82, 186);
   doc.rect(0, 0, 210, 22, "F");
   doc.setTextColor(255);
   doc.setFont("helvetica", "bold");
@@ -273,7 +389,6 @@ function drawHeader(doc: jsPDF, title: string) {
   doc.text(title, 210 - 14, 14, { align: "right" });
   doc.setTextColor(0);
 }
-
 function drawFooter(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
@@ -285,7 +400,6 @@ function drawFooter(doc: jsPDF) {
     doc.setTextColor(0);
   }
 }
-
 function wrap(doc: jsPDF, text: string, x: number, y: number, maxWidth = 180, lineHeight = 5) {
   const lines = doc.splitTextToSize(text, maxWidth);
   doc.text(lines, x, y);
@@ -296,36 +410,24 @@ export function buildPatientPdf(handoff: PharmacyHandoff, pharmacyName: string, 
   const doc = new jsPDF();
   drawHeader(doc, "Prescription & Dosage Guide");
   let y = 34;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16);
   doc.text("Your Prescription", 14, y); y += 10;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11);
   y = wrap(doc, `Issued by: Dr. ${doctorName}`, 14, y);
   y = wrap(doc, `Pick up at: ${pharmacyName}`, 14, y);
   y = wrap(doc, `Date: ${new Date(handoff.created_at).toLocaleString()}`, 14, y); y += 4;
-
-  doc.setDrawColor(15, 82, 186);
-  doc.setLineWidth(0.7);
+  doc.setDrawColor(15, 82, 186); doc.setLineWidth(0.7);
   doc.roundedRect(14, y, 182, 22, 3, 3);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
   doc.text("Secure Dispense PIN", 20, y + 8);
-  doc.setFontSize(22);
-  doc.setTextColor(15, 82, 186);
+  doc.setFontSize(22); doc.setTextColor(15, 82, 186);
   doc.text(handoff.dispense_pin, 20, y + 18);
-  doc.setTextColor(0);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
+  doc.setTextColor(0); doc.setFontSize(9); doc.setFont("helvetica", "normal");
   doc.text("Show this PIN to the pharmacist to collect your medication.", 80, y + 14, { maxWidth: 115 });
   y += 32;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13);
   doc.text("Medications", 14, y); y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11);
   const items = handoff.prescription?.items ?? [];
   if (items.length === 0) {
     y = wrap(doc, "• (No medication items on record.)", 18, y);
@@ -336,35 +438,26 @@ export function buildPatientPdf(handoff: PharmacyHandoff, pharmacyName: string, 
     }
   }
   y += 4;
-
   if (handoff.prescription?.clinical_note) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Doctor's note", 14, y); y += 6;
+    doc.setFont("helvetica", "bold"); doc.text("Doctor's note", 14, y); y += 6;
     doc.setFont("helvetica", "normal");
     y = wrap(doc, handoff.prescription.clinical_note, 14, y);
   }
-
   drawFooter(doc);
   return doc.output("blob");
 }
 
 export function buildClinicalPdf(opts: {
-  handoff: PharmacyHandoff;
-  pharmacyName: string;
-  doctorName: string;
-  patientName: string;
+  handoff: PharmacyHandoff; pharmacyName: string; doctorName: string; patientName: string;
   transcript: DoctorPharmacistMessage[];
 }) {
   const { handoff, pharmacyName, doctorName, patientName, transcript } = opts;
   const doc = new jsPDF();
   drawHeader(doc, "Clinical Triage Record");
   let y = 32;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15);
   doc.text(BRAND, 14, y); y += 8;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   y = wrap(doc, `Handoff ID: ${handoff.id}`, 14, y);
   y = wrap(doc, `Patient: ${patientName}`, 14, y);
   y = wrap(doc, `Doctor: Dr. ${doctorName}`, 14, y);
@@ -372,41 +465,28 @@ export function buildClinicalPdf(opts: {
   y = wrap(doc, `Opened: ${new Date(handoff.created_at).toLocaleString()}`, 14, y);
   if (handoff.dispensed_at) y = wrap(doc, `Dispensed: ${new Date(handoff.dispensed_at).toLocaleString()}`, 14, y);
   y += 4;
-
-  // Interaction flags
   const rep = handoff.interaction_report;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
   doc.text("Interaction & Safety Flags", 14, y); y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   y = wrap(doc, `Safety Gate: ${safetyEmoji(rep?.safety_level ?? null)} ${safetyLabel(rep?.safety_level ?? null)}${rep?.safety_summary ? ` — ${rep.safety_summary}` : ""}`, 14, y);
   y = wrap(doc, `Vitals: HR ${rep?.vitals?.hr ?? "—"} bpm · BP ${rep?.vitals?.bp ?? "—"}`, 14, y);
   const herbs = rep?.herbal_intake?.length ? rep.herbal_intake.map((h) => `${h.name}${h.dose ? ` (${h.dose})` : ""}`).join(", ") : "(none logged)";
   y = wrap(doc, `Recent herbal intake: ${herbs}`, 14, y);
   y += 4;
-
-  // Prescription
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
   doc.text("Prescription", 14, y); y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   for (const it of handoff.prescription?.items ?? []) {
     y = wrap(doc, `• ${it.drug} — ${it.dose}, ${it.frequency}, for ${it.duration}${it.notes ? ` [${it.notes}]` : ""}`, 18, y, 175);
   }
   if (handoff.prescription?.clinical_note) {
-    y += 2;
-    y = wrap(doc, `Clinical note: ${handoff.prescription.clinical_note}`, 14, y);
+    y += 2; y = wrap(doc, `Clinical note: ${handoff.prescription.clinical_note}`, 14, y);
   }
   y += 4;
-
-  // Chat transcript
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
   doc.text("Doctor ↔ Pharmacist Transcript", 14, y); y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
   for (const m of transcript) {
     if (y > 265) { doc.addPage(); drawHeader(doc, "Clinical Triage Record (cont.)"); y = 32; }
     const stamp = new Date(m.created_at).toLocaleTimeString();
@@ -414,15 +494,12 @@ export function buildClinicalPdf(opts: {
     y = wrap(doc, `[${stamp}] ${who}: ${m.body}`, 14, y, 180, 4.4);
     y += 1;
   }
-
   drawFooter(doc);
   return doc.output("blob");
 }
 
 export async function uploadAndRegisterPdf(opts: {
-  handoffId: string;
-  kind: "patient" | "clinical";
-  blob: Blob;
+  handoffId: string; kind: "patient" | "clinical"; blob: Blob;
 }): Promise<string> {
   const path = `${opts.handoffId}/${opts.handoffId}_${opts.kind}.pdf`;
   const { error: upErr } = await supabase.storage
@@ -450,8 +527,6 @@ export async function downloadTriagePdf(storagePath: string, fileName: string) {
 
 export async function fetchHandoffDocuments(handoffId: string) {
   const { data } = await supabase
-    .from("triage_documents")
-    .select("*")
-    .eq("handoff_id", handoffId);
+    .from("triage_documents").select("*").eq("handoff_id", handoffId);
   return (data ?? []) as Array<{ id: string; kind: "patient" | "clinical"; storage_path: string; file_name: string }>;
 }
