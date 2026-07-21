@@ -22,14 +22,17 @@ import PharmacyDashboard from "./pages/PharmacyDashboard.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
 import PatientTriage from "./pages/PatientTriage.tsx";
 import TriageDesk from "./pages/TriageDesk.tsx";
+import SelectWorkspace from "./pages/SelectWorkspace.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
+import { I18nProvider } from "@/lib/i18n";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <I18nProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -138,6 +141,7 @@ const App = () => (
                 path="/triage-desk"
                 element={<RequireProvider><TriageDesk /></RequireProvider>}
               />
+              <Route path="/select-workspace" element={<RequireAuth><SelectWorkspace /></RequireAuth>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -146,6 +150,7 @@ const App = () => (
         </div>
       </BrowserRouter>
     </TooltipProvider>
+    </I18nProvider>
   </QueryClientProvider>
 );
 

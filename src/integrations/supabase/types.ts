@@ -198,6 +198,56 @@ export type Database = {
         }
         Relationships: []
       }
+      followup_tokens: {
+        Row: {
+          created_at: string
+          doctor_id: string
+          doctor_last_name: string | null
+          doctor_license: string | null
+          expires_at: string
+          id: string
+          patient_id: string
+          redeemed_at: string | null
+          redeemed_session_id: string | null
+          token: string
+          triage_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          doctor_id: string
+          doctor_last_name?: string | null
+          doctor_license?: string | null
+          expires_at: string
+          id?: string
+          patient_id: string
+          redeemed_at?: string | null
+          redeemed_session_id?: string | null
+          token: string
+          triage_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          doctor_id?: string
+          doctor_last_name?: string | null
+          doctor_license?: string | null
+          expires_at?: string
+          id?: string
+          patient_id?: string
+          redeemed_at?: string | null
+          redeemed_session_id?: string | null
+          token?: string
+          triage_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_tokens_triage_session_id_fkey"
+            columns: ["triage_session_id"]
+            isOneToOne: false
+            referencedRelation: "triage_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_safety_scores: {
         Row: {
           context: Json
@@ -856,49 +906,99 @@ export type Database = {
           },
         ]
       }
+      triage_reports: {
+        Row: {
+          created_at: string
+          patient_id: string
+          report: Json
+          triage_session_id: string
+        }
+        Insert: {
+          created_at?: string
+          patient_id: string
+          report: Json
+          triage_session_id: string
+        }
+        Update: {
+          created_at?: string
+          patient_id?: string
+          report?: Json
+          triage_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "triage_reports_triage_session_id_fkey"
+            columns: ["triage_session_id"]
+            isOneToOne: true
+            referencedRelation: "triage_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       triage_sessions: {
         Row: {
+          age_band: string | null
           cancelled_at: string | null
           claimed_at: string | null
           concluded_at: string | null
           created_at: string
           doctor_id: string | null
+          gender: string | null
           hospital_id: string | null
           id: string
-          interaction_report: Json | null
+          patient_accepted_at: string | null
           patient_id: string
           pin_expires_at: string
+          provider_last_name: string | null
+          provider_license: string | null
+          requested_at: string | null
+          requested_by: string | null
           status: string
+          symptom_category: string | null
           triage_pin: string | null
           updated_at: string
         }
         Insert: {
+          age_band?: string | null
           cancelled_at?: string | null
           claimed_at?: string | null
           concluded_at?: string | null
           created_at?: string
           doctor_id?: string | null
+          gender?: string | null
           hospital_id?: string | null
           id?: string
-          interaction_report?: Json | null
+          patient_accepted_at?: string | null
           patient_id: string
           pin_expires_at?: string
+          provider_last_name?: string | null
+          provider_license?: string | null
+          requested_at?: string | null
+          requested_by?: string | null
           status?: string
+          symptom_category?: string | null
           triage_pin?: string | null
           updated_at?: string
         }
         Update: {
+          age_band?: string | null
           cancelled_at?: string | null
           claimed_at?: string | null
           concluded_at?: string | null
           created_at?: string
           doctor_id?: string | null
+          gender?: string | null
           hospital_id?: string | null
           id?: string
-          interaction_report?: Json | null
+          patient_accepted_at?: string | null
           patient_id?: string
           pin_expires_at?: string
+          provider_last_name?: string | null
+          provider_license?: string | null
+          requested_at?: string | null
+          requested_by?: string | null
           status?: string
+          symptom_category?: string | null
           triage_pin?: string | null
           updated_at?: string
         }
@@ -980,7 +1080,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_triage: { Args: { _session_id: string }; Returns: string }
       claim_triage_pin: { Args: { _pin: string }; Returns: string }
+      decline_triage: { Args: { _session_id: string }; Returns: undefined }
       delete_my_account: { Args: never; Returns: undefined }
       expire_stale_triage: { Args: never; Returns: number }
       has_active_consultation: {
@@ -1008,8 +1110,14 @@ export type Database = {
         Returns: boolean
       }
       is_verified_provider: { Args: { _user_id: string }; Returns: boolean }
+      issue_followup_token: {
+        Args: { _hours?: number; _session_id: string }
+        Returns: string
+      }
       patient_heartbeat: { Args: { _session_id: string }; Returns: undefined }
       provider_hospital_id: { Args: { _user_id: string }; Returns: string }
+      redeem_followup_token: { Args: { _token_id: string }; Returns: string }
+      request_triage: { Args: { _session_id: string }; Returns: string }
       terminate_if_stale: {
         Args: { _session_id: string }
         Returns: {
