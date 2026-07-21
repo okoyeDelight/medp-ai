@@ -64,9 +64,16 @@ const Auth = () => {
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("role", "provider");
-      if (roles?.length || userEmail === FOUNDER_EMAIL) {
-        navigate("/hospital-dashboard", { replace: true });
+        .eq("user_id", data.session.user.id);
+      const hasClinical =
+        userEmail === FOUNDER_EMAIL ||
+        !!roles?.some((r) => r.role === "provider" || r.role === "hospital_admin" || r.role === "platform_admin");
+      const hasPatient = !!roles?.some((r) => r.role === "patient") || !hasClinical;
+      // Dual-role users choose a workspace; single-role users go straight in.
+      if (hasClinical && hasPatient) {
+        navigate("/select-workspace", { replace: true });
+      } else if (hasClinical) {
+        navigate("/triage-desk", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
