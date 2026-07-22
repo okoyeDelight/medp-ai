@@ -13,6 +13,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import {
   Stethoscope, Loader2, ShieldCheck, MapPin, Pill, X, PhoneCall, Download, Clock, TicketCheck,
 } from "lucide-react";
+import { ConsultationChat } from "@/components/ConsultationChat";
 import { supabase } from "@/integrations/supabase/client";
 import {
   enterWaitingRoom, getMyActiveTriage, cancelTriageSession,
@@ -213,22 +214,25 @@ export default function PatientTriage() {
             </CardContent>
           </Card>
         ) : triage && triage.status === "claimed" ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" /> Consultation open with Dr. {triage.provider_last_name ?? "Doctor"}
-              </CardTitle>
-              <CardDescription>
-                Your doctor is reviewing your case and coordinating a nearby pharmacy if a prescription is needed.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <div className="text-sm">Please keep this screen open…</div>
-              </div>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" /> Consultation open with Dr. {triage.provider_last_name ?? "Doctor"}
+                </CardTitle>
+                <CardDescription>
+                  Your doctor is reviewing your case. Chat with them below — a prescription will appear once ready.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <ConsultationChat
+              sessionId={triage.id}
+              role="patient"
+              meLabel="You"
+              themLabel={`Dr. ${triage.provider_last_name ?? "Doctor"}`}
+              heightClass="h-80"
+            />
+          </>
         ) : (
           <Card>
             <CardHeader>
