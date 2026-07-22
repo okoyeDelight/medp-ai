@@ -37,6 +37,7 @@ import {
 } from "@/lib/telepharmacy";
 import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
 import { useI18n } from "@/lib/i18n";
+import { ConsultationChat } from "@/components/ConsultationChat";
 import "@/styles/clinical.css";
 
 export default function TriageDesk() {
@@ -364,6 +365,9 @@ function ConsultationView({
           )}
         </CardContent>
       </Card>
+
+      <ConsultationChat sessionId={triage.id} role="doctor" meLabel={`Dr. ${doctorName}`} themLabel="Patient" />
+
 
       <Card>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">

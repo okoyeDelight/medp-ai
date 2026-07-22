@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Hourglass, LogOut } from "lucide-react";
+import { Hourglass, LogOut, Wand2, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProviderStatus, type ProviderStatus } from "@/lib/providerAuth";
+import { fetchProviderStatus, demoBypassVerification, type ProviderStatus } from "@/lib/providerAuth";
+import { toast } from "sonner";
 import "@/styles/clinical.css";
 
 export default function ProviderPending() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<ProviderStatus | null>(null);
+  const [bypassing, setBypassing] = useState(false);
 
   useEffect(() => {
     fetchProviderStatus().then((s) => {
@@ -23,6 +25,19 @@ export default function ProviderPending() {
   async function logout() {
     await supabase.auth.signOut();
     navigate("/provider/auth", { replace: true });
+  }
+
+  async function bypass() {
+    setBypassing(true);
+    try {
+      await demoBypassVerification();
+      toast.success("Verified! Loading Clinical Desk…");
+      navigate("/hospital-dashboard", { replace: true });
+    } catch (e: any) {
+      toast.error(e.message ?? "Bypass failed");
+    } finally {
+      setBypassing(false);
+    }
   }
 
   return (
@@ -52,6 +67,21 @@ export default function ProviderPending() {
             <p className="text-xs text-muted-foreground">
               If you believe this is a mistake, contact your hospital administrator.
             </p>
+
+            <div className="rounded-lg border border-dashed border-amber-500/50 bg-amber-500/5 p-3">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-700">
+                <Wand2 className="h-3.5 w-3.5" /> Demo mode
+              </div>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Skip admin approval for pitches & testing. Grants you provider role at the
+                <b> MedP-AI Demo Clinic</b> instantly.
+              </p>
+              <Button className="w-full" onClick={bypass} disabled={bypassing}>
+                {bypassing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                Bypass Verification (Demo)
+              </Button>
+            </div>
+
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" asChild>
                 <Link to="/">Back to app</Link>

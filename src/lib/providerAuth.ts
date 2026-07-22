@@ -62,3 +62,14 @@ export async function fetchProviderStatus(): Promise<ProviderStatus> {
     isFounder,
   };
 }
+
+/**
+ * DEMO ONLY — grants the current signed-in user provider role + membership at
+ * the "MedP-AI Demo Clinic" so they can access the Clinical Desk immediately.
+ * Backed by a SECURITY DEFINER RPC that only affects auth.uid().
+ */
+export async function demoBypassVerification(): Promise<void> {
+  const { error } = await supabase.rpc("demo_bypass_verification" as any);
+  if (error) throw new Error(error.message || "Bypass failed");
+}
+

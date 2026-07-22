@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      consultation_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          sender_role: string
+          triage_session_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          sender_role: string
+          triage_session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          sender_role?: string
+          triage_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_messages_triage_session_id_fkey"
+            columns: ["triage_session_id"]
+            isOneToOne: false
+            referencedRelation: "triage_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consultation_sessions: {
         Row: {
           claimed_at: string | null
@@ -1084,6 +1119,8 @@ export type Database = {
       claim_triage_pin: { Args: { _pin: string }; Returns: string }
       decline_triage: { Args: { _session_id: string }; Returns: undefined }
       delete_my_account: { Args: never; Returns: undefined }
+      demo_bypass_pharmacist: { Args: never; Returns: string }
+      demo_bypass_verification: { Args: never; Returns: undefined }
       expire_stale_triage: { Args: never; Returns: number }
       has_active_consultation: {
         Args: { _patient_id: string; _provider_id: string }
