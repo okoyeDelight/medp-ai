@@ -41,18 +41,68 @@ export function t(lang: UiLang, key: string, vars?: Record<string, string | numb
 }
 
 // ─── New global multi-language provider ────────────────────────────────────
-export type Lang = "en" | "pcm" | "ig" | "yo" | "ha";
+export type Lang = string;
 
 export const LANGS: { code: Lang; label: string; flag: string }[] = [
-  { code: "en",  label: "English",   flag: "🇬🇧" },
-  { code: "pcm", label: "Pidgin",    flag: "🇳🇬" },
-  { code: "ig",  label: "Igbo",      flag: "🇳🇬" },
-  { code: "yo",  label: "Yoruba",    flag: "🇳🇬" },
-  { code: "ha",  label: "Hausa",     flag: "🇳🇬" },
+  { code: "en",  label: "English",              flag: "🇬🇧" },
+  { code: "pcm", label: "Nigerian Pidgin",      flag: "🇳🇬" },
+  { code: "ig",  label: "Igbo",                 flag: "🇳🇬" },
+  { code: "yo",  label: "Yoruba",               flag: "🇳🇬" },
+  { code: "ha",  label: "Hausa",                flag: "🇳🇬" },
+  { code: "efi", label: "Efik",                 flag: "🇳🇬" },
+  { code: "ibb", label: "Ibibio",               flag: "🇳🇬" },
+  { code: "tiv", label: "Tiv",                  flag: "🇳🇬" },
+  { code: "kcg", label: "Tyap (Kataf)",         flag: "🇳🇬" },
+  { code: "ff",  label: "Fulfulde (Fula)",      flag: "🇳🇬" },
+  { code: "kr",  label: "Kanuri",               flag: "🇳🇬" },
+  { code: "nup", label: "Nupe",                 flag: "🇳🇬" },
+  { code: "bin", label: "Edo (Bini)",           flag: "🇳🇬" },
+  { code: "urh", label: "Urhobo",               flag: "🇳🇬" },
+  { code: "ijc", label: "Izon (Ijaw)",          flag: "🇳🇬" },
+  { code: "ak",  label: "Akan (Twi)",           flag: "🇬🇭" },
+  { code: "ee",  label: "Ewe",                  flag: "🇬🇭" },
+  { code: "gaa", label: "Ga",                   flag: "🇬🇭" },
+  { code: "dag", label: "Dagbani",              flag: "🇬🇭" },
+  { code: "wo",  label: "Wolof",                flag: "🇸🇳" },
+  { code: "bm",  label: "Bambara",              flag: "🇲🇱" },
+  { code: "mos", label: "Mooré",                flag: "🇧🇫" },
+  { code: "sus", label: "Susu",                 flag: "🇬🇳" },
+  { code: "kri", label: "Krio",                 flag: "🇸🇱" },
+  { code: "sw",  label: "Swahili",              flag: "🇰🇪" },
+  { code: "am",  label: "Amharic",              flag: "🇪🇹" },
+  { code: "om",  label: "Oromo",                flag: "🇪🇹" },
+  { code: "ti",  label: "Tigrinya",             flag: "🇪🇷" },
+  { code: "so",  label: "Somali",              flag: "🇸🇴" },
+  { code: "rw",  label: "Kinyarwanda",          flag: "🇷🇼" },
+  { code: "rn",  label: "Kirundi",              flag: "🇧🇮" },
+  { code: "lg",  label: "Luganda",              flag: "🇺🇬" },
+  { code: "luo", label: "Dholuo",               flag: "🇰🇪" },
+  { code: "ki",  label: "Kikuyu",               flag: "🇰🇪" },
+  { code: "ny",  label: "Chichewa",             flag: "🇲🇼" },
+  { code: "sn",  label: "Shona",                flag: "🇿🇼" },
+  { code: "nd",  label: "Northern Ndebele",     flag: "🇿🇼" },
+  { code: "zu",  label: "isiZulu",              flag: "🇿🇦" },
+  { code: "xh",  label: "isiXhosa",             flag: "🇿🇦" },
+  { code: "af",  label: "Afrikaans",            flag: "🇿🇦" },
+  { code: "st",  label: "Sesotho",              flag: "🇱🇸" },
+  { code: "tn",  label: "Setswana",             flag: "🇧🇼" },
+  { code: "ts",  label: "Xitsonga",             flag: "🇿🇦" },
+  { code: "ve",  label: "Tshivenda",            flag: "🇿🇦" },
+  { code: "nso", label: "Sepedi",               flag: "🇿🇦" },
+  { code: "ss",  label: "siSwati",              flag: "🇸🇿" },
+  { code: "ln",  label: "Lingala",              flag: "🇨🇩" },
+  { code: "kg",  label: "Kikongo",              flag: "🇨🇩" },
+  { code: "lu",  label: "Tshiluba",             flag: "🇨🇩" },
+  { code: "sg",  label: "Sango",                flag: "🇨🇫" },
+  { code: "mg",  label: "Malagasy",             flag: "🇲🇬" },
+  { code: "ar",  label: "Arabic",               flag: "🇪🇬" },
+  { code: "ber", label: "Tamazight (Berber)",   flag: "🇲🇦" },
+  { code: "fr",  label: "French",               flag: "🇫🇷" },
+  { code: "pt",  label: "Portuguese",           flag: "🇵🇹" },
 ];
 
 type Dict = Record<string, string>;
-const DICTS: Record<Lang, Dict> = {
+const DICTS: Record<string, Dict> = {
   en: {
     "app.tagline": "Your pocket chemist",
     "workspace.select": "Select workspace",
@@ -250,60 +300,103 @@ const DICTS: Record<Lang, Dict> = {
   },
 };
 
-interface Ctx { lang: Lang; setLang: (l: Lang) => void; t: (key: string, vars?: Record<string,string|number>) => string }
+interface Ctx {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+  translating: boolean;
+}
 const I18nCtx = createContext<Ctx | null>(null);
 
 const LS_KEY = "medp.lang";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(() => (localStorage.getItem(LS_KEY) as Lang) || "en");
-  useEffect(() => { localStorage.setItem(LS_KEY, lang); document.documentElement.lang = lang; }, [lang]);
+  const [lang, setLangState] = useState<Lang>(() => localStorage.getItem(LS_KEY) || "en");
+  const [translating, setTranslating] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(LS_KEY, lang);
+    document.documentElement.lang = lang;
+    const label = LANGS.find((l) => l.code === lang)?.label ?? "English";
+    // Static dictionary handles the core clinical keys; the DOM engine translates
+    // every other string in the app (and keeps doing so as screens mount).
+    setAutoTranslateLanguage(lang, label);
+    if (lang === "en" || DICTS[lang]) { setTranslating(false); return; }
+    setTranslating(true);
+    const iv = window.setInterval(() => {
+      if (!isTranslating()) { setTranslating(false); window.clearInterval(iv); }
+    }, 400);
+    const stop = window.setTimeout(() => { setTranslating(false); window.clearInterval(iv); }, 30_000);
+    return () => { window.clearInterval(iv); window.clearTimeout(stop); };
+  }, [lang]);
+
   const value = useMemo<Ctx>(() => ({
     lang,
     setLang: setLangState,
+    translating,
     t: (key, vars) => {
       const raw = DICTS[lang]?.[key] ?? DICTS.en[key] ?? key;
       if (!vars) return raw;
       return raw.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
     },
-  }), [lang]);
+  }), [lang, translating]);
   return <I18nCtx.Provider value={value}>{children}</I18nCtx.Provider>;
 }
 
 export function useI18n(): Ctx {
   const ctx = useContext(I18nCtx);
-  if (!ctx) return { lang: "en", setLang: () => {}, t: (k) => DICTS.en[k] ?? k };
+  if (!ctx) return { lang: "en", setLang: () => {}, translating: false, t: (k) => DICTS.en[k] ?? k };
   return ctx;
 }
 
-// Compact sticky dropdown
-import { Check, Globe } from "lucide-react";
+// Compact sticky dropdown with search (57 languages)
+import { Check, Globe, Loader2, Search } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { setAutoTranslateLanguage, isTranslating } from "@/lib/autoTranslate";
 
 export function LanguageToggle({ className = "" }: { className?: string }) {
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, translating } = useI18n();
+  const [q, setQ] = useState("");
   const active = LANGS.find((l) => l.code === lang) ?? LANGS[0];
+  const list = LANGS.filter((l) => l.label.toLowerCase().includes(q.trim().toLowerCase()));
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
+        data-no-translate
         className={
           "inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/80 px-2.5 py-1.5 text-xs font-medium hover:bg-muted " +
           className
         }
         aria-label="Language"
       >
-        <Globe className="h-3.5 w-3.5" />
+        {translating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />}
         <span className="uppercase">{active.code}</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        {LANGS.map((l) => (
-          <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)} className="justify-between">
-            <span>{l.flag} {l.label}</span>
-            {l.code === lang && <Check className="h-3.5 w-3.5 text-primary" />}
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="w-56 p-0" data-no-translate>
+        <div className="flex items-center gap-2 border-b px-2.5 py-2">
+          <Search className="h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            placeholder="Search language…"
+            className="w-full bg-transparent text-xs outline-none"
+          />
+        </div>
+        <div className="max-h-72 overflow-y-auto py-1">
+          {list.map((l) => (
+            <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)} className="justify-between">
+              <span>{l.flag} {l.label}</span>
+              {l.code === lang && <Check className="h-3.5 w-3.5 text-primary" />}
+            </DropdownMenuItem>
+          ))}
+          {list.length === 0 && (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No match</p>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

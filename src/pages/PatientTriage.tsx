@@ -14,6 +14,7 @@ import {
   Stethoscope, Loader2, ShieldCheck, MapPin, Pill, X, PhoneCall, Download, Clock, TicketCheck,
 } from "lucide-react";
 import { ConsultationChat } from "@/components/ConsultationChat";
+import { PulseScanHUD } from "@/components/PulseScanHUD";
 import { supabase } from "@/integrations/supabase/client";
 import {
   enterWaitingRoom, getMyActiveTriage, cancelTriageSession,
@@ -148,12 +149,15 @@ export default function PatientTriage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-primary/5 pb-24">
       <AppHeader />
       <div className="container max-w-2xl space-y-4 px-4 py-6">
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-primary/10 p-2 text-primary"><Stethoscope className="h-5 w-5" /></div>
-          <div>
-            <h1 className="text-xl font-semibold">{t("triage.title")}</h1>
-            <p className="text-xs text-muted-foreground">{t("triage.subtitle")}</p>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary/10 p-2 text-primary"><Stethoscope className="h-5 w-5" /></div>
+            <div>
+              <h1 className="text-xl font-semibold">{t("triage.title")}</h1>
+              <p className="text-xs text-muted-foreground">{t("triage.subtitle")}</p>
+            </div>
           </div>
+          <PulseScanHUD />
         </div>
 
         {/* Follow-up ticket list — always visible when there are tickets */}
