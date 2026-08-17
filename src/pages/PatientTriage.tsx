@@ -14,6 +14,7 @@ import {
   Stethoscope, Loader2, ShieldCheck, MapPin, Pill, X, PhoneCall, Download, Clock, TicketCheck,
 } from "lucide-react";
 import { ConsultationChat } from "@/components/ConsultationChat";
+import { PulseScanHUD } from "@/components/PulseScanHUD";
 import { supabase } from "@/integrations/supabase/client";
 import {
   enterWaitingRoom, getMyActiveTriage, cancelTriageSession,
