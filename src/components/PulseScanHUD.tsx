@@ -59,7 +59,7 @@ export function PulseScanHUD({ trigger }: { trigger?: "inline" | "hero" }) {
     if (stream) {
       for (const track of stream.getVideoTracks()) {
         try {
-          if (torchOn) await track.applyConstraints({ advanced: [{ torch: false }] } as MediaTrackConstraints);
+          if (torchOn) await track.applyConstraints({ advanced: [{ torch: false }] } as unknown as MediaTrackConstraints);
         } catch { /* torch off is best-effort */ }
       }
       stream.getTracks().forEach((track) => track.stop());
@@ -147,7 +147,7 @@ export function PulseScanHUD({ trigger }: { trigger?: "inline" | "hero" }) {
         MediaTrackCapabilities & { torch?: boolean };
       if (capabilities.torch) {
         try {
-          await track.applyConstraints({ advanced: [{ torch: true }] } as MediaTrackConstraints);
+          await track.applyConstraints({ advanced: [{ torch: true }] } as unknown as MediaTrackConstraints);
           setTorchOn(true);
         } catch (e) {
           console.warn("Torch activation failed, falling back to simulated contact scan.", e);
