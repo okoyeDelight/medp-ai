@@ -1,0 +1,120 @@
+CREATE TABLE public.nafdac_herbal_registry (
+  id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  nafdac_code text NOT NULL UNIQUE,
+  product_name text NOT NULL,
+  cyp450_risk_level text NOT NULL CHECK (cyp450_risk_level IN ('LOW','MODERATE','HIGH','CRITICAL')),
+  interaction_advisory text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+GRANT SELECT ON public.nafdac_herbal_registry TO anon;
+GRANT SELECT ON public.nafdac_herbal_registry TO authenticated;
+GRANT ALL ON public.nafdac_herbal_registry TO service_role;
+
+ALTER TABLE public.nafdac_herbal_registry ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Registry is readable by everyone"
+  ON public.nafdac_herbal_registry FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+CREATE TRIGGER trg_nafdac_herbal_registry_updated
+  BEFORE UPDATE ON public.nafdac_herbal_registry
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE INDEX idx_nafdac_herbal_registry_code ON public.nafdac_herbal_registry (nafdac_code);
+
+INSERT INTO public.nafdac_herbal_registry (nafdac_code, product_name, cyp450_risk_level, interaction_advisory) VALUES
+('A7-0001L','St. John''s Wort 300mg Capsules','CRITICAL','Potent CYP3A4/CYP2C19 and P-glycoprotein inducer. Can reduce plasma levels of antiretrovirals, ciclosporin, warfarin, digoxin and oral contraceptives by 40-70%. Avoid co-administration; taper under supervision.'),
+('A7-0002L','Ginkgo Biloba 120mg Tablets','HIGH','Inhibits CYP2C9/CYP2C19 and inhibits platelet aggregation. Additive bleeding risk with warfarin, aspirin, clopidogrel and NSAIDs. Discontinue 14 days before surgery.'),
+('A7-0003L','Korean Red Ginseng Extract','HIGH','CYP2D6/CYP3A4 modulation plus hypoglycaemic effect. May reduce warfarin INR and potentiate sulfonylureas/insulin. Monitor INR and glucose closely.'),
+('A7-0004L','Aged Garlic Extract 1000mg Softgels','MODERATE','Induces CYP3A4 and inhibits CYP2E1; antiplatelet activity. Reduces saquinavir exposure ~50%. Caution with anticoagulants and antihypertensives.'),
+('A7-0005L','Grapefruit Seed Extract Drops','CRITICAL','Irreversible intestinal CYP3A4 inhibition. Markedly increases levels of statins, calcium channel blockers, ciclosporin and amiodarone. Contraindicated with simvastatin.'),
+('A7-0006L','Moringa Oleifera Leaf Powder','MODERATE','Mild CYP3A4 and CYP2D6 inhibition; hypoglycaemic and hypotensive. May potentiate metformin, insulin, levothyroxine displacement and antihypertensives. Space dosing by 2 hours.'),
+('A7-0007L','Moringa Seed Oil Capsules','LOW','No clinically significant CYP450 activity at dietary doses. Monitor for additive blood-pressure lowering in hypertensive patients on therapy.'),
+('A7-0008L','Bitter Leaf (Vernonia amygdalina) Concentrate','HIGH','Significant hypoglycaemic action with CYP2C9 inhibition. High risk of hypoglycaemia with insulin, glibenclamide and metformin. Avoid in pregnancy (uterotonic).'),
+('A7-0009L','Zobo (Hibiscus sabdariffa) Extract Syrup','MODERATE','Inhibits CYP2C9 and CYP1A2; alters diclofenac and paracetamol pharmacokinetics. Reduces chloroquine and hydrochlorothiazide exposure. Separate doses by 3-4 hours.'),
+('A7-0010L','Hibiscus Concentrated Zobo Capsules','HIGH','Concentrated anthocyanin load with CYP2C9 inhibition and diuretic effect. Additive hypotension with amlodipine/lisinopril; may raise digoxin toxicity risk.'),
+('A7-0011L','Yoyo Bitters Herbal Mixture','HIGH','Multi-herb polyherbal with cascara/aloe anthraquinones and CYP3A4 induction. Laxative-induced hypokalaemia raises digoxin toxicity risk; reduces efficacy of oral contraceptives.'),
+('A7-0012L','Swedish Bitters Traditional Tonic','MODERATE','Anthraquinone laxatives and CYP3A4 modulation. Reduced absorption of co-ingested drugs; electrolyte loss with diuretics.'),
+('A7-0013L','Black Seed Oil (Nigella sativa) 500mg','HIGH','Thymoquinone inhibits CYP3A4, CYP2C9 and CYP2D6. Elevates ciclosporin and warfarin levels; potentiates antidiabetics and antihypertensives. Monitor INR.'),
+('A7-0014L','Nigella Sativa Cold-Pressed Seed Oil','MODERATE','Moderate CYP3A4 inhibition at culinary doses. Watch for additive hypoglycaemia; separate from narrow-therapeutic-index drugs.'),
+('A7-0015L','Bitter Kola (Garcinia kola) Seed Capsules','MODERATE','Kolaviron modulates CYP1A2 and CYP3A4. May alter theophylline and clozapine clearance; mild diuretic effect.'),
+('A7-0016L','Kola Nitida (Kola Nut) Energy Extract','HIGH','High caffeine with CYP1A2 competition. Additive stimulation with theophylline, ciprofloxacin and MAO inhibitors; raises BP and arrhythmia risk.'),
+('A7-0017L','Agbo Jedi-Jedi Traditional Decoction','CRITICAL','Unstandardised multi-herb decoction with documented nephrotoxic and hepatotoxic adulterants plus unpredictable CYP3A4 induction. Avoid entirely in patients on any chronic prescription therapy.'),
+('A7-0018L','Agbo Iba (Anti-Malarial Herbal Decoction)','CRITICAL','Contains cinchona-type alkaloids and unquantified quinine analogues; CYP2D6/CYP3A4 interference. Severe QT prolongation risk when combined with artemether-lumefantrine or quinine.'),
+('A7-0019L','Dogonyaro (Neem) Leaf Extract','HIGH','Azadirachtin inhibits CYP2C9/CYP3A4 with hepatotoxic potential. Contraindicated in infants; avoid with paracetamol, methotrexate and isoniazid.'),
+('A7-0020L','Neem Bark Bitter Tonic','MODERATE','Hypoglycaemic and mild CYP2C9 inhibition. Monitor glucose in diabetics; avoid in pregnancy.'),
+('A7-0021L','Utazi (Gongronema latifolium) Leaf Capsules','MODERATE','Hypoglycaemic with mild CYP3A4 inhibition. Dose adjustment may be required for insulin and sulfonylureas.'),
+('A7-0022L','Uda (Xylopia aethiopica) Seed Extract','MODERATE','Modulates CYP2C9; uterotonic activity. Avoid in pregnancy; caution with anticoagulants.'),
+('A7-0023L','Ugwu (Telfairia occidentalis) Leaf Blood Tonic','LOW','No significant CYP450 interaction. High vitamin K content may antagonise warfarin — maintain consistent intake.'),
+('A7-0024L','Scent Leaf (Ocimum gratissimum) Infusion','LOW','Minimal CYP450 impact. Mild hypoglycaemic effect; monitor in insulin-treated patients.'),
+('A7-0025L','Ginger Root 550mg Capsules','MODERATE','Inhibits thromboxane synthesis and mild CYP2C9 inhibition. Additive bleeding risk with warfarin/aspirin; may enhance antidiabetic effects.'),
+('A7-0026L','Turmeric Curcumin with Piperine','HIGH','Piperine strongly inhibits CYP3A4 and UGT, raising exposure of co-administered drugs substantially. Avoid with tacrolimus, phenytoin and statins.'),
+('A7-0027L','Turmeric Root Powder (Culinary Grade)','LOW','No clinically relevant CYP450 effect at dietary doses. Mild antiplatelet activity at high intake.'),
+('A7-0028L','Aloe Vera Whole Leaf Juice','MODERATE','Anthraquinone laxative causing potassium loss; mild CYP3A4 modulation. Raises digoxin and antiarrhythmic toxicity risk with chronic use.'),
+('A7-0029L','Aloe Bitters Detox Tea','HIGH','Stimulant laxative plus unquantified polyherbal load. Reduces absorption of oral drugs and causes electrolyte depletion with diuretics or corticosteroids.'),
+('A7-0030L','Soursop (Graviola) Leaf Tea','HIGH','Annonaceous acetogenins are neurotoxic on chronic use and inhibit CYP3A4. Avoid with levodopa, antipsychotics and antihypertensives.'),
+('A7-0031L','Guava Leaf Extract Capsules','LOW','Negligible CYP450 activity. Mild antidiarrhoeal and hypoglycaemic effect; may delay absorption of co-administered drugs.'),
+('A7-0032L','Pawpaw (Carica papaya) Leaf Extract','MODERATE','Mild CYP2C9 modulation with antiplatelet action. Monitor platelets and INR in patients on anticoagulants.'),
+('A7-0033L','Fever Grass (Lemongrass) Herbal Tea','LOW','No significant CYP450 interaction. Mild sedative and diuretic effect; caution with antihypertensives.'),
+('A7-0034L','Ashwagandha KSM-66 600mg','HIGH','Immunostimulant with CYP3A4 and CYP2C19 modulation plus thyroid hormone elevation. Avoid with immunosuppressants, levothyroxine and sedatives.'),
+('A7-0035L','Ashwagandha Root Powder','MODERATE','Mild CYP3A4 inhibition and sedation. Additive CNS depression with benzodiazepines and alcohol.'),
+('A7-0036L','Milk Thistle (Silymarin) 150mg','MODERATE','Inhibits CYP2C9 and UGT glucuronidation. May raise levels of warfarin, raloxifene and metronidazole. Monitor liver panel.'),
+('A7-0037L','Echinacea Purpurea Immune Blend','MODERATE','Mixed CYP1A2 induction and CYP3A4 inhibition; immunostimulant. Contraindicated with ciclosporin, tacrolimus and azathioprine.'),
+('A7-0038L','Valerian Root Sleep Formula','MODERATE','Weak CYP3A4 inhibition with strong additive CNS depression. Avoid with benzodiazepines, opioids, anaesthetics and alcohol.'),
+('A7-0039L','Kava Kava Anxiety Relief Extract','CRITICAL','Potent CYP2E1/CYP1A2 inhibition with documented fulminant hepatotoxicity. Contraindicated with paracetamol, alcohol, statins and all hepatotoxic agents.'),
+('A7-0040L','Liquorice Root (Glycyrrhiza) Extract','HIGH','Glycyrrhizin causes pseudohyperaldosteronism — hypokalaemia and hypertension. Antagonises antihypertensives; raises digoxin toxicity and potentiates corticosteroids.'),
+('A7-0041L','Saw Palmetto Prostate Complex','MODERATE','Mild CYP3A4/CYP2D6 inhibition with antiandrogenic and antiplatelet activity. Caution with finasteride, warfarin and hormonal therapy.'),
+('A7-0042L','Fenugreek Seed Capsules','MODERATE','Hypoglycaemic with coumarin-like constituents. Additive effect with insulin/sulfonylureas; may raise INR on warfarin.'),
+('A7-0043L','Cinnamon Bark (Cassia) Extract','MODERATE','Coumarin content is hepatotoxic at high dose; mild CYP2E1 inhibition. Caution with warfarin, paracetamol and methotrexate.'),
+('A7-0044L','Bitter Melon (Momordica charantia) Extract','HIGH','Strong hypoglycaemic action with CYP2C9 modulation. High hypoglycaemia risk with insulin and sulfonylureas; contraindicated in pregnancy.'),
+('A7-0045L','Cassia Sieberiana Root Decoction','HIGH','Anthraquinone-rich with nephrotoxic potential and unpredictable CYP induction. Avoid with aminoglycosides, NSAIDs and tenofovir.'),
+('A7-0046L','Mistletoe (Loranthus) Leaf Tea','HIGH','Cardioactive and hypotensive with CYP3A4 modulation. Additive bradycardia and hypotension with beta-blockers, digoxin and calcium channel blockers.'),
+('A7-0047L','Sorosi (Momordica) Herbal Bitters','HIGH','Concentrated hypoglycaemic polyherbal with CYP2C9 inhibition. Requires antidiabetic dose review; avoid in pregnancy.'),
+('A7-0048L','Efirin (Basil) Herbal Concentrate','LOW','No meaningful CYP450 effect. Mild antiplatelet action at high intake.'),
+('A7-0049L','Lapalapa (Jatropha curcas) Traditional Preparation','CRITICAL','Contains curcin toxalbumin and phorbol esters — severe hepatotoxicity and gastroenteritis. Contraindicated in all patients; no safe co-administration.'),
+('A7-0050L','Ewe Akoko (Newbouldia laevis) Leaf Extract','MODERATE','Modulates CYP3A4; hypotensive and uterotonic. Avoid in pregnancy; caution with antihypertensives.'),
+('A7-0051L','Ata Ijosin (Piper guineense) Extract','MODERATE','Piperine-type CYP3A4 and P-gp inhibition raising co-drug exposure. Space from narrow-therapeutic-index medicines by 3 hours.'),
+('A7-0052L','Alligator Pepper (Aframomum melegueta) Capsules','MODERATE','Mild CYP1A2/CYP3A4 inhibition and antiplatelet action. Caution with anticoagulants and theophylline.'),
+('A7-0053L','Cloves (Syzygium aromaticum) Oil Capsules','MODERATE','Eugenol inhibits CYP2C9 and platelet aggregation; hepatotoxic in overdose. Avoid with warfarin and paracetamol excess.'),
+('A7-0054L','Baobab Fruit Powder','LOW','No relevant CYP450 activity. High fibre may modestly delay drug absorption — separate by 1 hour.'),
+('A7-0055L','Tiger Nut (Cyperus esculentus) Milk Supplement','LOW','No known CYP450 interaction. Nutritional supplement; monitor glucose in diabetics due to carbohydrate load.'),
+('A7-0056L','Shea Butter Oral Herbal Blend','LOW','No documented CYP450 interference. May reduce absorption of fat-soluble drugs if taken concurrently.'),
+('A7-0057L','Palm Kernel Oil Traditional Remedy','LOW','No significant enzyme interaction. Laxative effect at high dose may reduce oral drug absorption.'),
+('A7-0058L','Ginger-Garlic-Lemon Immune Shot','MODERATE','Combined mild CYP3A4 induction and antiplatelet activity. Additive bleeding risk with anticoagulants; monitor INR.'),
+('A7-0059L','Nature''s Field Herbal Multivitamin Plus','LOW','Vitamin-mineral base with low CYP450 relevance. Calcium/iron content chelates tetracyclines and fluoroquinolones — separate by 2 hours.'),
+('A7-0060L','Beta Prostate Herbal Formula','MODERATE','Saw palmetto and pumpkin seed base with mild CYP3A4 inhibition. Caution with alpha-blockers due to additive hypotension.'),
+('A7-0061L','Green Tea (EGCG) Extract 500mg','HIGH','EGCG inhibits CYP3A4 and OATP transporters, and vitamin K content antagonises warfarin. Reduces nadolol and atorvastatin exposure markedly.'),
+('A7-0062L','Green Coffee Bean Slimming Extract','MODERATE','Caffeine-CYP1A2 competition with hypertensive effect. Avoid with theophylline, stimulants and MAO inhibitors.'),
+('A7-0063L','Garcinia Cambogia Weight Formula','HIGH','Hydroxycitric acid with serotonergic potential and CYP3A4 modulation; hepatotoxicity reported. Avoid with SSRIs and statins.'),
+('A7-0064L','Detox Slim Tea (Senna-based)','HIGH','Senna anthraquinones cause potassium loss and reduce oral drug absorption. Dangerous with digoxin, diuretics and corticosteroids.'),
+('A7-0065L','Rauwolfia vomitoria Root Preparation','CRITICAL','Reserpine alkaloids deplete catecholamines. Severe hypotension, bradycardia and depression when combined with antihypertensives, beta-blockers or MAO inhibitors. Contraindicated.'),
+('A7-0066L','Ephedra-Type Herbal Slimming Capsule','CRITICAL','Sympathomimetic alkaloids with CYP2D6 involvement. Hypertensive crisis, arrhythmia and stroke risk with MAO inhibitors, stimulants and decongestants. Contraindicated.'),
+('A7-0067L','Yohimbe Bark Vitality Extract','CRITICAL','Yohimbine is a CYP2D6 substrate with alpha-2 antagonism. Hypertensive crisis with MAOIs, tricyclics and stimulants; contraindicated in cardiac and renal disease.'),
+('A7-0068L','Herbal Manpower Root Mixture','HIGH','Unstandardised polyherbal frequently adulterated with sildenafil analogues. Fatal hypotension risk with nitrates; unpredictable CYP3A4 interactions.'),
+('A7-0069L','Tribulus Terrestris Vitality Capsules','MODERATE','Mild CYP3A4 modulation with possible androgenic effect. Caution with antihypertensives, lithium and diuretics.'),
+('A7-0070L','Maca Root Energy Powder','LOW','No documented CYP450 interaction. Possible hormonal modulation — caution in hormone-sensitive conditions.'),
+('A7-0071L','Spirulina Platensis Tablets','LOW','No CYP450 activity. Vitamin K and iodine content may affect warfarin and thyroid therapy; keep intake consistent.'),
+('A7-0072L','Chlorella Detox Tablets','MODERATE','High vitamin K antagonises warfarin; binds and reduces absorption of oral drugs. Separate dosing by 2-3 hours.'),
+('A7-0073L','Sea Moss (Irish Moss) Gel','MODERATE','High iodine load can destabilise levothyroxine and antithyroid therapy. Mucilage delays oral drug absorption.'),
+('A7-0074L','Beetroot Nitrate Circulation Powder','MODERATE','Nitrate-mediated vasodilation. Additive hypotension with antihypertensives, nitrates and PDE-5 inhibitors.'),
+('A7-0075L','Hawthorn Berry Heart Tonic','HIGH','Positive inotrope with CYP3A4 modulation. Potentiates digoxin, beta-blockers and nitrates — cardiology supervision required.'),
+('A7-0076L','Cranberry Concentrate 500mg','MODERATE','Inhibits CYP2C9; case reports of raised INR on warfarin. Monitor INR when starting or stopping.'),
+('A7-0077L','Elderberry Immune Syrup','LOW','Minimal CYP450 effect. Immunostimulant — caution with immunosuppressive therapy.'),
+('A7-0078L','Goldenseal (Berberine) Capsules','CRITICAL','Berberine potently inhibits CYP3A4, CYP2D6 and P-gp. Markedly raises ciclosporin, midazolam and metformin exposure; contraindicated in neonates and pregnancy.'),
+('A7-0079L','Berberine HCl 500mg Metabolic Support','HIGH','Strong CYP3A4/CYP2D6 inhibition with hypoglycaemic action. Requires antidiabetic dose reduction; avoid with statins and macrolides.'),
+('A7-0080L','Dandelion Root Liver Cleanse','MODERATE','Inhibits CYP1A2 and acts as a potassium-sparing diuretic. Caution with lithium, diuretics and ACE inhibitors.'),
+('A7-0081L','Nettle Leaf Herbal Capsules','MODERATE','Diuretic with high vitamin K content. Antagonises warfarin; additive effect with antihypertensives and diuretics.'),
+('A7-0082L','Chamomile Calming Tea','LOW','Weak CYP1A2/CYP3A4 inhibition at tea strength; mild sedation and coumarin content. Caution with warfarin and sedatives.'),
+('A7-0083L','Peppermint Oil Enteric Capsules','MODERATE','Inhibits CYP3A4 and relaxes the lower oesophageal sphincter. May raise felodipine and simvastatin levels; worsens reflux.'),
+('A7-0084L','Eucalyptus Steam Herbal Concentrate','MODERATE','1,8-cineole induces CYP3A4 and CYP1A2, lowering co-drug levels. Neurotoxic in children if ingested.'),
+('A7-0085L','Bitter Bark (Enantia chlorantha) Extract','HIGH','Protoberberine alkaloids inhibit CYP3A4/CYP2D6 with hepatic strain. Avoid with antimalarials, statins and antiretrovirals.'),
+('A7-0086L','Cryptolepis sanguinolenta Antimalarial Tea','HIGH','Cryptolepine inhibits CYP3A4 and prolongs QT. Dangerous with artemether-lumefantrine, quinine, macrolides and antipsychotics.'),
+('A7-0087L','Artemisia annua (Sweet Wormwood) Tea','HIGH','Artemisinin auto-induces CYP2B6/CYP3A4 and risks resistance from sub-therapeutic monotherapy. Never combine with prescribed ACT regimens.'),
+('A7-0088L','Prostate & Blood Cleanser Polyherbal Bitters','HIGH','Multi-herb blend with anthraquinones, mistletoe and bitter bark; unpredictable CYP3A4 induction plus electrolyte loss. Full medication review required.'),
+('A7-0089L','Malaria & Typhoid Herbal Combo Mixture','CRITICAL','Unstandardised antimalarial polyherbal with cumulative QT-prolonging and hepatotoxic constituents. Contraindicated alongside any prescription antimalarial or antibiotic.'),
+('A7-0090L','Diabetes Herbal Tea (Multi-Herb Blend)','CRITICAL','Stacked hypoglycaemic herbs (bitter leaf, bitter melon, fenugreek, berberine) with CYP2C9/CYP3A4 inhibition. Severe hypoglycaemia risk with insulin or sulfonylureas — do not co-administer without endocrine supervision.'),
+('A7-0091L','Immune Booster Herbal Capsule (Echinacea-Moringa)','MODERATE','Combined immunostimulation with mild CYP3A4 inhibition. Contraindicated with immunosuppressants post-transplant.'),
+('A7-0092L','Traditional Post-Partum Herbal Bath & Drink','HIGH','Uterotonic and unstandardised alkaloid content with unpredictable CYP effects. Avoid while breastfeeding or on any prescribed therapy.');
