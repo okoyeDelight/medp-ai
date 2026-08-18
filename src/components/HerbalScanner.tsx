@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
-import { Leaf, Loader2, X, ScanLine, CameraOff } from "lucide-react";
+import { Leaf, Loader2, CameraOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -146,7 +146,6 @@ export function HerbalScanner({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="h-[100dvh] max-w-none gap-0 border-0 bg-black p-0 text-white sm:rounded-none"
-        hideCloseButton
       >
         <DialogTitle className="sr-only">Scan herbal supplement</DialogTitle>
         <DialogDescription className="sr-only">
@@ -174,15 +173,7 @@ export function HerbalScanner({
               <Leaf className="h-5 w-5 text-emerald-400" />
               <span className="text-sm font-semibold">Herbal Supplement Scan</span>
             </div>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="text-white hover:bg-white/15"
-              onClick={() => onOpenChange(false)}
-              aria-label="Close scanner"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <span className="w-8" />
           </div>
 
           {/* Bounding box */}
