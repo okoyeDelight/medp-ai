@@ -561,6 +561,36 @@ export type Database = {
         }
         Relationships: []
       }
+      nafdac_herbal_registry: {
+        Row: {
+          created_at: string
+          cyp450_risk_level: string
+          id: string
+          interaction_advisory: string
+          nafdac_code: string
+          product_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cyp450_risk_level: string
+          id?: string
+          interaction_advisory: string
+          nafdac_code: string
+          product_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cyp450_risk_level?: string
+          id?: string
+          interaction_advisory?: string
+          nafdac_code?: string
+          product_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patient_care_team: {
         Row: {
           assigned_by: string | null
