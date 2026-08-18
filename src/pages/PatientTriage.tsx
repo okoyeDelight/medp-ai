@@ -11,10 +11,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
-  Stethoscope, Loader2, ShieldCheck, MapPin, Pill, X, PhoneCall, Download, Clock, TicketCheck,
+  Stethoscope, Loader2, ShieldCheck, MapPin, Pill, X, PhoneCall, Download, Clock, TicketCheck, Leaf,
 } from "lucide-react";
 import { ConsultationChat } from "@/components/ConsultationChat";
 import { PulseScanHUD } from "@/components/PulseScanHUD";
+import { HerbalScanner, type BotanicalProfile } from "@/components/HerbalScanner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   enterWaitingRoom, getMyActiveTriage, cancelTriageSession,
@@ -40,6 +41,8 @@ export default function PatientTriage() {
   const [pharmacyName, setPharmacyName] = useState("");
   const [pharmacistName, setPharmacistName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [herbalOpen, setHerbalOpen] = useState(false);
+  const [botanical, setBotanical] = useState<BotanicalProfile | null>(null);
   const patientIdRef = useRef<string | null>(null);
 
   // Intake form
@@ -159,6 +162,30 @@ export default function PatientTriage() {
           </div>
           <PulseScanHUD />
         </div>
+
+        {/* Action bar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => setHerbalOpen(true)}
+            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            <Leaf className="h-4 w-4" /> Scan Herbal Supplement
+          </Button>
+          {botanical && (
+            <Badge variant="outline" className="border-emerald-500/50 text-emerald-700">
+              {botanical.product_name} · {botanical.cyp450_risk_level}
+            </Badge>
+          )}
+        </div>
+
+        <HerbalScanner
+          open={herbalOpen}
+          onOpenChange={setHerbalOpen}
+          onIdentified={(p) => {
+            setBotanical(p);
+            setTriage((prev) => (prev ? { ...prev, botanical_profile: p } : prev));
+          }}
+        />
 
         {/* Follow-up ticket list — always visible when there are tickets */}
         {tokens.length > 0 && (
