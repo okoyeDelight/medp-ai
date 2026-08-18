@@ -36,6 +36,16 @@ export interface TriageSession {
   provider_license: string | null;
   created_at: string;
   updated_at: string;
+  /** Client-side only: NAFDAC herbal registry record attached via the herbal scanner. */
+  botanical_profile?: BotanicalProfile | null;
+}
+
+export interface BotanicalProfile {
+  id: string;
+  nafdac_code: string;
+  product_name: string;
+  cyp450_risk_level: "LOW" | "MODERATE" | "HIGH" | "CRITICAL";
+  interaction_advisory: string;
 }
 
 export interface FollowupToken {
