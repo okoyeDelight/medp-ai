@@ -18,7 +18,7 @@ import { terminateIfStale } from "@/lib/consultationSession";
 import { ClinicalWorkspace } from "@/components/clinical/ClinicalWorkspace";
 import "@/styles/clinical.css";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+
 
 
 const IDLE_MS = 180_000;            // 180s ward-mode mask
