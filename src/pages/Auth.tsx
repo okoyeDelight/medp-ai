@@ -11,7 +11,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+import { isOwnerPreview } from "@/lib/providerAuth";
 
 const signUpSchema = z.object({
   displayName: z.string().trim().min(2, "Min 2 characters").max(60),
