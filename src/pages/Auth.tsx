@@ -134,7 +134,7 @@ const Auth = () => {
         });
         if (error) throw error;
         persistRememberPreference();
-        if (role === "hcp" && email.toLowerCase() !== FOUNDER_EMAIL) {
+        if (role === "hcp" && !(await isOwnerPreview())) {
           toast({
             title: "Account under review",
             description: "Awaiting PCN/MDCN license verification before clinical access is granted.",
