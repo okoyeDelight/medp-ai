@@ -60,13 +60,13 @@ const Auth = () => {
         navigate(nextPath, { replace: true });
         return;
       }
-      const userEmail = data.session.user.email?.toLowerCase();
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", data.session.user.id);
+      const ownerPreview = await isOwnerPreview();
       const hasClinical =
-        userEmail === FOUNDER_EMAIL ||
+        ownerPreview ||
         !!roles?.some((r) => r.role === "provider" || r.role === "hospital_admin" || r.role === "platform_admin");
       const hasPatient = !!roles?.some((r) => r.role === "patient") || !hasClinical;
       // Dual-role users choose a workspace; single-role users go straight in.
