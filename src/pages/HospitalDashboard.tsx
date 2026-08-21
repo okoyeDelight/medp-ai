@@ -81,7 +81,8 @@ export default function HospitalDashboard() {
 
   const [providerEmail, setProviderEmail] = useState<string | null>(null);
   const [providerUserId, setProviderUserId] = useState<string | null>(null);
-  const founderMode = providerEmail?.toLowerCase() === FOUNDER_EMAIL;
+  // Server-verified owner/developer preview (audit-logged, not a hospital credential).
+  const founderMode = status?.isOwnerPreview === true;
 
   // ── load provider status + sessions ──────────────────────────────────────
   useEffect(() => {
