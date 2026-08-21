@@ -389,12 +389,17 @@ export default function HospitalDashboard() {
               <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-display text-sm">
-                {founderMode ? "Verified Clinician Workspace" : "Clinical Desk"}
+              <div className="flex items-center gap-2">
+                <span className="font-display text-sm">Clinical Desk</span>
+                {founderMode && (
+                  <Badge variant="outline" className="border-amber-500/60 text-amber-700">
+                    Owner preview · testing access
+                  </Badge>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 {status?.hospitalName ?? "Hospital"} ·{" "}
-                {providerEmail ?? "Verified provider"}
+                {providerEmail ?? (founderMode ? "Owner preview session" : "Verified provider")}
               </div>
             </div>
           </div>
