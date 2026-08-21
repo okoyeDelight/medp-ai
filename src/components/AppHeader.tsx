@@ -18,8 +18,8 @@ export function AppHeader() {
       const { data } = await supabase.auth.getSession();
       const u = data.session?.user;
       if (!u) { if (mounted) setIsClinical(false); return; }
-      const email = u.email?.toLowerCase();
-      if (email === FOUNDER_EMAIL) { if (mounted) setIsClinical(true); return; }
+      // Owner/developer preview is decided server-side (private allowlist + RPC).
+      if (await isOwnerPreview()) { if (mounted) setIsClinical(true); return; }
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
       if (mounted) setIsClinical(!!roles?.some(
         (r) => r.role === "provider" || r.role === "hospital_admin" || r.role === "platform_admin",
