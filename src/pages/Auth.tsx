@@ -11,7 +11,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+import { isOwnerPreview } from "@/lib/providerAuth";
 
 const signUpSchema = z.object({
   displayName: z.string().trim().min(2, "Min 2 characters").max(60),
@@ -60,13 +60,13 @@ const Auth = () => {
         navigate(nextPath, { replace: true });
         return;
       }
-      const userEmail = data.session.user.email?.toLowerCase();
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", data.session.user.id);
+      const ownerPreview = await isOwnerPreview();
       const hasClinical =
-        userEmail === FOUNDER_EMAIL ||
+        ownerPreview ||
         !!roles?.some((r) => r.role === "provider" || r.role === "hospital_admin" || r.role === "platform_admin");
       const hasPatient = !!roles?.some((r) => r.role === "patient") || !hasClinical;
       // Dual-role users choose a workspace; single-role users go straight in.
@@ -134,7 +134,7 @@ const Auth = () => {
         });
         if (error) throw error;
         persistRememberPreference();
-        if (role === "hcp" && email.toLowerCase() !== FOUNDER_EMAIL) {
+        if (role === "hcp" && !(await isOwnerPreview())) {
           toast({
             title: "Account under review",
             description: "Awaiting PCN/MDCN license verification before clinical access is granted.",

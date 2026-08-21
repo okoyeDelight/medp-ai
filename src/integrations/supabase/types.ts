@@ -591,6 +591,62 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_preview_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
+      owner_preview_audit: {
+        Row: {
+          action: string
+          created_at: string
+          email: string | null
+          hospital_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          email?: string | null
+          hospital_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          email?: string | null
+          hospital_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_preview_audit_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_care_team: {
         Row: {
           assigned_by: string | null
@@ -1172,6 +1228,7 @@ export type Database = {
         Args: { _patient_id: string; _provider_id: string }
         Returns: boolean
       }
+      is_owner_preview: { Args: { _user_id?: string }; Returns: boolean }
       is_pharmacy_chat_participant: {
         Args: { _session_id: string }
         Returns: boolean
@@ -1185,6 +1242,14 @@ export type Database = {
       provider_hospital_id: { Args: { _user_id: string }; Returns: string }
       redeem_followup_token: { Args: { _token_id: string }; Returns: string }
       request_triage: { Args: { _session_id: string }; Returns: string }
+      start_owner_preview: {
+        Args: never
+        Returns: {
+          hospital_id: string
+          hospital_name: string
+          is_owner_preview: boolean
+        }[]
+      }
       terminate_if_stale: {
         Args: { _session_id: string }
         Returns: {

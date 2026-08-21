@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, HeartPulse, Stethoscope, ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+import { isOwnerPreview } from "@/lib/providerAuth";
 
 export default function SelectWorkspace() {
   const nav = useNavigate();
@@ -19,11 +19,10 @@ export default function SelectWorkspace() {
       const { data } = await supabase.auth.getSession();
       const s = data.session;
       if (!s) { nav("/auth", { replace: true }); return; }
-      const email = s.user.email?.toLowerCase();
       const { data: roles } = await supabase
         .from("user_roles").select("role").eq("user_id", s.user.id);
       const isClinical =
-        email === FOUNDER_EMAIL ||
+        (await isOwnerPreview()) ||
         !!roles?.some((r) => r.role === "provider" || r.role === "hospital_admin" || r.role === "platform_admin");
       // Strict RBAC: patients never see the switcher — go straight to patient home.
       if (!isClinical) { nav("/", { replace: true }); return; }
