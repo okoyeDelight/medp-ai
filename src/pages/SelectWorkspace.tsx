@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, HeartPulse, Stethoscope, ArrowRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
+import { isOwnerPreview } from "@/lib/providerAuth";
 
 export default function SelectWorkspace() {
   const nav = useNavigate();
