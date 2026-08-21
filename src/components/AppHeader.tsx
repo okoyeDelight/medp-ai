@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { VitalsCheck } from "@/components/VitalsCheck";
 import { LanguageToggle, useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { isOwnerPreview } from "@/lib/providerAuth";
 
-const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
 
 export function AppHeader() {
   const { t } = useI18n();
