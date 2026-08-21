@@ -1,26 +1,52 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const FOUNDER_EMAIL = "chinedubisiola04@gmail.com";
-export const FOUNDER_FALLBACK = {
-  hospitalId: "MedP_HQ_001",
-  hospitalName: "MedP-AI Demo Clinic",
-  providerName: "Dr. Ayomide",
-};
-
 export interface ProviderStatus {
   isProvider: boolean;
   hospitalId: string | null;
   membershipStatus: "pending_verification" | "temporary" | "active" | "revoked" | null;
   hospitalName: string | null;
   tempExpiresAt: string | null;
-  isFounder?: boolean;
+  /** Server-verified owner/developer preview access (audit-flagged, NOT a real provider credential). */
+  isOwnerPreview?: boolean;
 }
 
-/** Server-side authoritative check (RLS scoped to auth.uid()), with founder override. */
+/**
+ * Server-side owner/developer preview check.
+ * The allowlist lives in a private table the client cannot read; this RPC is the
+ * only surface, so authorization is never decided in the browser.
+ */
+export async function isOwnerPreview(): Promise<boolean> {
+  const { data, error } = await supabase.rpc("is_owner_preview" as any, {} as any);
+  if (error) return false;
+  return data === true;
+}
+
+/**
+ * Provisions owner preview access (provider membership at the demo clinic) and
+ * writes an audit row distinguishing it from real, hospital-verified access.
+ * Rejects server-side for anyone not on the allowlist.
+ */
+export async function startOwnerPreview(): Promise<{ hospitalId: string; hospitalName: string } | null> {
+  const { data, error } = await supabase.rpc("start_owner_preview" as any, {} as any);
+  if (error) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  return { hospitalId: (row as any).hospital_id, hospitalName: (row as any).hospital_name };
+}
+
+/** Server-side authoritative check (RLS scoped to auth.uid()). */
 export async function fetchProviderStatus(): Promise<ProviderStatus> {
-  const { data: userData } = await supabase.auth.getUser();
-  const email = userData.user?.email?.toLowerCase() ?? null;
-  const isFounder = email === FOUNDER_EMAIL;
+  const ownerPreview = await isOwnerPreview();
+
+  const readMembership = async () => {
+    const { data } = await supabase
+      .from("hospital_providers")
+      .select("hospital_id,status,temp_expires_at,hospitals(name)")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data;
+  };
 
   const { data: roles } = await supabase
     .from("user_roles")
@@ -28,48 +54,45 @@ export async function fetchProviderStatus(): Promise<ProviderStatus> {
     .eq("role", "provider");
   let isProvider = !!roles?.length;
 
-  const { data: membership } = await supabase
-    .from("hospital_providers")
-    .select("hospital_id,status,temp_expires_at,hospitals(name)")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  let membership = await readMembership();
 
-  const status = membership?.status ?? null;
-  const verifiedActive =
-    status === "active" ||
-    (status === "temporary" &&
-      (!membership?.temp_expires_at || new Date(membership.temp_expires_at) > new Date()));
+  const verified = (m: typeof membership) => {
+    const s = m?.status ?? null;
+    return (
+      s === "active" ||
+      (s === "temporary" && (!m?.temp_expires_at || new Date(m.temp_expires_at) > new Date()))
+    );
+  };
 
-  let hospitalId = verifiedActive ? membership?.hospital_id ?? null : null;
-  let hospitalName = (membership as any)?.hospitals?.name ?? null;
-
-  // Founder client-side override — unblocks access even if the server-side
-  // seed trigger has not fired yet (e.g. email confirmed but trigger lag,
-  // or no demo hospital row exists yet).
-  if (isFounder) {
-    isProvider = true;
-    if (!hospitalId) hospitalId = FOUNDER_FALLBACK.hospitalId;
-    if (!hospitalName) hospitalName = FOUNDER_FALLBACK.hospitalName;
+  // Owner preview: ask the backend to provision the scoped membership once.
+  // This grants entry to the clinical workspace only — patient-data RLS is untouched.
+  if (ownerPreview && !verified(membership)) {
+    const provisioned = await startOwnerPreview();
+    if (provisioned) {
+      isProvider = true;
+      membership = await readMembership();
+    }
   }
 
+  const status = membership?.status ?? null;
+  const hospitalId = verified(membership) ? membership?.hospital_id ?? null : null;
+  const hospitalName = (membership as any)?.hospitals?.name ?? null;
+
   return {
-    isProvider,
+    isProvider: isProvider || (ownerPreview && !!hospitalId),
     hospitalId,
     membershipStatus: status,
     hospitalName,
     tempExpiresAt: membership?.temp_expires_at ?? null,
-    isFounder,
+    isOwnerPreview: ownerPreview,
   };
 }
 
 /**
  * DEMO ONLY — grants the current signed-in user provider role + membership at
- * the "MedP-AI Demo Clinic" so they can access the Clinical Desk immediately.
- * Backed by a SECURITY DEFINER RPC that only affects auth.uid().
+ * the "MedP-AI Demo Clinic". Backed by a SECURITY DEFINER RPC scoped to auth.uid().
  */
 export async function demoBypassVerification(): Promise<void> {
   const { error } = await supabase.rpc("demo_bypass_verification" as any);
   if (error) throw new Error(error.message || "Bypass failed");
 }
-
