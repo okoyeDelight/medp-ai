@@ -16,7 +16,7 @@ export default function ProviderPending() {
   useEffect(() => {
     fetchProviderStatus().then((s) => {
       setStatus(s);
-      if (s.isFounder || (s.isProvider && s.hospitalId)) {
+      if (s.isProvider && s.hospitalId) {
         navigate("/hospital-dashboard", { replace: true });
       }
     });
