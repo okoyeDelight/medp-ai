@@ -169,26 +169,9 @@ const Index = () => {
                 })}
               </div>
             </section>
+            {/* Symptoms + herbal tools */}
+            <section id="symptoms" className="space-y-3">
 
-
-            {/* Input */}
-            <section className="space-y-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="e.g. My belle dey pain me since morning"
-                  className="h-14 rounded-xl border-2 border-foreground bg-card pl-11 pr-14 text-base font-medium shadow-brutal-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-                <button
-                  onClick={handleVoice}
-                  aria-label="Use voice"
-                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
-                >
-                  <Mic className="h-5 w-5" />
-                </button>
-              </div>
 
               {/* Plant Scanner CTA */}
               <button
