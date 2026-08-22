@@ -113,27 +113,63 @@ const Index = () => {
             onBack={() => setSelected(null)}
           />
         ) : (
-          <div className="space-y-6">
-            {/* Hero question */}
-            <section className="space-y-3">
+          <div className="space-y-8">
+            {/* Unified health entry */}
+            <section className="space-y-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-accent px-3 py-1 font-mono-tech text-[10px] font-bold uppercase text-accent-foreground shadow-brutal-sm">
-                <Sparkles className="h-3 w-3" /> Pocket Chemist
+                <Sparkles className="h-3 w-3" /> MedP-AI Health
               </span>
               <h1 className="font-display text-3xl leading-[1.05] sm:text-4xl">
-                Wetin dey do you<br />
-                <span className="text-primary">today?</span>
+                How can we<br />
+                <span className="text-primary">help you today?</span>
               </h1>
               <p className="text-sm text-muted-foreground">
-                Tell us for simple English or Pidgin. We go suggest local herbs wey safe for you.
+                Tell us for simple English or Pidgin — doctor, chemist or herbal care, na one place.
               </p>
-              <Link
-                to="/triage"
-                className="mt-2 inline-flex w-full items-center justify-between gap-2 rounded-lg border-2 border-foreground bg-primary px-4 py-3 font-display text-primary-foreground shadow-brutal-sm transition hover:translate-y-[-1px]"
-              >
-                <span className="flex items-center gap-2"><Stethoscope className="h-4 w-4" /> See a Doctor · Triage PIN</span>
-                <ChevronRight className="h-4 w-4" />
-              </Link>
+
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-5 h-5 w-5 text-muted-foreground" />
+                <textarea
+                  ref={intakeRef}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. My belle dey pain me since morning"
+                  className="w-full resize-none rounded-xl border-2 border-foreground bg-card py-4 pl-11 pr-14 text-base font-medium shadow-brutal-sm outline-none placeholder:text-muted-foreground"
+                />
+                <button
+                  onClick={handleVoice}
+                  aria-label="Use voice"
+                  className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
+                >
+                  <Mic className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Contextual pathways — navigation only */}
+              <div className="flex flex-wrap gap-2">
+                {PATHWAYS.map((p) => {
+                  const cls =
+                    "flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3.5 py-2 text-xs font-semibold shadow-brutal-sm brutal-press hover:bg-secondary";
+                  const inner = (
+                    <>
+                      <p.icon className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                      {p.label}
+                    </>
+                  );
+                  return p.to ? (
+                    <Link key={p.label} to={p.to} className={cls}>
+                      {inner}
+                    </Link>
+                  ) : (
+                    <button key={p.label} type="button" onClick={() => scrollTo(p.target!)} className={cls}>
+                      {inner}
+                    </button>
+                  );
+                })}
+              </div>
             </section>
+
 
             {/* Input */}
             <section className="space-y-3">
