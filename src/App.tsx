@@ -41,6 +41,7 @@ const App = () => (
         <div className="flex min-h-screen flex-col">
           <div className="flex-1">
             <Routes>
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
