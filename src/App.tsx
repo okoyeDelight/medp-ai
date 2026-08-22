@@ -23,6 +23,7 @@ import OAuthConsent from "./pages/OAuthConsent.tsx";
 import PatientTriage from "./pages/PatientTriage.tsx";
 import TriageDesk from "./pages/TriageDesk.tsx";
 import SelectWorkspace from "./pages/SelectWorkspace.tsx";
+import Welcome from "./pages/Welcome.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
