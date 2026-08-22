@@ -15,7 +15,7 @@ import { RemedyDetail } from "@/components/RemedyDetail";
 import { PlantScanner } from "@/components/PlantScanner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { LegalFooter } from "@/components/LegalFooter";
-import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Stethoscope, Wand2 } from "lucide-react";
+import { Activity, AlertTriangle, ChevronRight, HeartPulse, Leaf, Loader2, Mic, Pill, ScanLine, Search, ShieldAlert, Sparkles, Stethoscope, Wand2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
