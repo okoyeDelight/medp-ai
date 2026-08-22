@@ -23,6 +23,7 @@ import OAuthConsent from "./pages/OAuthConsent.tsx";
 import PatientTriage from "./pages/PatientTriage.tsx";
 import TriageDesk from "./pages/TriageDesk.tsx";
 import SelectWorkspace from "./pages/SelectWorkspace.tsx";
+import Welcome from "./pages/Welcome.tsx";
 import { BottomNav } from "@/components/BottomNav";
 import { RequireAuth } from "@/components/RequireAuth";
 import { RequireProvider } from "@/components/RequireProvider";
@@ -40,6 +41,7 @@ const App = () => (
         <div className="flex min-h-screen flex-col">
           <div className="flex-1">
             <Routes>
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />

@@ -52,6 +52,10 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
     );
   }
   if (!session) {
+    // First-time visitors get the MedP-AI intro experience before the sign-up screen.
+    if (!localStorage.getItem("medp.introSeen")) {
+      return <Navigate to="/welcome" replace />;
+    }
     return <Navigate to="/auth" replace state={{ from: location.pathname }} />;
   }
   return <>{children}</>;
