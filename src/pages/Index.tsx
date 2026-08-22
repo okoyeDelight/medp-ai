@@ -248,7 +248,8 @@ const Index = () => {
             </section>
 
             {/* Results / browse */}
-            <section className="space-y-3">
+            <section id="herbal" className="space-y-3">
+
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display text-lg uppercase">
                   {symptomKeys.length > 0 ? "Wetin go work for you" : "Browse all remedies"}
