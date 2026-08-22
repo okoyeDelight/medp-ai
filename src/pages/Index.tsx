@@ -29,6 +29,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type Pathway = {
+  label: string;
+  icon: typeof Leaf;
+  to?: string;
+  target?: string;
+};
+
+const PATHWAYS: Pathway[] = [
+  { label: "I'm not feeling well", icon: HeartPulse, target: "symptoms" },
+  { label: "Talk to a doctor", icon: Stethoscope, to: "/triage" },
+  { label: "Help with medicine", icon: Pill, to: "/chemists" },
+  { label: "Traditional / herbal care", icon: Leaf, target: "herbal" },
+  { label: "Check my existing care", icon: Activity, to: "/diary" },
+];
+
 const Index = () => {
   const [text, setText] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
@@ -36,6 +51,12 @@ const Index = () => {
   const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [aiSearching, setAiSearching] = useState(false);
+  const intakeRef = useRef<HTMLTextAreaElement>(null);
+
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
 
   const symptomKeys = useMemo(() => {
     const fromText = matchSymptomsFromText(text);
