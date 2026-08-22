@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import {
   findRemediesFor,
   matchSymptomsFromText,
