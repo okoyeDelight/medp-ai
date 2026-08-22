@@ -4,7 +4,13 @@ import { Activity, Home, NotebookPen, Pill, Shield, User } from "lucide-react";
 export function BottomNav() {
   const { pathname } = useLocation();
   // Hide patient nav on provider/clinical routes
-  if (pathname.startsWith("/provider") || pathname.startsWith("/hospital-dashboard") || pathname.startsWith("/pharmacy/")) {
+  if (
+    pathname.startsWith("/provider") ||
+    pathname.startsWith("/hospital-dashboard") ||
+    pathname.startsWith("/pharmacy/") ||
+    pathname === "/welcome" ||
+    pathname === "/auth"
+  ) {
     return null;
   }
   const base =
