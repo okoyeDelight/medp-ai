@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import {
   findRemediesFor,
   matchSymptomsFromText,
@@ -15,7 +15,7 @@ import { RemedyDetail } from "@/components/RemedyDetail";
 import { PlantScanner } from "@/components/PlantScanner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { LegalFooter } from "@/components/LegalFooter";
-import { AlertTriangle, ChevronRight, Loader2, Mic, ScanLine, Search, ShieldAlert, Sparkles, Stethoscope, Wand2 } from "lucide-react";
+import { Activity, AlertTriangle, ChevronRight, HeartPulse, Leaf, Loader2, Mic, Pill, ScanLine, Search, ShieldAlert, Sparkles, Stethoscope, Wand2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -29,6 +29,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+type Pathway = {
+  label: string;
+  icon: typeof Leaf;
+  to?: string;
+  target?: string;
+};
+
+const PATHWAYS: Pathway[] = [
+  { label: "I'm not feeling well", icon: HeartPulse, target: "symptoms" },
+  { label: "Talk to a doctor", icon: Stethoscope, to: "/triage" },
+  { label: "Help with medicine", icon: Pill, to: "/chemists" },
+  { label: "Traditional / herbal care", icon: Leaf, target: "herbal" },
+  { label: "Check my existing care", icon: Activity, to: "/diary" },
+];
+
 const Index = () => {
   const [text, setText] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
@@ -36,6 +51,12 @@ const Index = () => {
   const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [aiSearching, setAiSearching] = useState(false);
+  const intakeRef = useRef<HTMLTextAreaElement>(null);
+
+  function scrollTo(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
 
   const symptomKeys = useMemo(() => {
     const fromText = matchSymptomsFromText(text);
@@ -113,46 +134,65 @@ const Index = () => {
             onBack={() => setSelected(null)}
           />
         ) : (
-          <div className="space-y-6">
-            {/* Hero question */}
-            <section className="space-y-3">
+          <div className="space-y-8">
+            {/* Unified health entry */}
+            <section className="space-y-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-accent px-3 py-1 font-mono-tech text-[10px] font-bold uppercase text-accent-foreground shadow-brutal-sm">
-                <Sparkles className="h-3 w-3" /> Pocket Chemist
+                <Sparkles className="h-3 w-3" /> MedP-AI Health
               </span>
               <h1 className="font-display text-3xl leading-[1.05] sm:text-4xl">
-                Wetin dey do you<br />
-                <span className="text-primary">today?</span>
+                How can we<br />
+                <span className="text-primary">help you today?</span>
               </h1>
               <p className="text-sm text-muted-foreground">
-                Tell us for simple English or Pidgin. We go suggest local herbs wey safe for you.
+                Tell us for simple English or Pidgin — doctor, chemist or herbal care, na one place.
               </p>
-              <Link
-                to="/triage"
-                className="mt-2 inline-flex w-full items-center justify-between gap-2 rounded-lg border-2 border-foreground bg-primary px-4 py-3 font-display text-primary-foreground shadow-brutal-sm transition hover:translate-y-[-1px]"
-              >
-                <span className="flex items-center gap-2"><Stethoscope className="h-4 w-4" /> See a Doctor · Triage PIN</span>
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            </section>
 
-            {/* Input */}
-            <section className="space-y-3">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
+                <Search className="pointer-events-none absolute left-3.5 top-5 h-5 w-5 text-muted-foreground" />
+                <textarea
+                  ref={intakeRef}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  rows={2}
                   placeholder="e.g. My belle dey pain me since morning"
-                  className="h-14 rounded-xl border-2 border-foreground bg-card pl-11 pr-14 text-base font-medium shadow-brutal-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="w-full resize-none rounded-xl border-2 border-foreground bg-card py-4 pl-11 pr-14 text-base font-medium shadow-brutal-sm outline-none placeholder:text-muted-foreground"
                 />
                 <button
                   onClick={handleVoice}
                   aria-label="Use voice"
-                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
+                  className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
                 >
                   <Mic className="h-5 w-5" />
                 </button>
               </div>
+
+              {/* Contextual pathways — navigation only */}
+              <div className="flex flex-wrap gap-2">
+                {PATHWAYS.map((p) => {
+                  const cls =
+                    "flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3.5 py-2 text-xs font-semibold shadow-brutal-sm brutal-press hover:bg-secondary";
+                  const inner = (
+                    <>
+                      <p.icon className="h-4 w-4 text-primary" strokeWidth={2.5} />
+                      {p.label}
+                    </>
+                  );
+                  return p.to ? (
+                    <Link key={p.label} to={p.to} className={cls}>
+                      {inner}
+                    </Link>
+                  ) : (
+                    <button key={p.label} type="button" onClick={() => scrollTo(p.target!)} className={cls}>
+                      {inner}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+            {/* Symptoms + herbal tools */}
+            <section id="symptoms" className="space-y-3">
+
 
               {/* Plant Scanner CTA */}
               <button
@@ -208,7 +248,8 @@ const Index = () => {
             </section>
 
             {/* Results / browse */}
-            <section className="space-y-3">
+            <section id="herbal" className="space-y-3">
+
               <div className="flex items-baseline justify-between">
                 <h2 className="font-display text-lg uppercase">
                   {symptomKeys.length > 0 ? "Wetin go work for you" : "Browse all remedies"}
