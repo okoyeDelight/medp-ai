@@ -38,11 +38,17 @@ type Pathway = {
 
 const PATHWAYS: Pathway[] = [
   { label: "I'm not feeling well", icon: HeartPulse, target: "symptoms" },
-  { label: "Talk to a doctor", icon: Stethoscope, to: "/triage" },
-  { label: "Help with medicine", icon: Pill, to: "/chemists" },
-  { label: "Traditional / herbal care", icon: Leaf, target: "herbal" },
-  { label: "Check my existing care", icon: Activity, to: "/diary" },
+  { label: "I want to talk to a doctor", icon: Stethoscope, to: "/triage" },
+  { label: "I need help with medicine", icon: Pill, to: "/chemists" },
+  { label: "I want to explore traditional care", icon: Leaf, target: "symptoms" },
+  { label: "I'm checking on someone", icon: Activity, to: "/my-care" },
 ];
+
+function greetingFor(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 const Index = () => {
   const [text, setText] = useState("");
@@ -51,11 +57,30 @@ const Index = () => {
   const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [aiSearching, setAiSearching] = useState(false);
+  const [firstName, setFirstName] = useState("");
   const intakeRef = useRef<HTMLTextAreaElement>(null);
+  const greeting = useMemo(() => greetingFor(new Date().getHours()), []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const p = await fetchHealthProfile();
+        const name = (p?.display_name ?? "").trim().split(" ")[0];
+        if (mounted && name) setFirstName(name);
+      } catch {
+        /* name is optional */
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
 
 
   const symptomKeys = useMemo(() => {
