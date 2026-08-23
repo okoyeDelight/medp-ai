@@ -1,7 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Button } from "@/components/ui/button";
+import { MyCare } from "@/components/MyCare";
+import { fetchHealthProfile } from "@/lib/healthProfile";
+
 
 import {
   findRemediesFor,
@@ -38,11 +41,17 @@ type Pathway = {
 
 const PATHWAYS: Pathway[] = [
   { label: "I'm not feeling well", icon: HeartPulse, target: "symptoms" },
-  { label: "Talk to a doctor", icon: Stethoscope, to: "/triage" },
-  { label: "Help with medicine", icon: Pill, to: "/chemists" },
-  { label: "Traditional / herbal care", icon: Leaf, target: "herbal" },
-  { label: "Check my existing care", icon: Activity, to: "/diary" },
+  { label: "I want to talk to a doctor", icon: Stethoscope, to: "/triage" },
+  { label: "I need help with medicine", icon: Pill, to: "/chemists" },
+  { label: "I want to explore traditional care", icon: Leaf, target: "symptoms" },
+  { label: "I'm checking on someone", icon: Activity, to: "/my-care" },
 ];
+
+function greetingFor(hour: number) {
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 const Index = () => {
   const [text, setText] = useState("");
@@ -51,11 +60,30 @@ const Index = () => {
   const [riskChip, setRiskChip] = useState<SymptomChip | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [aiSearching, setAiSearching] = useState(false);
+  const [firstName, setFirstName] = useState("");
   const intakeRef = useRef<HTMLTextAreaElement>(null);
+  const greeting = useMemo(() => greetingFor(new Date().getHours()), []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const p = await fetchHealthProfile();
+        const name = (p?.display_name ?? "").trim().split(" ")[0];
+        if (mounted && name) setFirstName(name);
+      } catch {
+        /* name is optional */
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
 
 
   const symptomKeys = useMemo(() => {
@@ -134,44 +162,55 @@ const Index = () => {
             onBack={() => setSelected(null)}
           />
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-10">
             {/* Unified health entry */}
-            <section className="space-y-4">
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-foreground bg-accent px-3 py-1 font-mono-tech text-[10px] font-bold uppercase text-accent-foreground shadow-brutal-sm">
-                <Sparkles className="h-3 w-3" /> MedP-AI Health
-              </span>
+            <section className="space-y-5">
+              <p className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                {greeting}
+                {firstName ? `, ${firstName}` : ""}
+              </p>
               <h1 className="font-display text-3xl leading-[1.05] sm:text-4xl">
                 How can we<br />
                 <span className="text-primary">help you today?</span>
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Tell us for simple English or Pidgin — doctor, chemist or herbal care, na one place.
+              <p className="text-base text-muted-foreground">
+                Tell MedP-AI what's happening — in English or Pidgin.
               </p>
 
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-5 h-5 w-5 text-muted-foreground" />
-                <textarea
-                  ref={intakeRef}
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  rows={2}
-                  placeholder="e.g. My belle dey pain me since morning"
-                  className="w-full resize-none rounded-xl border-2 border-foreground bg-card py-4 pl-11 pr-14 text-base font-medium shadow-brutal-sm outline-none placeholder:text-muted-foreground"
-                />
-                <button
-                  onClick={handleVoice}
-                  aria-label="Use voice"
-                  className="absolute right-2 top-3 flex h-11 w-11 items-center justify-center rounded-lg border-2 border-foreground bg-primary text-primary-foreground shadow-brutal-sm brutal-press"
+              <div className="space-y-3">
+                <div className="relative">
+                  <textarea
+                    ref={intakeRef}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    rows={3}
+                    aria-label="Tell MedP-AI what's happening"
+                    placeholder="e.g. My belle dey pain me since morning"
+                    className="w-full resize-none rounded-2xl border-2 border-foreground bg-card p-4 pr-16 text-base font-medium shadow-brutal-sm outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                  <button
+                    onClick={handleVoice}
+                    type="button"
+                    aria-label="Use voice"
+                    className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl border-2 border-foreground bg-card text-foreground shadow-brutal-sm brutal-press hover:bg-secondary"
+                  >
+                    <Mic className="h-5 w-5" />
+                  </button>
+                </div>
+                <Button
+                  size="lg"
+                  onClick={() => scrollTo("symptoms")}
+                  className="h-14 w-full border-2 border-foreground bg-primary font-display text-base uppercase text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
                 >
-                  <Mic className="h-5 w-5" />
-                </button>
+                  <Sparkles className="mr-2 h-5 w-5" /> Continue
+                </Button>
               </div>
 
-              {/* Contextual pathways — navigation only */}
+              {/* Contextual quick actions — navigation only */}
               <div className="flex flex-wrap gap-2">
                 {PATHWAYS.map((p) => {
                   const cls =
-                    "flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3.5 py-2 text-xs font-semibold shadow-brutal-sm brutal-press hover:bg-secondary";
+                    "flex min-h-11 items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2.5 text-sm font-semibold shadow-brutal-sm brutal-press hover:bg-secondary";
                   const inner = (
                     <>
                       <p.icon className="h-4 w-4 text-primary" strokeWidth={2.5} />
@@ -190,8 +229,18 @@ const Index = () => {
                 })}
               </div>
             </section>
-            {/* Symptoms + herbal tools */}
+
+            <MyCare />
+
+            {/* Traditional care (existing herbal experience) */}
             <section id="symptoms" className="space-y-3">
+              <div>
+                <h2 className="font-display text-lg uppercase">Traditional care</h2>
+                <p className="text-sm text-muted-foreground">
+                  Plants and home remedies, checked for safety with your medicines.
+                </p>
+              </div>
+
 
 
               {/* Plant Scanner CTA */}

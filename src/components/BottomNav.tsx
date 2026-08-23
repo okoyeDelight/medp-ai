@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Activity, Home, NotebookPen, Pill, Shield, User } from "lucide-react";
+import { HeartPulse, Home, MessageCircle, User } from "lucide-react";
 
 export function BottomNav() {
   const { pathname } = useLocation();
@@ -23,21 +23,13 @@ export function BottomNav() {
             <Home className="h-5 w-5" strokeWidth={2.5} />
             Home
           </NavLink>
-          <NavLink to="/diary" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-            <NotebookPen className="h-5 w-5" strokeWidth={2.5} />
-            Diary
+          <NavLink to="/my-care" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <HeartPulse className="h-5 w-5" strokeWidth={2.5} />
+            My Care
           </NavLink>
-          <NavLink to="/safety-scan" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-            <Shield className="h-5 w-5" strokeWidth={2.5} />
-            Safety
-          </NavLink>
-          <NavLink to="/chemists" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-            <Pill className="h-5 w-5" strokeWidth={2.5} />
-            Chemist
-          </NavLink>
-          <NavLink to="/health-sync" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-            <Activity className="h-5 w-5" strokeWidth={2.5} />
-            Vitals
+          <NavLink to="/triage" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            <MessageCircle className="h-5 w-5" strokeWidth={2.5} />
+            Messages
           </NavLink>
           <NavLink to="/profile" className={({ isActive }) => `${base} ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             <User className="h-5 w-5" strokeWidth={2.5} />
