@@ -1,7 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Button } from "@/components/ui/button";
+import { MyCare } from "@/components/MyCare";
+import { fetchHealthProfile } from "@/lib/healthProfile";
+
 
 import {
   findRemediesFor,
