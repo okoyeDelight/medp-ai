@@ -22,6 +22,22 @@ The connected Supabase project exposes an active Edge Function named `auth-signu
 
 **Important:** The live project is currently inactive and the repository's `supabase/functions` listing did not show an `auth-signup` source directory. Do not assume the repository and deployed function are in sync. This finding is about the function returned by the connected Supabase project; it has not been changed or redeployed.
 
+### High — Signup endpoint remediation is now source-controlled, but not deployed
+
+Added `supabase/functions/auth-signup/index.ts` to the repository. It uses the public anon key and Supabase's normal `auth.signUp()` flow instead of the service-role admin API, does not force email confirmation, validates input, avoids returning raw provider errors, and uses an explicit `ALLOWED_ORIGINS` allowlist.
+
+**Deployment requirements:** Configure `ALLOWED_ORIGINS` with the exact production web origin(s) before deploying. This function deliberately rejects requests without an allowlisted browser Origin; confirm that this fits all supported clients. Add platform-level abuse/rate limiting and test signup/confirmation flows. This source change does **not** update the active Supabase deployment; the connected project is inactive, and no deployment was attempted.
+
+### Medium — Edge Functions use wildcard CORS and need endpoint-by-endpoint review
+
+A source scan found wildcard CORS in multiple repository functions, including `consultation-pin`, `nafdac-lookup`, `ai-remedy`, `drug-interactions`, `identify-plant`, and `safety-score`. Wildcard CORS is not by itself an authorization bypass, but for authenticated or sensitive operations it broadens which browser origins can make requests and increases the importance of strict JWT validation, server-side authorization, rate limiting, and avoiding cross-origin exposure.
+
+**Recommended remediation:** For each function, document whether it is public or authenticated; enforce method and content-type checks; validate JWTs and user identity server-side; restrict CORS to known app origins where appropriate; cap body and array sizes; apply abuse controls; and return generic errors while keeping diagnostic details in protected logs. Do not treat CORS as a replacement for authorization.
+
+### Medium — Consultation endpoint returns database error messages to clients
+
+The repository's `consultation-pin` function returns some database/RPC `error.message` values directly. These may reveal internal schema, policy, or operational details. Replace these responses with stable generic error codes and log sanitized diagnostics server-side. Also verify that heartbeat/termination RPCs independently enforce session ownership and allowed state transitions.
+
 ### High — Live database access controls remain unverified
 
 The connected project's status is `INACTIVE`. Attempts to list tables and migrations timed out. The security advisor returned no lint findings, but that empty response does **not** prove the database is secure, especially when the database could not be queried.
