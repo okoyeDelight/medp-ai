@@ -44,6 +44,22 @@ The repository's `supabase/config.toml` specifies project reference `lfpwbzyxtas
 
 The connected project lists active functions including `auth-signup` and several research functions, while the repository function folders show a different inventory. Treat the Git repository as not necessarily representing the live deployment. Establish a source-of-truth process and keep function source/version history synchronized.
 
+### High — Consultation-session policies allow overly broad field updates
+
+A repository migration creates patient-facing INSERT and UPDATE policies on `public.consultation_sessions` that check only that `patient_id` remains the authenticated user's ID. The provider UPDATE policy checks that the caller is an active provider for the session's hospital, but it does not constrain which columns the provider may change.
+
+**Why this matters:** A patient can submit or edit session fields such as `provider_id`, `claimed_at`, `revoked_at`, and `ends_at` rather than being limited to creating/revoking a pending session. A provider who can update a session may also be able to alter fields outside the intended claim operation, including patient/session ownership fields. Since these sessions gate provider reads of clinical records, the database should enforce a strict state transition instead of trusting the client.
+
+**Recommended remediation:** Replace broad session updates with narrowly scoped database operations/RPCs or Edge Functions that derive the patient/provider identity from the authenticated user, validate the session state and hospital membership, enforce expiry and revocation, and prevent changing immutable ownership fields. If direct updates remain, use column-level grants and carefully designed policies; RLS alone does not restrict which columns a row update can modify. Add tests for forged session creation, patient/provider reassignment, revoked sessions, expired sessions, and cross-hospital access.
+
+This is a **migration-source finding**, not a confirmed live exploit: live database policy state could not be queried while the project was inactive.
+
+### Medium — SECURITY DEFINER helper functions need explicit execute grants
+
+The repository migration defines several `SECURITY DEFINER` functions in the exposed `public` schema, including `has_role`, `is_hospital_admin`, `is_verified_provider`, `provider_hospital_id`, and `has_active_consultation`. PostgreSQL normally grants function execution to `PUBLIC` unless privileges are changed.
+
+**Recommended remediation:** Revoke default `EXECUTE` from `PUBLIC` and grant only to the required roles; where appropriate, validate `auth.uid()` inside the function and avoid accepting arbitrary user IDs from clients. Keep a fixed safe `search_path`, review each function's data exposure, and verify grants against the live database before deploying changes.
+
 ## Required next steps
 
 1. Confirm which Supabase project reference is intended for MedPAI and restore/activate it if appropriate.
