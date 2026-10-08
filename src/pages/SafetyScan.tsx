@@ -113,9 +113,19 @@ const SafetyScan = () => {
             Verify a <span className="text-primary">supplement</span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Scan a herbal product to check NAFDAC registration and run a safety check against
-            your conditions and medications.
+            This experimental preview is not an official NAFDAC lookup or a clinically validated
+            interaction checker.
           </p>
+          <div role="alert" className="rounded-xl border-2 border-danger bg-danger/10 p-4 text-sm">
+            <p className="font-display uppercase text-danger">Unverified health information — do not rely on it for care</p>
+            <p className="mt-1">
+              The local dataset and AI-generated results have not been independently verified for
+              registration status, accuracy, interactions, or safety. Do not use these results to
+              choose a remedy, change medication, or make treatment decisions. Confirm product
+              registration directly with NAFDAC and ask a licensed pharmacist or clinician about
+              interactions. This preview does not provide emergency monitoring.
+            </p>
+          </div>
         </section>
 
         {/* Search */}
@@ -145,8 +155,8 @@ const SafetyScan = () => {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            We check our curated NAFDAC list first, then ask AI to fill gaps. Always verify with
-            NAFDAC's Greenbook for clinical decisions.
+            Search results are illustrative only. The app cannot currently establish official
+            registration status or reliably determine whether a product is safe.
           </p>
         </form>
 
@@ -158,7 +168,7 @@ const SafetyScan = () => {
         {/* Results */}
         {result && (
           <div className="space-y-4 animate-fade-up">
-            {/* Header card with status */}
+            {/* These results are intentionally labelled unverified until evidence is reviewed. */}
             <RegistrationCard r={result} />
 
             {/* Intersection findings */}
@@ -173,9 +183,11 @@ const SafetyScan = () => {
               <div className="flex items-start gap-2 rounded-xl border-2 border-safe bg-safe/10 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-safe" />
                 <div className="text-sm">
-                  <p className="font-display uppercase text-safe">No conflicts found</p>
+                  <p className="font-display uppercase text-danger">No interaction detected by this preview</p>
                   <p className="text-muted-foreground">
-                    Based on your active conditions and medications. Always confirm with a pharmacist.
+                    This is not evidence that the product is safe. The dataset and matching logic are
+                    unvalidated; absence of a warning must never be interpreted as absence of risk.
+                    Confirm with a licensed pharmacist or clinician.
                   </p>
                 </div>
               </div>
@@ -207,10 +219,12 @@ const SafetyScan = () => {
               </ul>
             </DetailCard>
 
-            {/* Dose & administration */}
+            {/* Dosage instructions are withheld until the source data have been clinically reviewed. */}
             <DetailCard title="Dose & how to take" icon={<Sparkles className="h-4 w-4" />}>
-              <p className="font-display text-lg">{result.dose}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{result.administration}</p>
+              <p className="text-sm text-muted-foreground">
+                Dosage guidance is disabled in this preview because the underlying data have not
+                been clinically validated. Ask a licensed pharmacist or clinician.
+              </p>
             </DetailCard>
 
             {/* Contraindications */}
@@ -269,20 +283,9 @@ const SafetyScan = () => {
 };
 
 function RegistrationCard({ r }: { r: ScanResult }) {
-  const tone =
-    r.status === "registered"
-      ? "border-safe bg-safe/10"
-      : r.status === "expired"
-        ? "border-caution bg-caution/10"
-        : r.status === "unregistered"
-          ? "border-danger bg-danger/10"
-          : "border-foreground bg-muted";
-  const Icon =
-    r.status === "registered"
-      ? ShieldCheck
-      : r.status === "unregistered"
-        ? ShieldAlert
-        : Shield;
+  // Source records are not independently verified. Never present their status as official.
+  const tone = "border-caution bg-caution/10";
+  const Icon = ShieldAlert;
   return (
     <div className={`rounded-xl border-2 p-4 shadow-brutal ${tone}`}>
       <div className="flex items-start justify-between gap-3">
@@ -296,22 +299,9 @@ function RegistrationCard({ r }: { r: ScanResult }) {
         <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Badge
-          className={`border-2 border-foreground font-mono-tech uppercase ${
-            r.status === "registered"
-              ? "bg-safe text-safe-foreground"
-              : r.status === "unregistered"
-                ? "bg-danger text-danger-foreground"
-                : "bg-muted text-foreground"
-          }`}
-        >
-          {r.status === "registered" ? "NAFDAC Registered" : r.status}
+        <Badge className="border-2 border-foreground bg-caution text-foreground font-mono-tech uppercase">
+          Unverified preview data
         </Badge>
-        {r.nafdacNumber && (
-          <span className="rounded-md border-2 border-foreground bg-card px-2 py-0.5 font-mono-tech text-xs">
-            {r.nafdacNumber}
-          </span>
-        )}
       </div>
     </div>
   );
