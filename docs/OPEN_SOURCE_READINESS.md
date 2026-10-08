@@ -14,6 +14,7 @@ This checklist records repository hygiene and review work for maintainers. Items
 - [x] Enable scheduled dependency update pull requests through Dependabot.
 - [x] Remove unsupported claims of end-to-end encryption, completed security audits, guaranteed cross-border compliance, and emergency monitoring from the privacy-policy copy.
 - [ ] Confirm CI succeeds on GitHub Actions; adding a workflow is not evidence that the current build or tests pass.
+- [ ] Regenerate and commit `package-lock.json` from the current `package.json`. CI has confirmed they are out of sync; its current install step temporarily ignores the lockfile so checks can run. Restore `npm ci` after the lockfile is repaired.
 - [ ] Review Git history and deployment logs for credentials. Rotate any real secret that was ever committed; deleting a file does not remove earlier history.
 - [ ] Enable GitHub private vulnerability reporting in repository settings if available, and verify the maintainer can receive reports.
 - [ ] Decide on and add a licence only after confirming the founder's intended reuse and distribution terms.
@@ -40,11 +41,11 @@ The repository currently has no explicit open-source licence. The in-app Terms o
 
 MedPAI includes health-related screens and herbal/medicine safety content. A polished interface or a passing software test does not prove that a clinical claim is true or safe.
 
-- [ ] Trace every herbal, drug-interaction, plant-identification, triage, and dosage-related claim to reliable, relevant evidence.
+- [ ] Trace every herbal, drug-interaction, plant-identification, triage, and dosage-related claim to reliable, relevant evidence. The current herbal dataset contains registration statuses, codes, dose instructions, and interaction claims without evidence citations in the entries; treat these as unverified until sourced and reviewed.
 - [ ] Record source, publication date, jurisdiction, evidence strength, reviewer, review date, and known uncertainty for safety-critical content.
 - [ ] Have appropriately qualified pharmacists/clinicians review safety-critical rules before any real-world use.
 - [ ] Distinguish verified facts, hypotheses, unreviewed data, and AI-generated text in the product.
-- [ ] Test urgent-symptom flows and ensure the app never implies that it is monitoring emergencies or replaces professional care.
+- [ ] Test urgent-symptom flows and ensure the app never implies that it is monitoring emergencies or replaces professional care. The herbal scanner still allows an unverified demo record to be attached to triage; consider disabling that attachment until reviewed data are available.
 - [ ] Validate localization, health literacy, accessibility, and assumptions in the intended Nigerian context.
 - [ ] Do not collect real patient data in development or use the app to make real clinical decisions before appropriate validation and approvals.
 
