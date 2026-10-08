@@ -1,16 +1,63 @@
 # MedPAI
 
-MedPAI is an early-stage health-technology project exploring how digital tools can help bridge traditional herbal medicine and orthodox healthcare in Nigeria.
+**Exploring safer connections between traditional remedies and modern healthcare.**
 
-## Current status
+MedPAI is an early-stage Nigerian health-technology project investigating how digital tools can help people and healthcare professionals document, review, and communicate information about traditional herbal remedies alongside conventional medicines.
 
-This project is under active development. The repository contains a React, TypeScript, and Vite application with interface areas for patient triage, pharmacy and hospital dashboards, herbal/plant scanning, safety-oriented workflows, consultations, and patient-care experiences. The presence of a screen or component does not mean that feature is complete, production-ready, or clinically validated.
+Our long-term thesis is that better information and better workflows could help reduce the disconnect between these two parts of healthcare. We are working toward that vision step by step, beginning with evidence organization, transparent uncertainty, and responsible review.
 
-## Why MedPAI
+> **Project stage:** Early development. MedPAI is not clinically validated and is not ready to guide real-world diagnosis, prescribing, dosing, or treatment decisions.
 
-People may encounter fragmented health information across traditional remedies and formal healthcare. MedPAI explores whether carefully designed digital workflows can help organize information and make evidence and uncertainty easier to review.
+## The problem we are investigating
 
-**MedPAI is not a substitute for a qualified clinician, pharmacist, poison-control service, or emergency care.** It does not establish that a traditional remedy is effective or safe. Clinical validation and appropriate expert review are required before any feature is used to guide real-world care.
+People may use herbal remedies and conventional medicines within the same care journey, while information about what was taken, why it was taken, what evidence supports it, and what risks may exist can be fragmented or difficult to assess. Healthcare professionals may not always have a structured way to discuss traditional remedy use with patients.
+
+This creates an important question: **can responsible digital workflows make relevant information easier to document, trace, and review—without presenting uncertain information as medical fact?**
+
+MedPAI is being developed to explore that question in the Nigerian healthcare context. The scale of the problem, the needs of specific users, and the best route to adoption must be established through research and field validation.
+
+## The vision: from useful workflows to connected health information
+
+We see a potential path in stages:
+
+1. **Organize information.** Create structured ways to record remedy and medicine information, identify sources, and distinguish verified facts from unverified reports.
+2. **Support professional review.** Explore workflows through which pharmacists and other qualified professionals can review a person's reported use of remedies and medicines, with clear limits and appropriate escalation.
+3. **Connect care settings.** If the first workflows prove useful and safe, investigate ways for pharmacies, healthcare providers, researchers, and other appropriate partners to exchange relevant information responsibly.
+4. **Build for broader relevance.** Over time, assess whether evidence, partnerships, and validated workflows developed in Nigeria can be adapted to other settings where traditional and conventional healthcare intersect.
+
+These stages describe a **long-term direction, not completed capabilities or guaranteed outcomes**. Each depends on evidence, user need, clinical oversight, privacy safeguards, technical reliability, and a sustainable adoption model.
+
+## What MedPAI is building today
+
+The codebase contains a React, TypeScript, and Vite application with interface areas and development work related to patient triage, pharmacy and hospital dashboards, herbal or plant scanning, safety-oriented workflows, consultations, and patient-care experiences.
+
+The existence of a screen, component, or prototype does not mean the feature is complete, connected to verified data, secure for patient use, or clinically validated. We are auditing and strengthening the application before considering any real-world use.
+
+## Who we need to learn from
+
+MedPAI's next stage requires collaboration and direct feedback from people closest to the problem, including:
+
+- Pharmacists and other qualified healthcare professionals
+- Traditional medicine practitioners willing to participate in responsible, evidence-aware documentation
+- Researchers in pharmacognosy, ethnobotany, public health, pharmacology, and health informatics
+- Potential users and community health stakeholders
+- Health-tech mentors, implementation partners, and organisations experienced in Nigerian healthcare
+
+We are particularly interested in learning which information gaps matter most, what existing workflows fail to address, what evidence is needed for safe review, and who would adopt or fund a validated solution. These are questions to test, not assumptions about established demand or partnerships.
+
+## What we need to prove next
+
+Our near-term priorities are to:
+
+- Validate the problem and intended workflows through structured conversations and research
+- Establish a trustworthy, traceable approach to evidence and data provenance
+- Obtain appropriate pharmacist, clinical, and research review for health-related functionality
+- Verify authentication, database permissions, privacy controls, and deployed services
+- Test the software and document which features actually work
+- Define an initial user group, measurable outcome, and realistic route to adoption
+- Understand applicable Nigerian data-protection, healthcare, and regulatory requirements
+
+Progress should be measured by evidence and working outcomes—not by the number of features in the interface.
 
 ## Technology
 
@@ -30,15 +77,15 @@ Requirements: a supported Node.js LTS release and npm.
 3. Create a local `.env` file based on `.env.example` and add values from your own development project. Never commit credentials, private keys, access tokens, or production secrets.
 4. Start the development server with `npm run dev`.
 
-Available scripts include `npm run dev`, `npm run build`, `npm run lint`, `npm test`, and `npm run preview`.
-
-Some workflows may require external services and environment variables to be configured before they work.
+Available scripts include `npm run dev`, `npm run build`, `npm run lint`, `npm test`, and `npm run preview`. Some workflows may require external services and environment variables to be configured. Check the latest CI result before assuming that a script or build passes.
 
 ## Safety, privacy, and clinical validation
 
 MedPAI is a development project, not a clinically validated medical device or clinical decision-support service. Do not use it to diagnose, prescribe, calculate treatment, decide whether a remedy is safe, or make urgent-care decisions. Do not enter real patient data or sensitive personal information into an unvalidated development environment.
 
-Before any real-world health use, workflows require appropriate clinical and pharmacy review, evidence verification, privacy and data-protection review, security testing, and validation in the intended setting. Automated outputs must not be treated as established medical evidence.
+No claim is made here that MedPAI's herbal information, interaction outputs, AI-generated content, or scanning workflows have been clinically validated or approved by a regulator. Automated outputs must not be treated as established medical evidence.
+
+Before any real-world health use, workflows require appropriate clinical and pharmacy review, evidence verification, privacy and data-protection review, security testing, and validation in the intended setting.
 
 ## Security
 
@@ -49,16 +96,7 @@ Before any real-world health use, workflows require appropriate clinical and pha
 
 If a credential has ever been committed, deleting the file is not enough: revoke or rotate the credential with its service provider and review repository history.
 
-## Roadmap
-
-- Document and test existing workflows
-- Improve source traceability and evidence organization
-- Strengthen authentication, authorization, and security practices
-- Review privacy and data-handling requirements
-- Seek clinical and pharmacy expertise before real-world use
-- Improve setup documentation for developers
-
-These are goals, not claims of completed functionality.
+See the [Supabase security audit](docs/SUPABASE_SECURITY_AUDIT.md) for known review items and the current verification limitations.
 
 ## Licence and contributions
 
@@ -69,12 +107,11 @@ The repository's licence and contribution terms should be reviewed before others
 - [Contributing guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Open-source and security readiness checklist](docs/OPEN_SOURCE_READINESS.md)
-
-The automated checks in GitHub Actions are intended to run lint, tests, and a production build on pushes and pull requests. A workflow file alone does not mean those checks have passed; see the Actions tab for the latest result.
+- [Supabase security audit](docs/SUPABASE_SECURITY_AUDIT.md)
 
 ## Maintainer
 
-MedPAI is developed by the founder of Desprix Crew, a Nigerian pharmacy student exploring responsible health technology.
+MedPAI is being developed by the founder of Desbricks Crew, a Nigerian pharmacy student exploring responsible health technology.
 
 ## Disclaimer
 
