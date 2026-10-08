@@ -121,18 +121,19 @@ const PrivacyPolicy = () => {
             <div>
               <h2 className="font-display text-2xl">5. Data Security and Storage</h2>
               <p className="mt-2">
-                The security of your data is our priority. We implement industry-standard technical
-                and organizational measures, including:
+                MedPAI is an early-stage project, and its security controls and deployment
+                configuration are still subject to review. Do not submit real patient records,
+                sensitive health information, passwords, or other confidential data to an
+                unvalidated development deployment. Before any real-world use, the operator must
+                document and verify encryption, access controls, backups, incident response,
+                retention, and any cross-border processing arrangements.
               </p>
-              <ul className="ml-6 mt-2 list-disc space-y-1">
-                <li>End-to-end encryption for sensitive medical data.</li>
-                <li>Secure cloud storage with restricted access protocols.</li>
-                <li>Regular security audits of our AI infrastructure.</li>
-              </ul>
               <p className="mt-2">
-                Data is stored primarily on secure servers, and we ensure that any cross-border
-                data transfers comply with NDPR requirements for adequate protection.
-              </p>
+                This page is not a certification that particular security controls, independent
+                audits, or legal compliance assessments have been completed. The operator must
+                verify the actual hosting configuration and applicable data-protection obligations
+                before collecting personal or health data. This policy should be reviewed by
+                qualified privacy and legal advisers before production use.
             </div>
 
             <div>
@@ -182,9 +183,9 @@ const PrivacyPolicy = () => {
                   your account for audit and transparency.
                 </li>
                 <li>
-                  Emergency overrides (e.g. critical BP readings) may push a one-time alert to your
-                  HMO emergency desk even when the live stream is off, in line with safety duty of
-                  care.
+                  MedPAI is not an emergency-monitoring service. Do not rely on the app to detect,
+                  transmit, or respond to an emergency, and do not delay seeking urgent professional
+                  help while using it.
                 </li>
               </ul>
             </div>
