@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an improvement or new capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include real patient data, credentials, or other sensitive information."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need
+      description: What problem would this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior you would like.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Safety, privacy, and accessibility considerations
+      description: Include known risks or limitations, especially for health-related workflows.
+    validations:
+      required: false
