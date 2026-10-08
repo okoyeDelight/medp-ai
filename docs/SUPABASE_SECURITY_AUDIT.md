@@ -1,0 +1,58 @@
+# Supabase Security Audit — MedPAI
+
+**Review date:** 2026-10-08  
+**Scope:** Read-only review of the connected Supabase project metadata, available Edge Function source, repository Supabase configuration, and repository layout.  
+**Status:** Partial audit only. The database is currently reported as **INACTIVE**, database queries and migration listing timed out, and therefore live table grants, row-level security (RLS), storage policies, and migration state could not be verified. This is not a security certification.
+
+## Findings
+
+### High — Public signup function bypasses email verification
+
+The connected Supabase project exposes an active Edge Function named `auth-signup` with `verify_jwt = false`. Its source uses the service-role key to call `auth.admin.createUser()` and sets `email_confirm: true` for the submitted email address. The endpoint accepts unauthenticated POST requests.
+
+**Why this matters:** Anyone who can call the endpoint can attempt to create accounts for arbitrary email addresses without proving control of those addresses. This can enable account impersonation and unwanted account creation. The function also returns caught error messages directly to callers and has permissive wildcard CORS.
+
+**Recommended remediation before production:**
+1. Replace administrative account creation with the normal public Supabase Auth sign-up flow, which follows the project's configured email-confirmation policy.
+2. Do not mark an email as confirmed unless a trusted verification flow has verified ownership.
+3. Add abuse protection/rate limiting and sensible request-size/input limits.
+4. Return generic client errors; log detailed errors server-side without secrets or personal health data.
+5. Restrict CORS to the actual deployed application origins where practical.
+6. Test sign-up, confirmation, duplicate accounts, and abuse limits before deployment.
+
+**Important:** The live project is currently inactive and the repository's `supabase/functions` listing did not show an `auth-signup` source directory. Do not assume the repository and deployed function are in sync. This finding is about the function returned by the connected Supabase project; it has not been changed or redeployed.
+
+### High — Live database access controls remain unverified
+
+The connected project's status is `INACTIVE`. Attempts to list tables and migrations timed out. The security advisor returned no lint findings, but that empty response does **not** prove the database is secure, especially when the database could not be queried.
+
+Before production, verify:
+- RLS is enabled on every table exposed through the Data API.
+- Policies enforce ownership and workspace membership, not merely `TO authenticated`.
+- UPDATE policies include both `USING` and `WITH CHECK`.
+- Views do not unintentionally bypass RLS.
+- RPCs and `SECURITY DEFINER` functions have narrow execute grants and explicit authorization checks.
+- Storage buckets and object policies prevent cross-user access.
+- Patient, practitioner, workspace, consultation, and research records cannot be accessed across tenants.
+- No service-role key or other server secret is bundled into browser code.
+
+### Medium — Repository Supabase project reference differs from connected project
+
+The repository's `supabase/config.toml` specifies project reference `lfpwbzyxtasanttxfbwi`, while the connected Supabase project returned reference `bbqhlcpvzkjvvdfclztl`. This may be intentional (for example, different environments), but it must be reconciled before anyone applies migrations or deploys functions. Do not blindly change the reference or deploy to either project until the owner confirms which project is the intended development/staging/production target.
+
+### Medium — Function inventory differs between repository and connected project
+
+The connected project lists active functions including `auth-signup` and several research functions, while the repository function folders show a different inventory. Treat the Git repository as not necessarily representing the live deployment. Establish a source-of-truth process and keep function source/version history synchronized.
+
+## Required next steps
+
+1. Confirm which Supabase project reference is intended for MedPAI and restore/activate it if appropriate.
+2. Fix the unauthenticated admin-signup behavior in the actual function source, then deploy only to the confirmed target project.
+3. Re-run live database inspection: table inventory, RLS policies, grants, views, functions/RPCs, and storage policies.
+4. Run Supabase security advisors again after database access is restored and remediate every relevant finding.
+5. Add integration tests proving one user cannot read, edit, or delete another user's patient or workspace records.
+6. Do not use real patient data until security, privacy, and clinical governance reviews are complete.
+
+## What this audit does not establish
+
+This review does not establish that MedPAI is secure, compliant with NDPR or other law, clinically validated, NAFDAC-approved, or ready for production. It does not prove whether any data has been exposed. The inactive database and mismatched project reference prevented a complete live review.
