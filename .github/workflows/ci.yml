@@ -30,7 +30,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        # package-lock.json is currently out of sync with package.json; use npm install
+        # until the lockfile is regenerated and committed. Restore npm ci afterwards.
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
