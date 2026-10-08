@@ -171,7 +171,7 @@ export function HerbalScanner({
           <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent p-4">
             <div className="flex items-center gap-2">
               <Leaf className="h-5 w-5 text-emerald-400" />
-              <span className="text-sm font-semibold">Herbal Supplement Scan</span>
+              <span className="text-sm font-semibold">Herbal Supplement Scan · Demo</span>
             </div>
             <span className="w-8" />
           </div>
@@ -201,16 +201,22 @@ export function HerbalScanner({
               </div>
             )}
 
+            <div role="alert" className="rounded-lg border border-amber-400 bg-amber-950/90 p-3 text-xs text-amber-50">
+              <strong>Unverified demo data.</strong> This selector simulates a scan; it does not read
+              the label or verify a real NAFDAC registration. Risk levels and interaction text are
+              not clinically validated. Do not use them to make treatment decisions.
+            </div>
+
             {result && !scanning && (
-              <div className="rounded-lg border border-emerald-500/40 bg-white/5 p-3">
+              <div className="rounded-lg border border-amber-400/50 bg-white/5 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold">{result.product_name}</span>
                   <Badge className={RISK_STYLES[result.cyp450_risk_level]}>
                     {result.cyp450_risk_level}
                   </Badge>
                 </div>
-                <p className="mt-1 font-mono text-[10px] uppercase text-white/50">
-                  NAFDAC {result.nafdac_code}
+                <p className="mt-1 font-mono text-[10px] uppercase text-amber-200">
+                  Unverified demo code: {result.nafdac_code}
                 </p>
                 <p className="mt-2 text-xs text-white/80">{result.interaction_advisory}</p>
               </div>
@@ -218,7 +224,7 @@ export function HerbalScanner({
 
             <div className="space-y-1.5">
               <p className="text-[10px] uppercase tracking-wide text-white/50">
-                Demo OCR — pick a NAFDAC code
+                Demo simulation — select an illustrative record
               </p>
               <Select value={selected} onValueChange={runDemoScan} disabled={scanning}>
                 <SelectTrigger className="border-emerald-500/50 bg-white/10 text-white">
@@ -227,7 +233,7 @@ export function HerbalScanner({
                 <SelectContent>
                   {codes.map((c) => (
                     <SelectItem key={c.nafdac_code} value={c.nafdac_code}>
-                      {c.nafdac_code} — {c.product_name}
+                      {c.nafdac_code} — {c.product_name} (demo)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -239,7 +245,7 @@ export function HerbalScanner({
                 className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
                 onClick={() => onOpenChange(false)}
               >
-                Attach to my triage
+                Attach unverified demo record
               </Button>
             )}
           </div>
