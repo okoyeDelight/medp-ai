@@ -64,6 +64,14 @@ These are goals, not claims of completed functionality.
 
 The repository's licence and contribution terms should be reviewed before others rely on, redistribute, or build on its code. Until an explicit licence is added, do not assume the code is licensed for reuse. Issues and suggestions should describe the problem and reproduction steps without including sensitive health information.
 
+## Project governance
+
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Open-source and security readiness checklist](docs/OPEN_SOURCE_READINESS.md)
+
+The automated checks in GitHub Actions are intended to run lint, tests, and a production build on pushes and pull requests. A workflow file alone does not mean those checks have passed; see the Actions tab for the latest result.
+
 ## Maintainer
 
 MedPAI is developed by the founder of Desprix Crew, a Nigerian pharmacy student exploring responsible health technology.
