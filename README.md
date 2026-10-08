@@ -66,7 +66,7 @@ The repository's licence and contribution terms should be reviewed before others
 
 ## Maintainer
 
-MedPAI is developed by the founder of Desbricks Crew, a Nigerian pharmacy student exploring responsible health technology.
+MedPAI is developed by the founder of Desprix Crew, a Nigerian pharmacy student exploring responsible health technology.
 
 ## Disclaimer
 
