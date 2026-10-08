@@ -1,11 +1,14 @@
 /**
- * Curated database of common Nigerian herbal supplements with verified NAFDAC
- * registration data and pharmacological properties. Used by the Safety Scanner
- * for instant lookup; falls back to AI for unknown products.
+ * DEVELOPMENT-ONLY SAMPLE DATA — NOT A VERIFIED NAFDAC DATABASE.
  *
- * NOTE: Registration numbers and properties are based on publicly available
- * NAFDAC listings and herbal pharmacology references, but you must verify
- * critical decisions with NAFDAC directly (https://greenbook.nafdac.gov.ng).
+ * Registration statuses/numbers, doses, indications, and pharmacological claims
+ * in this dataset have not been independently validated as part of this project.
+ * Do not use them for clinical decisions or represent them as official NAFDAC data.
+ * Every entry requires source-level verification, provenance, review dates, and
+ * qualified pharmacy/clinical review before production use.
+ *
+ * Official registration checks should be performed directly with NAFDAC:
+ * https://greenbook.nafdac.gov.ng
  */
 
 export type HerbalProperty =
