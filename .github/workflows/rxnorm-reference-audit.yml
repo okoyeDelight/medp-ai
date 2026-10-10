@@ -1,0 +1,46 @@
+name: Review-only medicine terminology import
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/import-rxnorm-ingredients.mjs
+      - scripts/import-rxnorm-ingredients.test.mjs
+      - data/REFERENCE_SOURCES.json
+      - .github/workflows/rxnorm-reference-audit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-nlm-reference:
+    name: Fetch public NLM terminology for review only
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test nonclinical import boundary
+        run: node --test scripts/import-rxnorm-ingredients.test.mjs
+
+      # No records/patient names/medication histories are transmitted.
+      # Only permitted non-proprietary NLM ingredient terminology is retrieved.
+      - name: Retrieve official ingredient terminology
+        run: node scripts/import-rxnorm-ingredients.mjs "$RUNNER_TEMP/nlm-prescribable-IN.json"
+
+      # Review artifact manually before any import into product storage.
+      # This workflow never writes GitHub commits, Vercel or patient records.
+      - name: Save for source and license review
+        uses: actions/upload-artifact@v4
+        with:
+          name: medpai-nlm-ingredient-reference-review
+          path: ${{ runner.temp }}/nlm-prescribable-IN.json
+          if-no-files-found: error
+          retention-days: 3
