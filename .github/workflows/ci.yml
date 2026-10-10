@@ -38,6 +38,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck application and build configuration
+        if: success() || failure()
+        run: npm run typecheck
+
       - name: Run tests
         if: success() || failure()
         run: npm test
