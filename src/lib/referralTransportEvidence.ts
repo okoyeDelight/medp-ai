@@ -109,10 +109,12 @@ export function assessReferralTransport(
       throw new Error("A failed or unconfirmed transport cannot claim a gateway receipt.");
     }
     if (attempt.outcome === "gateway_accepted") {
-      // Missing gateway receipt can be surfaced, but never treated as proof
-      // of receiving clinician action.
-      gatewayAccepted = true;
-      if (attempt.gatewayReceiptRef !== null) gatewayReferencePresent = true;
+      // A bare "success" flag is unverified without its transport receipt.
+      // Even a receipt proves only gateway transport, never clinical ACK.
+      if (attempt.gatewayReceiptRef !== null) {
+        gatewayAccepted = true;
+        gatewayReferencePresent = true;
+      }
     }
   }
 

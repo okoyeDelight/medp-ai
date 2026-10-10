@@ -51,6 +51,7 @@ describe("transport evidence cannot certify clinical handoff completion", () => 
     const result = assessReferralTransport([
       attempt(1, "gateway_accepted", { gatewayReceiptRef: null }),
     ]);
+    expect(result.state).toBe("delivery_unconfirmed");
     expect(result.gatewayReferencePresent).toBe(false);
     expect(result.receivingClinicianAcknowledged).toBe(false);
   });
