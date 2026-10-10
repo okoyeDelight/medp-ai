@@ -39,7 +39,9 @@ jobs:
         run: npm run lint
 
       - name: Run tests
+        if: success() || failure()
         run: npm test
 
       - name: Build production bundle
+        if: success() || failure()
         run: npm run build
