@@ -165,7 +165,7 @@ export default function HospitalDashboard() {
         .eq("user_id", patientId)
         .order("taken_at", { ascending: false })
         .limit(5)
-        .then(({ data }) => setEmergencyHerbs((data as any) ?? []));
+        .then(({ data }) => setEmergencyHerbs((data ?? []).map((row) => ({ ...row, remedy_local_name: row.remedy_local_name ?? "" }))));
       // capture provider GPS for dispatch
       if (!providerLocation && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -300,7 +300,7 @@ export default function HospitalDashboard() {
     if (!pinDialogFor) return;
     setStrikes(getPatientStrikes(pinDialogFor.patient_id));
     setLockoutUntil(getPatientLockout(pinDialogFor.patient_id));
-  }, [pinDialogFor?.patient_id]);
+  }, [pinDialogFor]);
 
   async function handlePinSubmit() {
     if (!pinDialogFor) return;

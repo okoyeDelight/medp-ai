@@ -16,7 +16,7 @@ export interface ProviderStatus {
  * only surface, so authorization is never decided in the browser.
  */
 export async function isOwnerPreview(): Promise<boolean> {
-  const { data, error } = await supabase.rpc("is_owner_preview" as any, {} as any);
+  const { data, error } = await supabase.rpc("is_owner_preview", {});
   if (error) return false;
   return data === true;
 }
@@ -27,11 +27,11 @@ export async function isOwnerPreview(): Promise<boolean> {
  * Rejects server-side for anyone not on the allowlist.
  */
 export async function startOwnerPreview(): Promise<{ hospitalId: string; hospitalName: string } | null> {
-  const { data, error } = await supabase.rpc("start_owner_preview" as any, {} as any);
+  const { data, error } = await supabase.rpc("start_owner_preview");
   if (error) return null;
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return null;
-  return { hospitalId: (row as any).hospital_id, hospitalName: (row as any).hospital_name };
+  return { hospitalId: row.hospital_id, hospitalName: row.hospital_name };
 }
 
 /** Server-side authoritative check (RLS scoped to auth.uid()). */
@@ -76,7 +76,7 @@ export async function fetchProviderStatus(): Promise<ProviderStatus> {
 
   const status = membership?.status ?? null;
   const hospitalId = verified(membership) ? membership?.hospital_id ?? null : null;
-  const hospitalName = (membership as any)?.hospitals?.name ?? null;
+  const hospitalName = membership?.hospitals?.name ?? null;
 
   return {
     isProvider: isProvider || (ownerPreview && !!hospitalId),
@@ -93,6 +93,6 @@ export async function fetchProviderStatus(): Promise<ProviderStatus> {
  * the "MedP-AI Demo Clinic". Backed by a SECURITY DEFINER RPC scoped to auth.uid().
  */
 export async function demoBypassVerification(): Promise<void> {
-  const { error } = await supabase.rpc("demo_bypass_verification" as any);
+  const { error } = await supabase.rpc("demo_bypass_verification");
   if (error) throw new Error(error.message || "Bypass failed");
 }

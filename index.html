@@ -6,25 +6,23 @@
 
     <!-- Security hardening: CSP + defence-in-depth headers.
          (HSTS must be set as a real HTTP header at the CDN — meta HSTS is ignored by browsers.) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://*.lovable.app https://*.lovable.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; worker-src 'self' blob:; frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https: wss:; worker-src 'self' blob:; frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta http-equiv="Permissions-Policy" content="geolocation=(self), camera=(self), microphone=(self), bluetooth=(self)" />
 
-    <title>MedP-AI — Pidgin Herbal Pharmacist for Nigeria</title>
-    <meta name="description" content="MedP-AI: your pocket Nigerian chemist. Get safe local herbal remedies in Pidgin with herb-drug safety checks." />
+    <title>MedPAi — Care Reconciliation Workspace</title>
+    <meta name="description" content="MedPAi development workspace for documenting medicine reports, preserving uncertainty and preparing clinician review." />
     <meta name="author" content="MedP-AI" />
     <meta name="theme-color" content="#1a8540" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
 
-    <meta property="og:title" content="MedP-AI — Pidgin Herbal Pharmacist" />
-    <meta property="og:description" content="Local Nigerian herbal remedies in Pidgin, with safety guardrails for hospital drugs." />
+    <meta property="og:title" content="MedPAi — Care Reconciliation Workspace" />
+    <meta property="og:description" content="Document reported medicine use and open questions for human review. Development preview; not a clinical decision tool." />
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Google's <model-viewer> for 3D plant rotate/zoom -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
   </head>
 
   <body>

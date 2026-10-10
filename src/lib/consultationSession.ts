@@ -1,3 +1,4 @@
+import { edgeErrorMessage } from "@/lib/runtimeValidation";
 // Consultation session client shim. PIN generation happens server-side in
 // the `consultation-pin` Edge Function (JWT-verified). Heartbeat + terminate
 // also proxy through the edge function so RLS + validation are enforced.
@@ -24,7 +25,8 @@ export const HEARTBEAT_STALE_MS = 120_000;
 async function callEdge<T>(body: unknown): Promise<T> {
   const { data, error } = await supabase.functions.invoke("consultation-pin", { body });
   if (error) throw new Error(error.message ?? "Consultation service unavailable.");
-  if ((data as any)?.error) throw new Error(String((data as any).error));
+  const remoteError = edgeErrorMessage(data);
+  if (remoteError) throw new Error(remoteError);
   return data as T;
 }
 

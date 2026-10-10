@@ -1,5 +1,6 @@
+import { errorMessage } from "@/lib/runtimeValidation";
 // Patient side — Live Waiting Room + Doctor Request Modal + Follow-up Tickets
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -44,44 +45,54 @@ export default function PatientTriage() {
   const [herbalOpen, setHerbalOpen] = useState(false);
   const [botanical, setBotanical] = useState<BotanicalProfile | null>(null);
   const patientIdRef = useRef<string | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(null);
 
   // Intake form
   const [ageBand, setAgeBand] = useState<string>("");
   const [gender, setGender] = useState<string>("");
   const [symptom, setSymptom] = useState<string>("");
 
-  const load = async () => {
-    setLoading(true);
-    const tr = await getMyActiveTriage();
-    setTriage(tr);
-    const h = await fetchPatientActiveHandoff();
-    setHandoff(h);
-    setTokens(await fetchMyFollowupTokens());
-    if (h) await hydrateHandoff(h);
-    setLoading(false);
-  };
-
-  async function hydrateHandoff(h: PharmacyHandoff) {
+  const hydrateHandoff = useCallback(async (h: PharmacyHandoff) => {
     const { data: pharm } = await supabase
-      .from("pharmacies" as any).select("name,owner_user_id").eq("id", h.pharmacy_id).maybeSingle();
-    setPharmacyName((pharm as any)?.name ?? "Selected pharmacy");
-    if ((pharm as any)?.owner_user_id) {
+      .from("pharmacies").select("name,owner_user_id").eq("id", h.pharmacy_id).maybeSingle();
+    setPharmacyName(pharm?.name ?? "Selected pharmacy");
+    if (pharm?.owner_user_id) {
       const { data: prof } = await supabase
-        .from("profiles").select("display_name").eq("user_id", (pharm as any).owner_user_id).maybeSingle();
-      setPharmacistName((prof as any)?.display_name ?? "your pharmacist");
+        .from("profiles").select("display_name").eq("user_id", pharm.owner_user_id).maybeSingle();
+      setPharmacistName(prof?.display_name ?? "your pharmacist");
     }
-  }
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      patientIdRef.current = data.user?.id ?? null;
-      await load();
-    })();
   }, []);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const tr = await getMyActiveTriage();
+      setTriage(tr);
+      const h = await fetchPatientActiveHandoff();
+      setHandoff(h);
+      setTokens(await fetchMyFollowupTokens());
+      if (h) await hydrateHandoff(h);
+    } finally {
+      setLoading(false);
+    }
+  }, [hydrateHandoff]);
+
   useEffect(() => {
-    const uid = patientIdRef.current;
+    let mounted = true;
+    void supabase.auth.getUser()
+      .then(async ({ data }) => {
+        if (!mounted) return;
+        const id = data.user?.id ?? null;
+        patientIdRef.current = id;
+        setPatientId(id);
+        await load();
+      })
+      .catch(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, [load]);
+
+  useEffect(() => {
+    const uid = patientId;
     if (!uid) return;
     const ch = supabase
       .channel("patient-triage-" + uid)
@@ -96,7 +107,7 @@ export default function PatientTriage() {
         () => fetchMyFollowupTokens().then(setTokens))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [patientIdRef.current]);
+  }, [patientId, load]);
 
   async function handleStart() {
     if (!ageBand || !gender || !symptom) { toast.error("Please fill in age, gender and what's bothering you."); return; }
@@ -109,8 +120,8 @@ export default function PatientTriage() {
       const s = await enterWaitingRoom({ ageBand, gender, symptomCategory: symptom, report });
       setTriage(s);
       toast.success("You're in the waiting room. Doctors can now request a consult.");
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not enter waiting room.");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Could not enter waiting room."));
     } finally { setCreating(false); }
   }
 
@@ -126,20 +137,20 @@ export default function PatientTriage() {
     try {
       await acceptTriage(triage.id);
       toast.success("Consultation opened with your doctor.");
-    } catch (e: any) { toast.error(e.message ?? "Could not accept."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Could not accept.")); }
   }
   async function handleDecline() {
     if (!triage) return;
     try {
       await declineTriage(triage.id);
       toast("Doctor request declined. Others may still request.");
-    } catch (e: any) { toast.error(e.message ?? "Could not decline."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Could not decline.")); }
   }
   async function handleRedeem(tok: FollowupToken) {
     try {
       await redeemFollowupToken(tok.id);
       toast.success("Follow-up consultation opened.");
-    } catch (e: any) { toast.error(e.message ?? "Ticket invalid."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Ticket invalid.")); }
   }
 
   // Doctor request modal: waiting session that has requested_by but not yet accepted

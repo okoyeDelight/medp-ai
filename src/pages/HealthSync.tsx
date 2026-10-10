@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/runtimeValidation";
 import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -185,17 +186,17 @@ const HealthSync = () => {
         saveConnected(next);
         return next;
       });
-      conn.device.gatt && (conn.device as any).addEventListener?.("gattserverdisconnected", () => {
+      if (conn.device.gatt) conn.device.addEventListener?.("gattserverdisconnected", () => {
         setBtConn(null);
         toast({ title: "Bluetooth disconnected", description: "Heart rate monitor link ended." });
       });
-      toast({ title: "Heart rate monitor connected", description: (conn.device as any).name ?? "Streaming live BPM." });
-    } catch (e: any) {
-      const msg = e?.message === "WEB_BLUETOOTH_UNSUPPORTED"
+      toast({ title: "Heart rate monitor connected", description: conn.device.name ?? "Streaming live BPM." });
+    } catch (e: unknown) {
+      const msg = e instanceof Error && e.message === "WEB_BLUETOOTH_UNSUPPORTED"
         ? "Your browser does not support Web Bluetooth. Please use Chrome or Edge."
-        : e?.name === "NotFoundError"
+        : e instanceof Error && e.name === "NotFoundError"
           ? "No device selected."
-          : e?.message ?? "Could not connect to heart rate monitor.";
+          : errorMessage(e, "Could not connect to heart rate monitor.");
       toast({ title: "Bluetooth error", description: msg, variant: "destructive" });
     } finally {
       setBtConnecting(false);
@@ -324,10 +325,10 @@ const HealthSync = () => {
       logs,
     )
       .then((res) => { if (!cancelled) setIntersection(res); })
-      .catch((e: any) => {
+      .catch((e: unknown) => {
         if (!cancelled) {
-          setIntersection(OK_ALERT);
-          setIntersectionError(e?.message ?? "Safety engine offline.");
+          setIntersection({ tier: "caution", title: "Review unavailable", detail: "No interaction assessment has been established. Consult a qualified professional.", triggers: [] });
+          setIntersectionError(errorMessage(e, "Interaction review unavailable."));
         }
       })
       .finally(() => { if (!cancelled) setIntersectionLoading(false); });
@@ -342,8 +343,8 @@ const HealthSync = () => {
         const s = await startConsultationSession();
         setSession(s);
         setLiveStream(true);
-        const vitalsPayload = sanitizeRowsForProvider("vitals_logs", (vitals as any) ?? []);
-        const dosePayload = sanitizeRowsForProvider("dose_logs", (logs as any) ?? []);
+        const vitalsPayload = sanitizeRowsForProvider("vitals_logs", vitals.map((v) => ({ ...v })));
+        const dosePayload = sanitizeRowsForProvider("dose_logs", logs.map((log) => ({ ...log })));
         console.info("[live-stream → provider] scope:", PROVIDER_ALLOWED_TABLES, {
           vitals: vitalsPayload.length,
           doses: dosePayload.length,
@@ -358,8 +359,8 @@ const HealthSync = () => {
         } catch {
           // ignore
         }
-      } catch (e: any) {
-        toast({ title: "Couldn't start stream", description: e?.message ?? "Try again.", variant: "destructive" });
+      } catch (e: unknown) {
+        toast({ title: "Couldn't start stream", description: errorMessage(e, "Try again."), variant: "destructive" });
       }
     } else {
       if (session) await terminateSession(session.id).catch(() => {});
@@ -385,7 +386,7 @@ const HealthSync = () => {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "consultation_sessions", filter: `id=eq.${session.id}` },
         (payload) => {
-          const row = payload.new as any;
+          const row = payload.new as { status?: string };
           if (row.status === "terminated") {
             setSession(null);
             setLiveStream(false);
@@ -399,7 +400,7 @@ const HealthSync = () => {
       window.clearInterval(tick);
       supabase.removeChannel(ch);
     };
-  }, [session?.id, liveStream]);
+  }, [session, liveStream]);
 
   // PIN expiry watchdog (client-side fallback)
   useEffect(() => {
@@ -414,7 +415,7 @@ const HealthSync = () => {
         }
       });
     }
-  }, [nowTick, session?.id]);
+  }, [nowTick, session]);
 
   const pinCountdown = useMemo(() => {
     if (!session) return null;
@@ -427,7 +428,7 @@ const HealthSync = () => {
     return h > 0
       ? `${h}h ${String(m).padStart(2, "0")}m`
       : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, [session?.pin_expires_at, nowTick]);
+  }, [session, nowTick]);
 
   async function copyPin() {
     if (!session?.pin) return;

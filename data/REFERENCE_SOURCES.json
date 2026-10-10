@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "purpose": "Reference terminology provenance for medication reconciliation; no patient records or clinical safety claims",
+  "sources": [
+    {
+      "id": "nlm-prescribable-rxnorm-ingredients",
+      "authority": "US National Library of Medicine",
+      "jurisdiction": "United States",
+      "dataset": "Prescribable RxNorm Ingredient (IN) concepts",
+      "homepage": "https://www.nlm.nih.gov/research/umls/rxnorm/overview.html",
+      "retrieval": "https://rxnav.nlm.nih.gov/REST/Prescribe/allconcepts.json?tty=IN",
+      "licenseEvidence": "https://lhncbc.nlm.nih.gov/RxNav/APIs/PrescribableAPIs.html",
+      "status": "approved_for_controlled_reference_import",
+      "permittedPurpose": "Drug-name vocabulary candidate only; must be confirmed for Nigerian products and cannot infer actual use, dose or safety",
+      "clinicalSafetyClearance": false,
+      "mayUseForPatientMatchingAutomatically": false,
+      "notes": "No API license is required for non-proprietary Prescribable RxNorm API, subject to NLM terms and rate limits. Public domain terminology, requested NLM acknowledgment. US-centric and incomplete for local brands."
+    },
+    {
+      "id": "ng-essential-medicines-adult-2024",
+      "authority": "Federal Ministry of Health and Social Welfare, Nigeria",
+      "jurisdiction": "Nigeria",
+      "dataset": "Nigeria Essential Medicines List for Adults, 8th edition 2024",
+      "homepage": "https://www.health.gov.ng/wp-content/uploads/2025/08/Final-NEML-Adult-8th-Edition.pdf",
+      "retrieval": null,
+      "licenseEvidence": null,
+      "status": "pending_exact_document_reuse_rights",
+      "permittedPurpose": "Manual read-only policy reference pending license review; no bulk redistribution",
+      "clinicalSafetyClearance": false,
+      "mayUseForPatientMatchingAutomatically": false,
+      "notes": "This is a priority list, not a national register of brands or medicine approval. License of specific official PDF requires confirmation."
+    },
+    {
+      "id": "nafdac-greenbook",
+      "authority": "NAFDAC",
+      "jurisdiction": "Nigeria",
+      "dataset": "NAFDAC Greenbook registered medicinal products",
+      "homepage": "https://greenbook.nafdac.gov.ng/",
+      "retrieval": null,
+      "licenseEvidence": null,
+      "status": "manual_reference_only_api_and_bulk_rights_unverified",
+      "permittedPurpose": "Link to official public lookup; no automated scrape, bulk copy, unlicensed commercial reuse",
+      "clinicalSafetyClearance": false,
+      "mayUseForPatientMatchingAutomatically": false,
+      "notes": "Registration status does not establish clinical safety, remedy interactions, or authenticity of an individual medicine pack."
+    }
+  ]
+}

@@ -38,8 +38,18 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck application and build configuration
+        if: success() || failure()
+        run: npm run typecheck
+
       - name: Run tests
+        if: success() || failure()
         run: npm test
 
+      - name: Validate reference data importer
+        if: success() || failure()
+        run: node --test scripts/import-rxnorm-ingredients.test.mjs
+
       - name: Build production bundle
+        if: success() || failure()
         run: npm run build

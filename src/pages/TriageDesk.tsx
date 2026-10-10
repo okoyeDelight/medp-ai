@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/runtimeValidation";
 // Doctor's Clinical Desk — Live Triage Command Center
 // - Real-time anonymized patient queue (Supabase subscription)
 // - "Request Connection" with optimistic UI lock (row disappears for other doctors)
@@ -68,11 +69,13 @@ export default function TriageDesk() {
       doctorIdRef.current = data.user?.id ?? null;
       const { data: prof } = await supabase.from("profiles")
         .select("display_name").eq("user_id", doctorIdRef.current ?? "").maybeSingle();
-      if ((prof as any)?.display_name) doctorNameRef.current = (prof as any).display_name;
+      if (prof?.display_name) doctorNameRef.current = prof.display_name;
       await refresh();
     })();
   }, [navigate, refresh]);
 
+  // Subscribe by stable handoff identity rather than a stale closure.
+  const activeHandoffId = activeHandoff?.id;
   // Realtime: watch the whole triage_sessions table — RLS filters to waiting + my rows.
   useEffect(() => {
     const uid = doctorIdRef.current;
@@ -80,7 +83,7 @@ export default function TriageDesk() {
     const ch = supabase.channel("doctor-desk-live-" + uid)
       .on("postgres_changes",
         { event: "*", schema: "public", table: "triage_sessions" },
-        async (p: any) => {
+        async (p) => {
           const row = (p.new ?? p.old) as TriageSession | undefined;
           if (!row) return;
           // If a patient accepted my request -> auto-open consultation
@@ -102,12 +105,12 @@ export default function TriageDesk() {
         })
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "pharmacy_handoffs", filter: `doctor_id=eq.${uid}` },
-        (p: any) => {
-          if (activeHandoff && p.new?.id === activeHandoff.id) setActiveHandoff(p.new as PharmacyHandoff);
+        (p) => {
+          if (activeHandoffId && p.new?.id === activeHandoffId) setActiveHandoff(p.new as PharmacyHandoff);
         })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [refresh, activeHandoff?.id]);
+  }, [refresh, activeHandoffId]);
 
   async function handleRequest(session: TriageSession) {
     // Optimistic lock -> hide card immediately
@@ -116,10 +119,10 @@ export default function TriageDesk() {
     try {
       await requestTriage(session.id);
       toast.success(`Request sent — waiting for patient to accept.`);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setPendingRequestIds((s) => { const n = new Set(s); n.delete(session.id); return n; });
       await refresh();
-      toast.error(e.message ?? "Could not request patient — likely already taken.");
+      toast.error(errorMessage(e, "Could not request patient — likely already taken."));
     }
   }
 
@@ -318,8 +321,8 @@ function ConsultationView({
       }
       toast.success("Consultation concluded.");
       onFinished();
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not conclude.");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Could not conclude."));
     } finally { setEnding(false); }
   }
 
@@ -453,8 +456,8 @@ function PharmacyDiscovery({
       });
       toast.success(`Handoff sent to ${prescriptionOpen.name}`);
       onSelected(handoff);
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not create handoff.");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Could not create handoff."));
     } finally { setCreating(false); }
   }
 
@@ -577,10 +580,10 @@ export function ClinicianChat({
       setMessages(list);
       const [pt, ph] = await Promise.all([
         supabase.from("profiles").select("display_name").eq("user_id", handoff.patient_id).maybeSingle(),
-        supabase.from("pharmacies" as any).select("name").eq("id", handoff.pharmacy_id).maybeSingle(),
+        supabase.from("pharmacies").select("name").eq("id", handoff.pharmacy_id).maybeSingle(),
       ]);
-      setPatientName((pt.data as any)?.display_name ?? "Patient");
-      setPharmacyName((ph.data as any)?.name ?? "Pharmacy");
+      setPatientName(pt.data?.display_name ?? "Patient");
+      setPharmacyName(ph.data?.name ?? "Pharmacy");
       if (list.length === 0) {
         await sendHandoffMessage({
           handoffId: handoff.id, role: "system",
@@ -588,16 +591,16 @@ export function ClinicianChat({
         });
       }
     })();
-  }, [handoff.id]);
+  }, [handoff.id, handoff.patient_id, handoff.pharmacy_id, rep]);
 
   useEffect(() => {
     const ch = supabase.channel("dpm-" + handoff.id)
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "doctor_pharmacist_messages", filter: `handoff_id=eq.${handoff.id}` },
-        (p: any) => setMessages((m) => [...m, p.new as DoctorPharmacistMessage]))
+        (p) => setMessages((m) => [...m, p.new as DoctorPharmacistMessage]))
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "pharmacy_handoffs", filter: `id=eq.${handoff.id}` },
-        (p: any) => setCurrent(p.new as PharmacyHandoff))
+        (p) => setCurrent(p.new as PharmacyHandoff))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [handoff.id]);
@@ -612,7 +615,7 @@ export function ClinicianChat({
     try {
       await sendHandoffMessage({ handoffId: handoff.id, role, body: input.trim() });
       setInput("");
-    } catch (e: any) { toast.error(e.message); } finally { setSending(false); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Could not complete the request.")); } finally { setSending(false); }
   }
 
   async function finalizeAndGeneratePdfs() {
@@ -639,8 +642,8 @@ export function ClinicianChat({
       ]);
       toast.success("Dual PDFs generated and filed.");
       onExit();
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not finalise handoff.");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Could not finalise handoff."));
     } finally { setFinishing(false); }
   }
 

@@ -84,7 +84,7 @@ const Diary = () => {
       .then((d) => alive && setLogs(d))
       .catch((e) => {
         console.error(e);
-        alive && setLogs([]);
+        if (alive) setLogs([]);
       })
       .finally(() => alive && setLoading(false));
     return () => {

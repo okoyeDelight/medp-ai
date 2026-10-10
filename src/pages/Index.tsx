@@ -109,7 +109,7 @@ const Index = () => {
     }
     const rec = new SR();
     rec.lang = "en-NG";
-    rec.onresult = (e: any) => setText(e.results[0][0].transcript);
+    rec.onresult = (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => setText(e.results[0][0].transcript);
     rec.start();
     toast({ title: "Talk now 🎤", description: "Tell us wetin dey do you." });
   }

@@ -128,7 +128,7 @@ const Auth = () => {
             data: {
               display_name: parsed.data.displayName,
               account_type: role,
-              license_number: role === "hcp" ? (parsed.data as any).licenseNumber : null,
+              license_number: role === "hcp" && "licenseNumber" in parsed.data ? parsed.data.licenseNumber : null,
             },
           },
         });

@@ -2,7 +2,21 @@
 // Standard GATT: Heart Rate Service (0x180D), Heart Rate Measurement char (0x2A37).
 
 // Minimal Web Bluetooth typings (avoids requiring @types/web-bluetooth).
-type AnyBtDevice = { gatt?: { connect: () => Promise<any>; disconnect: () => void } };
+type BtGattServer = {
+  getPrimaryService: (name: string) => Promise<{
+    getCharacteristic: (name: string) => Promise<AnyBtChar>;
+  }>;
+};
+type AnyBtDevice = {
+  name?: string;
+  addEventListener?: (type: string, cb: (event: Event) => void) => void;
+  gatt?: { connect: () => Promise<BtGattServer>; disconnect: () => void };
+};
+type BluetoothNavigator = Navigator & {
+  bluetooth?: {
+    requestDevice: (options: { filters: { services: string[] }[] }) => Promise<AnyBtDevice>;
+  };
+};
 type AnyBtChar = {
   readValue: () => Promise<DataView>;
   startNotifications: () => Promise<unknown>;
@@ -19,7 +33,7 @@ export interface HRConnection {
 }
 
 export function isWebBluetoothSupported(): boolean {
-  return typeof navigator !== "undefined" && !!(navigator as any).bluetooth;
+  return typeof navigator !== "undefined" && !!(navigator as BluetoothNavigator).bluetooth;
 }
 
 /**
@@ -43,7 +57,7 @@ export async function connectToHeartRateMonitor(
     throw new Error("WEB_BLUETOOTH_UNSUPPORTED");
   }
 
-  const device = await (navigator as any).bluetooth.requestDevice({
+  const device = await (navigator as BluetoothNavigator).bluetooth!.requestDevice({
     filters: [{ services: ["heart_rate"] }],
   });
 

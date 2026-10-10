@@ -9,6 +9,7 @@
 // - Pharmacy handoff flow + dual PDF engine (unchanged)
 // ============================================================================
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { InteractionReport } from "@/lib/telepharmacy";
 
 // ---------- Types ----------
@@ -144,7 +145,7 @@ export async function enterWaitingRoom(opts: {
       age_band: opts.ageBand,
       gender: opts.gender,
       symptom_category: opts.symptomCategory,
-    } as any)
+    })
     .select()
     .single();
   if (error) throw error;
@@ -156,8 +157,8 @@ export async function enterWaitingRoom(opts: {
     .insert({
       triage_session_id: session.id,
       patient_id: uid,
-      report: opts.report as any,
-    } as any);
+      report: opts.report as unknown as Json,
+    });
   if (repErr) throw repErr;
   return session;
 }
@@ -197,19 +198,19 @@ export async function fetchQueue(): Promise<TriageSession[]> {
 }
 
 export async function requestTriage(sessionId: string): Promise<string> {
-  const { data, error } = await supabase.rpc("request_triage" as any, { _session_id: sessionId });
+  const { data, error } = await supabase.rpc("request_triage", { _session_id: sessionId });
   if (error) throw new Error(error.message || "Could not request patient");
   return data as unknown as string;
 }
 
 export async function acceptTriage(sessionId: string): Promise<string> {
-  const { data, error } = await supabase.rpc("accept_triage" as any, { _session_id: sessionId });
+  const { data, error } = await supabase.rpc("accept_triage", { _session_id: sessionId });
   if (error) throw new Error(error.message || "Could not accept");
   return data as unknown as string;
 }
 
 export async function declineTriage(sessionId: string): Promise<void> {
-  const { error } = await supabase.rpc("decline_triage" as any, { _session_id: sessionId });
+  const { error } = await supabase.rpc("decline_triage", { _session_id: sessionId });
   if (error) throw error;
 }
 
@@ -238,7 +239,7 @@ export async function fetchTriageReport(sessionId: string): Promise<InteractionR
     .select("report")
     .eq("triage_session_id", sessionId)
     .maybeSingle();
-  return ((data as any)?.report as InteractionReport) ?? null;
+  return (data?.report as unknown as InteractionReport) ?? null;
 }
 
 // ---------- Doctor: conclude & follow-up tokens ----------
@@ -251,7 +252,7 @@ export async function concludeTriage(sessionId: string): Promise<void> {
 }
 
 export async function issueFollowupToken(sessionId: string, hours = 72): Promise<string> {
-  const { data, error } = await supabase.rpc("issue_followup_token" as any, {
+  const { data, error } = await supabase.rpc("issue_followup_token", {
     _session_id: sessionId,
     _hours: hours,
   });
@@ -274,7 +275,7 @@ export async function fetchMyFollowupTokens(): Promise<FollowupToken[]> {
 }
 
 export async function redeemFollowupToken(tokenId: string): Promise<string> {
-  const { data, error } = await supabase.rpc("redeem_followup_token" as any, { _token_id: tokenId });
+  const { data, error } = await supabase.rpc("redeem_followup_token", { _token_id: tokenId });
   if (error) throw error;
   return data as unknown as string;
 }
@@ -300,9 +301,9 @@ export async function createPharmacyHandoff(opts: {
       pharmacy_id: opts.pharmacyId,
       pharmacist_user_id: opts.pharmacistUserId,
       dispense_pin: dispensePin,
-      prescription: opts.prescription as any,
-      interaction_report: (opts.interactionReport ?? null) as any,
-    } as any)
+      prescription: opts.prescription as unknown as Json,
+      interaction_report: (opts.interactionReport ?? null) as unknown as Json,
+    })
     .select()
     .single();
   if (error) throw error;
@@ -339,8 +340,8 @@ export async function fetchPharmacistHandoffs(userId: string): Promise<PharmacyH
   return (data as unknown as PharmacyHandoff[]) ?? [];
 }
 
-export async function updateHandoffStatus(id: string, patch: Partial<PharmacyHandoff>) {
-  const { error } = await supabase.from("pharmacy_handoffs").update(patch as any).eq("id", id);
+export async function updateHandoffStatus(id: string, patch: Partial<Pick<PharmacyHandoff, "status" | "accepted_at" | "ready_at" | "dispensed_at">>) {
+  const { error } = await supabase.from("pharmacy_handoffs").update(patch).eq("id", id);
   if (error) throw error;
 }
 export async function acceptHandoff(id: string) {
@@ -375,7 +376,7 @@ export async function sendHandoffMessage(opts: {
     sender_id: uid,
     sender_role: opts.role,
     body: opts.body,
-  } as any);
+  });
   if (error) throw error;
 }
 
@@ -521,7 +522,7 @@ export async function uploadAndRegisterPdf(opts: {
     kind: opts.kind,
     storage_path: path,
     file_name: `${opts.kind === "patient" ? "Prescription" : "Clinical-Triage-Record"}.pdf`,
-  } as any);
+  });
   if (insErr) throw insErr;
   return path;
 }

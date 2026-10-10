@@ -80,13 +80,13 @@ export function ClinicalWorkspace({
         .is("revoked_at", null)
         .gt("ends_at", new Date().toISOString());
       const roster = await supabase
-        .from("patient_care_team" as any)
+        .from("patient_care_team")
         .select("patient_id,status")
         .eq("provider_id", providerId);
 
       if (cancelled) return;
       const map = new Map<string, TriagePatient>();
-      ((live.data ?? []) as any[]).forEach((s) => {
+      (live.data ?? []).forEach((s) => {
         map.set(s.patient_id, {
           patientId: s.patient_id,
           source: "live",
@@ -94,7 +94,7 @@ export function ClinicalWorkspace({
           sessionId: s.id,
         });
       });
-      ((roster.data ?? []) as any[]).forEach((r) => {
+      (roster.data ?? []).forEach((r) => {
         if (map.has(r.patient_id)) return;
         map.set(r.patient_id, {
           patientId: r.patient_id,

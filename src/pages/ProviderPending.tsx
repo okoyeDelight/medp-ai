@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/runtimeValidation";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,8 +34,8 @@ export default function ProviderPending() {
       await demoBypassVerification();
       toast.success("Verified! Loading Clinical Desk…");
       navigate("/hospital-dashboard", { replace: true });
-    } catch (e: any) {
-      toast.error(e.message ?? "Bypass failed");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Verification request failed."));
     } finally {
       setBypassing(false);
     }
