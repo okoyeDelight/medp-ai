@@ -561,3 +561,14 @@ Founder wants a potentially national milestone that solves **triage and informat
 4. Resolve NAFDAC SaMD intended-use, licensing for Nigerian medicine references, NDPA/GAID privacy and ethics requirements; do not derive herb interaction risks from model guesses.
 5. Work toward a reproducible lockfile + `npm ci`, TypeScript strictness review, real patient-path safety audit and controlled access. Clinical safety is not measured by CI green.
 6. Define success as independently verified reduced dropped information/referral non-completion/false closure and practical clinician burden, under **government-compatible open standards** and patient data rights, not lock-in.
+
+
+### 2026-10-10 — Product governance built into pull requests
+
+**Previously existing GitHub template updated:** .github/PULL_REQUEST_TEMPLATE.md now requires every proposed change to identify an actual Nigerian clinical information-break, operator, approved role, care moment, payer hypothesis, national infrastructure already in place, a simpler paper/phone/EHR alternative, expected Nigerian offline/low-power failure, report-versus-verification difference, interop and patient rights, actual tests including the new npm run typecheck, clinical/privacy/regulatory requirements, and go/pivot/kill criteria. This expands the existing contributor checklist rather than replacing it. A checkbox is an evidence prompt; not proof that gates were completed. Source commit 03e1c8c8f395c567494d8b2e2cce5d9cbcde8fca.
+
+**Vision-to-engineering mechanism:** Every PR should reference the national care-continuity North Star memo, cite primary Nigerian sources and expose what would falsify its benefit. Product authority is earned via reliable referrals and reviewed evidence, not proprietary control of patient histories or unverifiable AI claims. Record rejected product ideas, safety exceptions, operational cost and rollback.
+
+**Verified latest code test status:** 38046414714 on f8b383ee5469125ab8d94fc9ac2177e669c01b59 is SUCCESS for lint, app+node typecheck, all 26 Vitest tests (including 10 new referral transition tests), 5 NLM importer tests, and production Vite build. Subsequent changes are documentation and PR template only, not new runtime functionality; check current CI again when planning release. This is NOT clinical safety, backend access-control, end-to-end triage or partner validation.
+
+**Still to resolve before release:** A reproducible dependency lockfile and npm ci, tighter TypeScript strictness, actual Supabase mapping and RLS, real provider verification, patient identity/consent, append-only server event authentication, practical paper/offline fallback, NAFDAC SaMD/NDPC assessment, clinical review, and proof one care team will pay. **No real patient records in current protected preview.**
