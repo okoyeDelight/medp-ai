@@ -400,3 +400,22 @@ For purely strategic discussions, mark **Code changed: none** and capture the re
 **Verification needed:** Check GitHub Actions lint/test/build for SHA `15e90b9171f875390e8c5a5e922cc97d984e8223`; confirm Vercel READY for that SHA; inspect protected preview in an authenticated browser and verify the hold renders rather than a white page. Source-level validation alone cannot prove the browser outcome. Existing legacy lint errors remain a release blocker.
 
 **Do not interpret as migration complete:** The preview intentionally withholds application features until a segregated, verified test backend and access controls are provisioned. The old Lovable deployment remains untouched. No production release.
+
+
+## 2026-10-10 — Screenshot-confirmed white-page resolution: usable offline-only MedPAi workspace
+
+**User evidence and instruction:** User supplied a mobile Chrome screenshot of the `MedPAi development preview` hold panel and requested that the blocking screen be removed so development can continue. The earlier white blank page was fixed, but the hold itself obstructed product iteration. This change **replaces the hold with an interactive sample workspace**, not unrestricted access to an unverified clinical application.
+
+**Architecture decision:** On `*.vercel.app` preview hosts, `src/main.tsx` dynamically imports `src/preview/MedPAiPreview.tsx` **regardless of whether Supabase variables are later set**. On any host without valid public Supabase configuration, the same standalone sample app is used. The existing full `App.tsx` loads only on non-Vercel hostnames with configured Supabase. This avoids instantiating unverified real patient backends and avoids importing clinical pages that still need audit. No backend credentials, patient data, or persistent writes are used in the sample workspace. Existing Lovable site and production deployment remain unchanged.
+
+**Committed changes on draft safety branch:**
+- `src/preview/MedPAiPreview.tsx`: responsive interactive overview, sample reported medicine list (fictional generic items), item flags, selectable pharmacist review questions and generated sample handoff. In-memory React state only. Handoff copy action requires explicit user click and has an error fallback. All records say sample/fictional; no interaction clearance, actual dosing, treatment, clinician verification, or patient data.
+- `src/preview/preview.css`: mobile-first navigation, styled dashboard, responsive cards and handoff. Retains existing app design tokens where possible without changing original clinical UI.
+- `src/main.tsx`: replace the blocking development notice with safe sample workspace via lazy import; never initialize Supabase in the preview; unregister previous PWA service workers on preview hosts; retain fallback message only for genuine bootstrap failures.
+- `src/preview/MedPAiPreview.test.tsx`: React Testing Library tests for overview rendering and end-to-end sample navigation, flagging, question selection and the handoff's explicit no-clearance text.
+- `index.html`: replace obsolete claims of safe herbal treatment in the title/metadata with evidence-aware product purpose.
+- A follow-up change limits scroll-to-top calls during navigation to cases where scrolling is needed.
+
+**Verified CI evidence:** GitHub Actions run `38041160535` at commit `fe6b04fbbdcd10ed46ca0e414397c69c95b49cdd` completed with **3 Vitest files passing**, including **2 new interactive sample-workspace tests**, and production build **passed**. Existing repository lint still **fails with 125 errors and 23 warnings** (148 total). This run precedes the later index metadata and scroll refinement commits; check latest CI again before claiming exact HEAD verified. Browser display was not independently inspected by an authenticated browser agent. Vercel preview build/deployment status must be checked and link to the new build supplied, **not the old hold-screen URL**.
+
+**Limitations/release gates:** This is a working interface prototype, not the original full patient's app: it lacks authentication, database persistence, import/export of patient data, verification from clinicians and clinical validation. Data is deliberately fictional and ephemeral. Vercel Deployment Protection remains enabled. Avoid disclosing or connecting production Supabase secrets and do not lift preview access restrictions. Full Lovable retirement, secure backend integration, patient-path audits and lint remediation remain future tasks.
