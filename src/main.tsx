@@ -17,10 +17,11 @@ const hasBackendConfig =
   typeof supabaseKey === "string" &&
   supabaseKey.trim().length > 0;
 
-// Git-connected Vercel preview builds are SAMPLE ONLY, even if someone later
-// adds Supabase environment variables. Do not expose unreviewed clinical
-// screens or connect an unverified real patient backend to this preview.
-const useSampleWorkspace = isVercelPreview || !hasBackendConfig;
+// The real, empty-state capture workspace works without a database.
+// The legacy clinical UI remains gated until reviewed production configuration
+// is explicitly enabled. Vercel preview builds can never auto-enable it.
+const enableLegacyClinicalApp = import.meta.env.VITE_MEDPAI_CLINICAL_APP_ENABLED === "true";
+const useCaptureWorkspace = isVercelPreview || !hasBackendConfig || !enableLegacyClinicalApp;
 
 const showBootstrapFailure = () => {
   const panel = document.createElement("main");
@@ -34,9 +35,9 @@ const showBootstrapFailure = () => {
   rootElement.replaceChildren(panel);
 };
 
-if (useSampleWorkspace) {
-  // Standalone preview contains only invented records and in-memory controls.
-  // It does not import the clinical App or its Supabase dependencies.
+if (useCaptureWorkspace) {
+  // User-entered records stay in memory; no prefilled clinical records.
+  // The capture workspace does not import Supabase or legacy clinical UI.
   void import("./preview/MedPAiPreview")
     .then(({ default: MedPAiPreview }) => {
       root.render(createElement(ErrorBoundary, null, createElement(MedPAiPreview)));
@@ -53,7 +54,7 @@ if (useSampleWorkspace) {
 // A stale PWA from a previous release must not serve obsolete preview markup.
 // Disable registrations on all Vercel preview hosts and iframe editor previews.
 const isPreviewHost = isVercelPreview || host.includes("lovable") || window.self !== window.top;
-if (isPreviewHost || useSampleWorkspace) {
+if (isPreviewHost || useCaptureWorkspace) {
   if ("serviceWorker" in navigator) {
     void navigator.serviceWorker.getRegistrations()
       .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
