@@ -387,3 +387,16 @@ For purely strategic discussions, mark **Code changed: none** and capture the re
 **Environment configuration:** `filter_project_envs` returned an empty `envs` array and `hiddenProductionEnvCount: 0`. The React Supabase client expects `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. No values were supplied/added because the repository and connected project IDs are disputed and copying unknown live patient infrastructure into a preview would be unsafe. Browser shell preview may render but authentication/API workflows are not verified. Never put service-role secrets into Vite client variables.
 
 **Migration status:** Git → Vercel preview build is demonstrably working, independent of Lovable's preview editor. **Not** a completed migration: actual patient app workflows and backend/auth on Vercel are not validated, the old Lovable deployment has not been removed, and the clinical safety draft PR remains unmerged. Next: check most recent deployment READY status, verify protected access, arrange isolated preview backend and browser config, remove Lovable runtime dependencies only after auth/backend parity tests, and perform controlled cutover/rollback.
+
+
+## 2026-10-10 — Vercel preview white-screen incident and fail-closed bootstrap
+
+**User report:** Opening `https://medp-hph9v6m1c-okoyedelights-projects.vercel.app` in Chrome produced a blank white page. The Vercel deployment `dpl_961Bk8yMfQwN9jR3SBCrw8zqSyRL` was **READY**; READY proves build/deployment completion, not browser runtime health.
+
+**Root-cause evidence:** Vercel `medp-ai` environment list had **zero** configured variables. The Supabase client module constructs `createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)` at module load. `src/main.tsx` statically imported `App`, which imports authenticated pages that transitively import the client. Therefore missing URL/key can throw before React mounts, leaving the white screen. This is a source-supported likely cause, **not a captured browser-console trace**; other browser/CSP/runtime faults remain possible.
+
+**Mitigation committed:** `src/main.tsx` now validates the presence and basic shape of public Supabase browser configuration *before* dynamically importing `App`. When missing, it renders a clear non-interactive **development preview unavailable** message, with clinical-use and patient-data warnings, instead of attempting to initialize Supabase. It unregisters stale service workers on the hold screen and Vercel preview hosts, and shows a conservative startup failure message if the dynamic app import fails. No dummy credentials, no production database, no health data, and no Vercel environment secrets were added.
+
+**Verification needed:** Check GitHub Actions lint/test/build for SHA `15e90b9171f875390e8c5a5e922cc97d984e8223`; confirm Vercel READY for that SHA; inspect protected preview in an authenticated browser and verify the hold renders rather than a white page. Source-level validation alone cannot prove the browser outcome. Existing legacy lint errors remain a release blocker.
+
+**Do not interpret as migration complete:** The preview intentionally withholds application features until a segregated, verified test backend and access controls are provisioned. The old Lovable deployment remains untouched. No production release.
