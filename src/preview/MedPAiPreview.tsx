@@ -95,7 +95,7 @@ export default function MedPAiPreview() {
   function navigate(next: Section) {
     setSection(next);
     setCopied("idle");
-    window.scrollTo?.({ top: 0, behavior: "smooth" });
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function toggleQuestion(id: string) {
     setSelectedQuestions(items => items.includes(id) ? items.filter(q => q !== id) : [...items, id]);
