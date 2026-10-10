@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 // Deliberate release-gate regression test. The legacy clinical App stays
 // unbundled until its own reviewed clinical/security rollout PR.
-const bootstrap = readFileSync(new URL("../main.tsx", import.meta.url), "utf8");
+const bootstrap = readFileSync(resolve(process.cwd(), "src/main.tsx"), "utf8");
 
 describe("reviewed-release boundary", () => {
   it("cannot mount the old unreviewed clinical App via a public Vite env flag", () => {
