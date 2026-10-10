@@ -8,25 +8,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertTriangle, CheckCircle2, MapPin, ShieldQuestion, X } from "lucide-react";
+import { AlertTriangle, MapPin, ShieldQuestion, X } from "lucide-react";
 import type { Interaction, Remedy } from "@/data/remedies";
 
 const SIGNAL: Record<Interaction["level"], { dot: string; bg: string; label: string; icon: string }> = {
   red: { dot: "bg-danger", bg: "bg-danger/10 border-danger", label: "DANGER", icon: "🔴" },
   yellow: { dot: "bg-caution", bg: "bg-caution/15 border-caution", label: "CAUTION", icon: "🟡" },
-  green: { dot: "bg-safe", bg: "bg-safe/10 border-safe", label: "SAFE", icon: "🟢" },
+  green: { dot: "bg-caution", bg: "bg-caution/10 border-caution", label: "NO FLAG LISTED", icon: "🟡" },
 };
 
 interface SafetyGateProps {
   remedy: Remedy | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
   onFindChemist: () => void;
 }
 
-export function SafetyGate({ remedy, open, onOpenChange, onConfirm, onFindChemist }: SafetyGateProps) {
-  const [stage, setStage] = useState<"ask" | "list" | "clear">("ask");
+export function SafetyGate({ remedy, open, onOpenChange, onFindChemist }: SafetyGateProps) {
+  const [stage, setStage] = useState<"ask" | "list">("ask");
 
   if (!remedy) return null;
 
@@ -70,14 +69,10 @@ export function SafetyGate({ remedy, open, onOpenChange, onConfirm, onFindChemis
                 size="lg"
                 className="border-2 border-foreground bg-background font-display text-base shadow-brutal-sm brutal-press"
                 onClick={() => {
-                  setStage("clear");
-                  setTimeout(() => {
-                    onConfirm();
-                    reset();
-                  }, 600);
+                  setStage("list");
                 }}
               >
-                No, nothing
+                No medicines known
               </Button>
               <Button
                 size="lg"
@@ -93,8 +88,9 @@ export function SafetyGate({ remedy, open, onOpenChange, onConfirm, onFindChemis
         {stage === "list" && (
           <div className="space-y-3 px-5 py-5">
             <p className="text-xs font-semibold uppercase text-muted-foreground">
-              Combo checker — wetin fit happen if you mix am
+              Reported interaction information — not a complete safety check
             </p>
+            <p className="text-sm text-foreground" role="status">No interaction listed here does not mean a herb or remedy is safe. This list may be incomplete, and doses, pregnancy, health conditions and other medicines can change the risk. Ask a qualified pharmacist or clinician before using a remedy.</p>
             <ul className="space-y-2">
               {remedy.interactions.map((i) => {
                 const s = SIGNAL[i.level];
@@ -124,29 +120,16 @@ export function SafetyGate({ remedy, open, onOpenChange, onConfirm, onFindChemis
             )}
 
             <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
-              {hasRed ? (
-                <Button
-                  size="lg"
-                  className="w-full border-2 border-foreground bg-danger font-display text-base text-danger-foreground shadow-brutal-sm pulse-danger brutal-press"
-                  onClick={() => {
-                    onFindChemist();
-                    reset();
-                  }}
-                >
-                  <MapPin className="h-5 w-5" /> Find Chemist Near Me
-                </Button>
-              ) : (
-                <Button
-                  size="lg"
-                  className="w-full border-2 border-foreground bg-primary font-display text-base text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
-                  onClick={() => {
-                    onConfirm();
-                    reset();
-                  }}
-                >
-                  <CheckCircle2 className="h-5 w-5" /> Continue with remedy
-                </Button>
-              )}
+              <Button
+                size="lg"
+                className="w-full border-2 border-foreground bg-primary font-display text-base text-primary-foreground shadow-brutal-sm brutal-press hover:bg-primary/90"
+                onClick={() => {
+                  onFindChemist();
+                  reset();
+                }}
+              >
+                <MapPin className="h-5 w-5" /> Find a pharmacist for review
+              </Button>
               <Button
                 variant="ghost"
                 className="w-full font-semibold"
@@ -158,12 +141,6 @@ export function SafetyGate({ remedy, open, onOpenChange, onConfirm, onFindChemis
           </div>
         )}
 
-        {stage === "clear" && (
-          <div className="flex flex-col items-center gap-2 px-5 py-8 text-safe">
-            <CheckCircle2 className="h-12 w-12" strokeWidth={2.5} />
-            <p className="font-display text-lg uppercase">All clear — proceed</p>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
