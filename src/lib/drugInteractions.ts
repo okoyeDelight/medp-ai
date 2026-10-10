@@ -55,11 +55,11 @@ export function severityTokens(sev: Severity) {
       };
     default:
       return {
-        label: "MILD / SAFE",
-        ring: "ring-2 ring-[hsl(var(--safe))]",
-        bg: "bg-[hsl(var(--safe)/0.08)]",
-        badge: "bg-[hsl(var(--safe))] text-[hsl(var(--safe-foreground))]",
-        text: "text-[hsl(var(--safe))]",
+        label: "MILD — NOT PROVEN SAFE",
+        ring: "ring-2 ring-[hsl(var(--caution))]",
+        bg: "bg-[hsl(var(--caution)/0.08)]",
+        badge: "bg-[hsl(var(--caution))] text-[hsl(var(--caution-foreground))]",
+        text: "text-[hsl(var(--caution))]",
       };
   }
 }
