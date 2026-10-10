@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 
 export interface Pharmacy {
   id: string;
@@ -34,7 +35,7 @@ export function isWithinDutyHours(p: Pick<Pharmacy, "hours_open" | "hours_close"
 
 export async function fetchSessionHistory(pharmacistUserId: string): Promise<PharmacyChatSession[]> {
   const { data } = await supabase
-    .from("pharmacy_chat_sessions" as any)
+    .from("pharmacy_chat_sessions")
     .select("*")
     .eq("pharmacist_user_id", pharmacistUserId)
     .in("status", ["ended", "declined"])
@@ -44,6 +45,7 @@ export async function fetchSessionHistory(pharmacistUserId: string): Promise<Pha
 }
 
 export interface PharmacyChatSession {
+  archived_transcript?: Json | null;
   id: string;
   patient_id: string;
   pharmacy_id: string;
@@ -105,7 +107,7 @@ export function getUserLocation(): Promise<{ lat: number; lng: number }> {
 
 export async function fetchOnlinePharmacies(): Promise<Pharmacy[]> {
   const { data, error } = await supabase
-    .from("pharmacies" as any)
+    .from("pharmacies")
     .select("*")
     .eq("is_licensed_pharmacy", true)
     .eq("duty_status", "online");
@@ -118,7 +120,7 @@ export async function fetchOnlinePharmacies(): Promise<Pharmacy[]> {
 
 export async function fetchMyPharmacy(userId: string): Promise<Pharmacy | null> {
   const { data } = await supabase
-    .from("pharmacies" as any)
+    .from("pharmacies")
     .select("*")
     .eq("owner_user_id", userId)
     .maybeSingle();
@@ -127,7 +129,7 @@ export async function fetchMyPharmacy(userId: string): Promise<Pharmacy | null> 
 
 export async function upsertMyPharmacy(p: Partial<Pharmacy> & { owner_user_id: string; name: string; license_number: string }) {
   const { data, error } = await supabase
-    .from("pharmacies" as any)
+    .from("pharmacies")
     .upsert(p, { onConflict: "owner_user_id" })
     .select()
     .single();
@@ -137,7 +139,7 @@ export async function upsertMyPharmacy(p: Partial<Pharmacy> & { owner_user_id: s
 
 export async function setDutyStatus(pharmacyId: string, status: "online" | "offline") {
   const { error } = await supabase
-    .from("pharmacies" as any)
+    .from("pharmacies")
     .update({ duty_status: status })
     .eq("id", pharmacyId);
   if (error) throw error;
@@ -162,34 +164,13 @@ export async function buildInteractionReport(patientId: string, displayName: str
     .order("taken_at", { ascending: false })
     .limit(5);
 
-  // Derive Safety Gate result from latest health_safety_scores (best-effort).
-  let safety_level: InteractionReport["safety_level"] = null;
-  let safety_summary: string | undefined;
-  try {
-    const { data: score } = await supabase
-      .from("health_safety_scores" as any)
-      .select("*")
-      .eq("user_id", patientId)
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (score) {
-      const s: any = score;
-      const band = (s.band ?? s.level ?? "").toString().toLowerCase();
-      if (band === "red" || band === "yellow" || band === "green") {
-        safety_level = band as "red" | "yellow" | "green";
-      } else if (typeof s.score === "number") {
-        safety_level = s.score >= 80 ? "green" : s.score >= 50 ? "yellow" : "red";
-      }
-      safety_summary = s.summary ?? s.note ?? undefined;
-    }
-  } catch {
-    /* table/columns may differ — fail silent */
-  }
+  // Never interpret arbitrary wellness scores as medication safety clearance.
+  const safety_level: InteractionReport["safety_level"] = null;
+  const safety_summary: string | undefined = undefined;
 
   return {
     patient_label: displayName || "Patient",
-    herbal_intake: (doses ?? []).map((d: any) => ({
+    herbal_intake: (doses ?? []).map((d) => ({
       name: d.remedy_id,
       dose: d.dose ?? undefined,
       lastTaken: d.taken_at,
@@ -197,9 +178,9 @@ export async function buildInteractionReport(patientId: string, displayName: str
     symptoms: [],
     vitals: v
       ? {
-          hr: (v as any).pulse_bpm ?? undefined,
-          bp: (v as any).systolic && (v as any).diastolic ? `${(v as any).systolic}/${(v as any).diastolic}` : undefined,
-          measured_at: (v as any).measured_at,
+          hr: v.pulse_bpm ?? undefined,
+          bp: v.systolic && v.diastolic ? `${v.systolic}/${v.diastolic}` : undefined,
+          measured_at: v.measured_at,
         }
       : {},
     safety_level,
@@ -209,11 +190,11 @@ export async function buildInteractionReport(patientId: string, displayName: str
 }
 
 export function safetyEmoji(level: InteractionReport["safety_level"]): string {
-  return level === "red" ? "🔴" : level === "yellow" ? "🟡" : level === "green" ? "🟢" : "⚪";
+  return level === "red" ? "🔴" : level === "yellow" ? "🟡" : level === "green" ? "⚪" : "⚪";
 }
 
 export function safetyLabel(level: InteractionReport["safety_level"]): string {
-  return level === "red" ? "DANGER" : level === "yellow" ? "CAUTION" : level === "green" ? "SAFE" : "UNKNOWN";
+  return level === "red" ? "REPORTED CONCERN" : level === "yellow" ? "REVIEW REQUIRED" : level === "green" ? "REVIEW REQUIRED" : "UNKNOWN";
 }
 
 export function formatReportAsMessage(r: InteractionReport): string {
@@ -242,13 +223,13 @@ export async function initiateChatSession(opts: {
   report: InteractionReport;
 }): Promise<PharmacyChatSession> {
   const { data, error } = await supabase
-    .from("pharmacy_chat_sessions" as any)
+    .from("pharmacy_chat_sessions")
     .insert({
       patient_id: opts.patientId,
       pharmacy_id: opts.pharmacy.id,
       pharmacist_user_id: opts.pharmacy.owner_user_id,
       status: "pending",
-      interaction_report: opts.report,
+      interaction_report: opts.report as unknown as Json,
     })
     .select()
     .single();
@@ -258,7 +239,7 @@ export async function initiateChatSession(opts: {
 
 export async function acceptChatSession(sessionId: string) {
   const { error } = await supabase
-    .from("pharmacy_chat_sessions" as any)
+    .from("pharmacy_chat_sessions")
     .update({ status: "active", accepted_at: new Date().toISOString() })
     .eq("id", sessionId);
   if (error) throw error;
@@ -266,11 +247,11 @@ export async function acceptChatSession(sessionId: string) {
 
 export async function endChatSession(sessionId: string, transcript: ChatMessage[]) {
   const { error } = await supabase
-    .from("pharmacy_chat_sessions" as any)
+    .from("pharmacy_chat_sessions")
     .update({
       status: "ended",
       ended_at: new Date().toISOString(),
-      archived_transcript: transcript,
+      archived_transcript: transcript as unknown as Json,
     })
     .eq("id", sessionId);
   if (error) throw error;
@@ -278,7 +259,7 @@ export async function endChatSession(sessionId: string, transcript: ChatMessage[
 
 export async function declineChatSession(sessionId: string) {
   const { error } = await supabase
-    .from("pharmacy_chat_sessions" as any)
+    .from("pharmacy_chat_sessions")
     .update({ status: "declined", ended_at: new Date().toISOString() })
     .eq("id", sessionId);
   if (error) throw error;
@@ -291,7 +272,7 @@ export async function sendMessage(opts: {
   body: string;
 }) {
   const { error } = await supabase
-    .from("pharmacy_chat_messages" as any)
+    .from("pharmacy_chat_messages")
     .insert({
       session_id: opts.sessionId,
       sender_id: opts.senderId,
@@ -303,7 +284,7 @@ export async function sendMessage(opts: {
 
 export async function fetchMessages(sessionId: string): Promise<ChatMessage[]> {
   const { data } = await supabase
-    .from("pharmacy_chat_messages" as any)
+    .from("pharmacy_chat_messages")
     .select("*")
     .eq("session_id", sessionId)
     .order("created_at", { ascending: true });

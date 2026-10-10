@@ -1,3 +1,4 @@
+import { isRecord } from "@/lib/runtimeValidation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,7 +57,7 @@ function useRingTone(active: boolean) {
     if (!active) return;
     const id = setInterval(() => {
       try {
-        const Ctx = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+        const Ctx = (window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext) as typeof AudioContext;
         if (!ctxRef.current) ctxRef.current = new Ctx();
         const ctx = ctxRef.current;
         const osc = ctx.createOscillator();
@@ -124,7 +125,7 @@ export default function PharmacyDashboard() {
     if (!meId) return;
     const load = async () => {
       const { data } = await supabase
-        .from("pharmacy_chat_sessions" as any)
+        .from("pharmacy_chat_sessions")
         .select("*")
         .eq("pharmacist_user_id", meId)
         .in("status", ["pending", "active"])
@@ -611,12 +612,13 @@ export default function PharmacyDashboard() {
                           </div>
                           <Badge variant={s.status === "ended" ? "default" : "secondary"}>{s.status}</Badge>
                         </div>
-                        {(s as any).archived_transcript && (
+                        {Array.isArray(s.archived_transcript) && (
                           <details className="mt-2">
                             <summary className="cursor-pointer text-[11px] text-primary">View transcript</summary>
                             <pre className="mt-2 max-h-60 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 font-mono text-[10px]">
-                              {((s as any).archived_transcript as any[])
-                                .map((m: any) => `[${m.sender_role}] ${m.body}`)
+                              {(s.archived_transcript ?? [])
+                                .filter(isRecord)
+                                .map((m) => `[${String(m.sender_role ?? "unknown")}] ${String(m.body ?? "")}`)
                                 .join("\n\n")}
                             </pre>
                           </details>
@@ -654,7 +656,7 @@ function SettingsForm({ pharm, onSaved }: { pharm: Pharmacy; onSaved: (p: Pharma
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { error, data } = await supabase
-          .from("pharmacies" as any)
+          .from("pharmacies")
           .update({ lat: pos.coords.latitude, lng: pos.coords.longitude })
           .eq("id", pharm.id)
           .select()
@@ -672,7 +674,7 @@ function SettingsForm({ pharm, onSaved }: { pharm: Pharmacy; onSaved: (p: Pharma
     setBusy(true);
     try {
       const { data, error } = await supabase
-        .from("pharmacies" as any)
+        .from("pharmacies")
         .update({
           service_radius_km: radius,
           hours_open: open,

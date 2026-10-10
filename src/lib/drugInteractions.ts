@@ -1,3 +1,4 @@
+import { edgeErrorMessage, isRecord } from "@/lib/runtimeValidation";
 // Clinical Drug ↔ Herb Interaction lookup.
 // Proprietary lookup runs in the `drug-interactions` Edge Function
 // (JWT-verified, Zod-validated). This module is a thin async client + UI helpers.
@@ -31,8 +32,27 @@ export async function searchDrugInteractions(
     body: { drug_name: drug, herb_ids: herbIds ?? [] },
   });
   if (error) throw new Error(error.message ?? "Interaction lookup failed.");
-  if ((data as any)?.error) throw new Error(String((data as any).error));
-  return ((data as any)?.results ?? []) as DrugHerbInteraction[];
+  const remoteError = edgeErrorMessage(data);
+  if (remoteError) throw new Error(remoteError);
+  if (!isRecord(data) || !Array.isArray(data.results)) {
+    throw new Error("Interaction data unavailable or malformed; not verified.");
+  }
+  const results = data.results;
+  if (!results.every((item): item is DrugHerbInteraction =>
+    isRecord(item) && typeof item.id === "string" &&
+    typeof item.drug_name === "string" && typeof item.herb_id === "string" &&
+    typeof item.herb_name === "string" &&
+    ["severe", "moderate", "mild"].includes(String(item.severity)) &&
+    typeof item.mechanism === "string" &&
+    typeof item.clinical_advice === "string" &&
+    Array.isArray(item.affected_systems) &&
+    item.affected_systems.every((v: unknown) => typeof v === "string") &&
+    typeof item.source_api === "string" &&
+    (item.citation === null || typeof item.citation === "string") &&
+    typeof item.last_synced_at === "string" &&
+    ["pending", "verified"].includes(String(item.verification_status))
+  )) throw new Error("Interaction response contains unverified data.");
+  return results;
 }
 
 export function severityTokens(sev: Severity) {

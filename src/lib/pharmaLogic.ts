@@ -1,3 +1,4 @@
+import { edgeErrorMessage } from "@/lib/runtimeValidation";
 // Pharma-Logic Intersection Engine — client shim.
 // The rule engine runs server-side in the `pharma-logic` Edge Function
 // (JWT-verified, Zod-validated). This module exposes an async wrapper and
@@ -51,7 +52,8 @@ export async function runIntersectionCheck(
   };
   const { data, error } = await supabase.functions.invoke("pharma-logic", { body: payload });
   if (error) throw new Error(error.message ?? "Safety engine unavailable.");
-  if ((data as any)?.error) throw new Error(String((data as any).error));
+  const remoteError = edgeErrorMessage(data);
+  if (remoteError) throw new Error(remoteError);
   return data as IntersectionAlert;
 }
 

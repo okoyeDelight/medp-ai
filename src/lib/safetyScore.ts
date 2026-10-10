@@ -1,3 +1,4 @@
+import { edgeErrorMessage } from "@/lib/runtimeValidation";
 // Safety score client shim. All mutations + discount formula live in the
 // `safety-score` Edge Function (JWT-verified). This module only exposes
 // async wrappers and a pure UI tier helper.
@@ -21,7 +22,8 @@ export interface ScoreEvent {
 async function callEdge<T>(body: unknown): Promise<T> {
   const { data, error } = await supabase.functions.invoke("safety-score", { body });
   if (error) throw new Error(error.message ?? "Safety score unavailable.");
-  if ((data as any)?.error) throw new Error(String((data as any).error));
+  const remoteError = edgeErrorMessage(data);
+  if (remoteError) throw new Error(remoteError);
   return data as T;
 }
 

@@ -1,3 +1,4 @@
+import { errorMessage } from "@/lib/runtimeValidation";
 // Patient side — Live Waiting Room + Doctor Request Modal + Follow-up Tickets
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
@@ -63,12 +64,12 @@ export default function PatientTriage() {
 
   async function hydrateHandoff(h: PharmacyHandoff) {
     const { data: pharm } = await supabase
-      .from("pharmacies" as any).select("name,owner_user_id").eq("id", h.pharmacy_id).maybeSingle();
-    setPharmacyName((pharm as any)?.name ?? "Selected pharmacy");
-    if ((pharm as any)?.owner_user_id) {
+      .from("pharmacies").select("name,owner_user_id").eq("id", h.pharmacy_id).maybeSingle();
+    setPharmacyName(pharm?.name ?? "Selected pharmacy");
+    if (pharm?.owner_user_id) {
       const { data: prof } = await supabase
-        .from("profiles").select("display_name").eq("user_id", (pharm as any).owner_user_id).maybeSingle();
-      setPharmacistName((prof as any)?.display_name ?? "your pharmacist");
+        .from("profiles").select("display_name").eq("user_id", pharm.owner_user_id).maybeSingle();
+      setPharmacistName(prof?.display_name ?? "your pharmacist");
     }
   }
 
@@ -109,8 +110,8 @@ export default function PatientTriage() {
       const s = await enterWaitingRoom({ ageBand, gender, symptomCategory: symptom, report });
       setTriage(s);
       toast.success("You're in the waiting room. Doctors can now request a consult.");
-    } catch (e: any) {
-      toast.error(e.message ?? "Could not enter waiting room.");
+    } catch (e: unknown) {
+      toast.error(errorMessage(e, "Could not enter waiting room."));
     } finally { setCreating(false); }
   }
 
@@ -126,20 +127,20 @@ export default function PatientTriage() {
     try {
       await acceptTriage(triage.id);
       toast.success("Consultation opened with your doctor.");
-    } catch (e: any) { toast.error(e.message ?? "Could not accept."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Could not accept.")); }
   }
   async function handleDecline() {
     if (!triage) return;
     try {
       await declineTriage(triage.id);
       toast("Doctor request declined. Others may still request.");
-    } catch (e: any) { toast.error(e.message ?? "Could not decline."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Could not decline.")); }
   }
   async function handleRedeem(tok: FollowupToken) {
     try {
       await redeemFollowupToken(tok.id);
       toast.success("Follow-up consultation opened.");
-    } catch (e: any) { toast.error(e.message ?? "Ticket invalid."); }
+    } catch (e: unknown) { toast.error(errorMessage(e, "Ticket invalid.")); }
   }
 
   // Doctor request modal: waiting session that has requested_by but not yet accepted
