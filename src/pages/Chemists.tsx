@@ -71,7 +71,7 @@ export default function Chemists() {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [activeSession?.id, activeSession?.status]);
+  }, [activeSession]);
 
   const sorted = useMemo(() => {
     const withDist = pharms.map((p) => ({

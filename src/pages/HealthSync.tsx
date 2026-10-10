@@ -325,7 +325,7 @@ const HealthSync = () => {
       logs,
     )
       .then((res) => { if (!cancelled) setIntersection(res); })
-      .catch((e: any) => {
+      .catch((e: unknown) => {
         if (!cancelled) {
           setIntersection({ tier: "caution", title: "Review unavailable", detail: "No interaction assessment has been established. Consult a qualified professional.", triggers: [] });
           setIntersectionError(errorMessage(e, "Interaction review unavailable."));
@@ -400,7 +400,7 @@ const HealthSync = () => {
       window.clearInterval(tick);
       supabase.removeChannel(ch);
     };
-  }, [session?.id, liveStream]);
+  }, [session, liveStream]);
 
   // PIN expiry watchdog (client-side fallback)
   useEffect(() => {
@@ -415,7 +415,7 @@ const HealthSync = () => {
         }
       });
     }
-  }, [nowTick, session?.id]);
+  }, [nowTick, session]);
 
   const pinCountdown = useMemo(() => {
     if (!session) return null;
@@ -428,7 +428,7 @@ const HealthSync = () => {
     return h > 0
       ? `${h}h ${String(m).padStart(2, "0")}m`
       : `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, [session?.pin_expires_at, nowTick]);
+  }, [session, nowTick]);
 
   async function copyPin() {
     if (!session?.pin) return;

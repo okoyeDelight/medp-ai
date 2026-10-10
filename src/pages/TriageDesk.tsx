@@ -74,6 +74,8 @@ export default function TriageDesk() {
     })();
   }, [navigate, refresh]);
 
+  // Subscribe by stable handoff identity rather than a stale closure.
+  const activeHandoffId = activeHandoff?.id;
   // Realtime: watch the whole triage_sessions table — RLS filters to waiting + my rows.
   useEffect(() => {
     const uid = doctorIdRef.current;
@@ -104,11 +106,11 @@ export default function TriageDesk() {
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "pharmacy_handoffs", filter: `doctor_id=eq.${uid}` },
         (p) => {
-          if (activeHandoff && p.new?.id === activeHandoff.id) setActiveHandoff(p.new as PharmacyHandoff);
+          if (activeHandoffId && p.new?.id === activeHandoffId) setActiveHandoff(p.new as PharmacyHandoff);
         })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [refresh, activeHandoff?.id]);
+  }, [refresh, activeHandoffId]);
 
   async function handleRequest(session: TriageSession) {
     // Optimistic lock -> hide card immediately
@@ -589,7 +591,7 @@ export function ClinicianChat({
         });
       }
     })();
-  }, [handoff.id]);
+  }, [handoff.id, handoff.patient_id, handoff.pharmacy_id, rep]);
 
   useEffect(() => {
     const ch = supabase.channel("dpm-" + handoff.id)

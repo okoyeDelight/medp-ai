@@ -171,9 +171,13 @@ export default function PharmacyDashboard() {
     if (!pharm?.auto_duty) return;
     const want = isWithinDutyHours(pharm) ? "online" : "offline";
     if (want !== pharm.duty_status) {
-      setDutyStatus(pharm.id, want).then(() => setPharm({ ...pharm, duty_status: want }));
+      void setDutyStatus(pharm.id, want)
+        .then(() => setPharm((current) =>
+          current?.id === pharm.id ? { ...current, duty_status: want } : current,
+        ))
+        .catch(() => toast.error("Could not update pharmacy duty status."));
     }
-  }, [pharm?.auto_duty, pharm?.hours_open, pharm?.hours_close]);
+  }, [pharm]);
 
   const pending = useMemo(() => sessions.filter((s) => s.status === "pending"), [sessions]);
   const live = useMemo(() => sessions.filter((s) => s.status === "active"), [sessions]);

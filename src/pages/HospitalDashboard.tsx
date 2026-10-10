@@ -300,7 +300,7 @@ export default function HospitalDashboard() {
     if (!pinDialogFor) return;
     setStrikes(getPatientStrikes(pinDialogFor.patient_id));
     setLockoutUntil(getPatientLockout(pinDialogFor.patient_id));
-  }, [pinDialogFor?.patient_id]);
+  }, [pinDialogFor]);
 
   async function handlePinSubmit() {
     if (!pinDialogFor) return;
