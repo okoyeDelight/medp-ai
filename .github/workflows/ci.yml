@@ -42,6 +42,10 @@ jobs:
         if: success() || failure()
         run: npm test
 
+      - name: Validate reference data importer
+        if: success() || failure()
+        run: node --test scripts/import-rxnorm-ingredients.test.mjs
+
       - name: Build production bundle
         if: success() || failure()
         run: npm run build
