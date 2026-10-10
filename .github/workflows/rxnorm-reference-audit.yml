@@ -1,13 +1,8 @@
 name: Review-only medicine terminology import
 
+# Manual only: avoid repeated large data downloads on every draft-PR commit.
+# Keep controlled importer tests in the normal CI job.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - scripts/import-rxnorm-ingredients.mjs
-      - scripts/import-rxnorm-ingredients.test.mjs
-      - data/REFERENCE_SOURCES.json
-      - .github/workflows/rxnorm-reference-audit.yml
   workflow_dispatch:
 
 permissions:
