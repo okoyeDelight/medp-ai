@@ -98,3 +98,16 @@
 Before every significant code change, write: source evidence / operator / clinical risk / simplified alternative / Nigerian real-world failure scenario / why it beats baseline / privacy and cost / test plan / owner / rollback / kill criterion. Keep PR draft and handoff current. A national milestone is an **outcome of real improvement**, not of calling a product “national”.
 
 **Actual project status:** As of this note, the source app has a protected, session-only Vercel development preview; new medication evidence core and NLM terminology import proof; original triage/telepharmacy screens are not ready for clinical use; authentication and RLS are unverified; no field site, consented patient population, regulator acceptance, or government investment confirmed.
+
+
+## Cross-project overlap and scope control (source-checked, 2026-10-10)
+
+Existing sibling concept **Care Handoff** (read-only checked at `okoyeDelight/CAre-HAndoff-2` README and master handoff) already investigates attention-preserving **first-contact encounter capture** using a bounded, offline JS classifier, exact evidence spans, human review and an encrypted local handoff mechanism. Those are **engineering prototypes, not clinical validation**. The current MedPAi strategy would risk duplicating this work if it attempted to build another complete encounter-capture engine.
+
+**Seam to preserve, not a repository merger:**
+- Care Handoff expertise: a trained worker's within-encounter evidence capture and unresolved-question preservation, with offline-first limitations.
+- MedPAi potential differentiated job: medication assertion lifecycle **across episodes** plus an authorization-backed **referral receipt/acceptance/outcome timeline** between sending and receiving care organisations.
+- Potential future adapter: one human-approved handoff payload from encounter capture into an externally verifiable MedPAi care-transition object, preserving its original evidence state; no silent authority promotion and no real data transfer without permission.
+- Do not automatically blend code, dependencies, synthetic data, model claims, user identities or backend patient information. Compare which approach actually saves frontline worker time before integrating. The founder may instead decide that Care Handoff or a standardized paper handoff is the better standalone solution, in which case MedPAi should pivot rather than clone.
+
+**Open founder decision:** Is the first scarce resource to recover *clinician attention during encounter capture* or *reliable acknowledgment of referral and medicine continuity across two facilities*? These require different operators, pilots, value metrics, and buyers. Protect both hypotheses from premature feature expansion.
