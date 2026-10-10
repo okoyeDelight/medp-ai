@@ -10,7 +10,7 @@ export function errorMessage(value: unknown, fallback: string): string {
 }
 
 export function edgeErrorMessage(value: unknown): string | null {
-  if (!isRecord(value) || !Object.hasOwn(value, "error") || value.error == null) return null;
+  if (!isRecord(value) || !Object.prototype.hasOwnProperty.call(value, "error") || value.error == null) return null;
   // Never expose raw objects or server exception dumps to patients.
   return "External healthcare service returned an error; no result can be trusted.";
 }

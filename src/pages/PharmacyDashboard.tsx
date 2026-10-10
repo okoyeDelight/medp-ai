@@ -621,8 +621,10 @@ export default function PharmacyDashboard() {
                             <summary className="cursor-pointer text-[11px] text-primary">View transcript</summary>
                             <pre className="mt-2 max-h-60 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 font-mono text-[10px]">
                               {(s.archived_transcript ?? [])
-                                .filter(isRecord)
-                                .map((m) => `[${String(m.sender_role ?? "unknown")}] ${String(m.body ?? "")}`)
+                                .map((m) => {
+                                  const entry = isRecord(m) ? m : {};
+                                  return `[${String(entry.sender_role ?? "unknown")}] ${String(entry.body ?? "")}`;
+                                })
                                 .join("\n\n")}
                             </pre>
                           </details>
