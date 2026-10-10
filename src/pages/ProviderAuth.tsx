@@ -188,7 +188,11 @@ function QrScanDialog({
 
   useEffect(() => {
     if (!open) return;
-    const BD = (window as any).BarcodeDetector;
+    const BD = (window as Window & {
+      BarcodeDetector?: new (options: { formats: string[] }) => {
+        detect: (video: HTMLVideoElement) => Promise<{ rawValue?: string }[]>;
+      };
+    }).BarcodeDetector;
     if (!BD) {
       setSupported(false);
       return;

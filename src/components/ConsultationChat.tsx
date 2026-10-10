@@ -45,7 +45,7 @@ export function ConsultationChat({
       const { data: u } = await supabase.auth.getUser();
       meRef.current = u.user?.id ?? null;
       const { data } = await supabase
-        .from("consultation_messages" as any)
+        .from("consultation_messages")
         .select("*")
         .eq("triage_session_id", sessionId)
         .order("created_at", { ascending: true });
@@ -64,7 +64,7 @@ export function ConsultationChat({
           table: "consultation_messages",
           filter: `triage_session_id=eq.${sessionId}`,
         },
-        (p: any) => {
+        (p) => {
           setMessages((prev) =>
             prev.some((m) => m.id === p.new.id) ? prev : [...prev, p.new as ConsultationMessage],
           );
@@ -86,12 +86,12 @@ export function ConsultationChat({
     const text = body.trim();
     if (!text || !meRef.current) return;
     setSending(true);
-    const { error } = await supabase.from("consultation_messages" as any).insert({
+    const { error } = await supabase.from("consultation_messages").insert({
       triage_session_id: sessionId,
       sender_id: meRef.current,
       sender_role: role,
       body: text,
-    } as any);
+    });
     setSending(false);
     if (error) {
       toast.error(error.message || "Message failed");

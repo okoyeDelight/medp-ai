@@ -34,7 +34,7 @@ export default function Chemists() {
       const { data } = await supabase.auth.getUser();
       setMeId(data.user?.id ?? null);
       const profile = await fetchHealthProfile().catch(() => null);
-      setDisplayName((profile as any)?.display_name ?? data.user?.email ?? "Patient");
+      setDisplayName(profile?.display_name ?? data.user?.email ?? "Patient");
       const [l, p] = await Promise.all([getUserLocation(), fetchOnlinePharmacies()]);
       setLoc(l);
       setPharms(p);

@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
     const order: Record<string, number> = { severe: 0, moderate: 1, mild: 2 };
     const results = (data ?? []).sort(
-      (a: any, b: any) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9),
+      (a: { severity: string }, b: { severity: string }) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9),
     );
     return json({ results });
   } catch (e) {

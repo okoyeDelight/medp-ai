@@ -104,16 +104,16 @@ export function HerbalScanner({
     if (!open) return;
     (async () => {
       const { data, error } = await supabase
-        .from("nafdac_herbal_registry" as any)
+        .from("nafdac_herbal_registry")
         .select("nafdac_code,product_name")
         .limit(120);
       if (error || !data) return;
-      const pool = [...(data as any[])];
+      const pool = [...data];
       for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
-      setCodes(pool.slice(0, 5) as any);
+      setCodes(pool.slice(0, 5) );
     })();
   }, [open]);
 
@@ -125,7 +125,7 @@ export function HerbalScanner({
       timerRef.current = window.setTimeout(() => resolve(), 3000);
     });
     const { data, error } = await supabase
-      .from("nafdac_herbal_registry" as any)
+      .from("nafdac_herbal_registry")
       .select("id,nafdac_code,product_name,cyp450_risk_level,interaction_advisory")
       .eq("nafdac_code", code)
       .maybeSingle();

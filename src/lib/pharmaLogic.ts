@@ -28,8 +28,8 @@ export interface BiometricSnapshot {
 
 export const OK_ALERT: IntersectionAlert = {
   tier: "ok",
-  title: "All Clear",
-  detail: "No interactions detected.",
+  title: "Unreviewed",
+  detail: "An absence of known results is not proof of medicine safety.",
   triggers: [],
 };
 
