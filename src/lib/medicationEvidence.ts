@@ -65,6 +65,16 @@ export type ReviewQueueItemKind =
   | "different_source_statements"
   | "missing_source";
 
+/**
+ * This MUST be backed by a trusted server role/organization, signature,
+ * event existence and patient authorization check. Client-supplied
+ * reviewerRef/verifierRef strings are not proof of professional review.
+ * Default deliberately refuses every event.
+ */
+export type VerifyMedicationReviewer = (
+  review: Readonly<MedicationIdentityReview> | Readonly<AssertionReview>,
+) => boolean;
+
 export interface ReviewQueueItem {
   kind: ReviewQueueItemKind;
   assertionIds: string[];
@@ -91,11 +101,19 @@ export function buildReviewQueue(
   sources: readonly EvidenceSource[],
   identityReviews: readonly MedicationIdentityReview[] = [],
   assertionReviews: readonly AssertionReview[] = [],
+  verifyReviewer: VerifyMedicationReviewer = () => false,
 ): ReviewQueueItem[] {
   const queue: ReviewQueueItem[] = [];
   const sourceIds = new Set(sources.map(source => source.id));
+  const assertionIds = new Set(assertions.map(assertion => assertion.id));
+  if (sourceIds.size !== sources.length || assertionIds.size !== assertions.length) {
+    throw new Error("Duplicate source or assertion identifiers; cannot reconcile.");
+  }
   const latestDecisions = new Map<string, AssertionReview>();
   for (const review of assertionReviews) {
+    if (!review.reviewerRef?.trim() ||
+        !Number.isFinite(Date.parse(review.reviewedAt)) ||
+        !verifyReviewer(review)) continue;
     const old = latestDecisions.get(review.assertionId);
     if (!old || review.reviewedAt > old.reviewedAt) {
       latestDecisions.set(review.assertionId, review);
@@ -129,10 +147,17 @@ export function buildReviewQueue(
     if (
       identity.decision !== "same_product_identity" ||
       !identity.verifierRef.trim() || !identity.reviewedIdentityKey.trim() ||
-      identity.assertionIds.length < 2
+      identity.assertionIds.length < 2 ||
+      !Number.isFinite(Date.parse(identity.reviewedAt)) ||
+      !verifyReviewer(identity)
     ) continue;
-    const group = identity.assertionIds
-      .map(id => assertionsById.get(id))
+    // A single identity review must never bridge unrelated people, nor
+    // silently accept missing/duplicated assertion references.
+    const linked = identity.assertionIds.map(id => assertionsById.get(id));
+    if (new Set(identity.assertionIds).size !== identity.assertionIds.length ||
+        linked.some(value => value === undefined) ||
+        new Set(linked.map(value => value?.subjectRef)).size !== 1) continue;
+    const group = linked
       .filter((item): item is MedicationAssertion => item !== undefined)
       .filter(item => sourceIds.has(item.evidenceSourceId) && item.timeframe === "current");
     for (let i = 0; i < group.length; i++) {

@@ -30,7 +30,7 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
     const assessment = assessHandoffEvidence(profile, []);
     expect(assessment.issues).toHaveLength(MANDATORY_HANDOFF_FIELDS.length);
     expect(assessment.issues.every(issue => issue.kind === "missing")).toBe(true);
-    expect(assessment.allRequiredEvidenceAttributed).toBe(false);
+    expect(assessment.hasNoRequiredMetadataGaps).toBe(false);
     expect(assessment.disposition).toBe("requires_authorized_clinical_review");
     expect(assessment.overridesUrgentCarePathway).toBe(false);
   });
@@ -57,7 +57,7 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
     };
     const assessment = assessHandoffEvidence(adapted, [item("observations")]);
     expect(assessment.requiredFields).toEqual([...MANDATORY_HANDOFF_FIELDS, "observations"]);
-    expect(assessment.allRequiredEvidenceAttributed).toBe(false);
+    expect(assessment.hasNoRequiredMetadataGaps).toBe(false);
   });
 
   it("cannot insert automated triage or invented evidence categories via profile", () => {
@@ -93,7 +93,7 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
     expect(result.issues).toContainEqual({
       key: "referral_reason", kind: "unknown", required: true,
     });
-    expect(result.allRequiredEvidenceAttributed).toBe(false);
+    expect(result.hasNoRequiredMetadataGaps).toBe(false);
   });
 
   it("keeps withheld and not-collected evidence distinct", () => {
@@ -122,7 +122,7 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
     expect(result.issues).toContainEqual({
       key: "referral_reason", kind: "time_unverified", required: true,
     });
-    expect(result.allRequiredEvidenceAttributed).toBe(false);
+    expect(result.hasNoRequiredMetadataGaps).toBe(false);
   });
 
   it("requires real timezone-bearing source times, not vague device time", () => {
@@ -144,7 +144,7 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
   it("a structurally complete packet still cannot imply clinical safety", () => {
     const assessment = assessHandoffEvidence(profile, minimum());
     expect(assessment.issues).toHaveLength(0);
-    expect(assessment.allRequiredEvidenceAttributed).toBe(true);
+    expect(assessment.hasNoRequiredMetadataGaps).toBe(true);
     expect(assessment.disposition).toBe("requires_authorized_clinical_review");
     expect(assessment.overridesUrgentCarePathway).toBe(false);
     expect(JSON.stringify(assessment)).not.toMatch(/diagnos|safe to treat|approved/i);
@@ -158,7 +158,13 @@ describe("fieldwork-adaptable handoff evidence without clinical authority", () =
     expect(assessment.issues).toContainEqual({
       key: "medicine_use", kind: "unknown", required: false,
     });
-    expect(assessment.allRequiredEvidenceAttributed).toBe(true);
+    expect(assessment.hasNoRequiredMetadataGaps).toBe(true);
+  });
+
+  it("does not accept narrative or patient data inside opaque source references", () => {
+    expect(() => assessHandoffEvidence(profile, [
+      item("referral_reason", { provenanceRef: "a patient's actual note" }),
+    ])).toThrow(/Unsupported/);
   });
 
   it("rejects unknown fields and invalid evidence states at runtime", () => {

@@ -74,7 +74,7 @@ export interface HandoffEvidenceAssessment {
   requiredFields: HandoffFieldKey[];
   issues: HandoffIssue[];
   /** Administrative evidence coverage, never permission to transmit or treat. */
-  allRequiredEvidenceAttributed: boolean;
+  hasNoRequiredMetadataGaps: boolean;
   disposition: "requires_authorized_clinical_review";
   /** Emergency care never waits for this assessment. */
   overridesUrgentCarePathway: false;
@@ -98,7 +98,8 @@ function validTime(value: string | null): boolean {
 }
 
 export function validateLocalHandoffProfile(profile: LocalHandoffProfile): void {
-  if (!profile || !/^[a-z][a-z0-9_-]{2,79}$/.test(profile.profileId) ||
+  if (!profile || typeof profile.profileId !== "string" ||
+      !/^[a-z][a-z0-9_-]{2,79}$/.test(profile.profileId) ||
       !Number.isSafeInteger(profile.revision) || profile.revision < 1 ||
       profile.pathway !== "non_emergency_outpatient_referral" ||
       !Array.isArray(profile.additionalRequiredFields) ||
@@ -131,7 +132,9 @@ export function assessHandoffEvidence(
   for (const item of evidence) {
     if (!item || !fieldKeys.has(item.key) || !states.has(item.state) ||
         !sourceTypes.has(item.sourceType) ||
-        (item.provenanceRef !== null && typeof item.provenanceRef !== "string") ||
+        (item.provenanceRef !== null &&
+          (typeof item.provenanceRef !== "string" ||
+           !/^[A-Za-z0-9_-]{1,96}$/.test(item.provenanceRef))) ||
         (item.observedAt !== null && typeof item.observedAt !== "string")) {
       throw new Error("Unsupported or malformed evidence descriptor.");
     }
@@ -174,7 +177,7 @@ export function assessHandoffEvidence(
     appliedProfile: { profileId: profile.profileId, revision: profile.revision },
     requiredFields,
     issues,
-    allRequiredEvidenceAttributed: !issues.some(issue => issue.required),
+    hasNoRequiredMetadataGaps: !issues.some(issue => issue.required),
     disposition: "requires_authorized_clinical_review",
     overridesUrgentCarePathway: false,
   };
