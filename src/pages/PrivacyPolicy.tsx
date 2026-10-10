@@ -134,6 +134,7 @@ const PrivacyPolicy = () => {
                 verify the actual hosting configuration and applicable data-protection obligations
                 before collecting personal or health data. This policy should be reviewed by
                 qualified privacy and legal advisers before production use.
+              </p>
             </div>
 
             <div>
