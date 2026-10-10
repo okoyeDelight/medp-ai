@@ -330,3 +330,15 @@ For purely strategic discussions, mark **Code changed: none** and capture the re
 - Real-world medical and language performance, professional acceptance, regulatory classification, data-protection arrangements and workflow benefit.
 
 **Working promise:** Preserve decisions and tests with the code. Don't substitute confidence, a pretty interface, or credit availability for evidence. Don't claim portable architecture until a second provider/deployment has actually passed a controlled migration or failover test.
+
+## 2026-10-10 — Safety-critical interaction UI correction (review branch)
+
+**Risk discovered by source inspection:** `src/components/SafetyGate.tsx` marked green interaction rows “SAFE”, automatically advanced to “All clear — proceed” after a user tapped “No, nothing”, and allowed “Continue with remedy” after a limited list had no red entry. `src/lib/drugInteractions.ts` also labeled mild interactions “MILD / SAFE”. These claims could mislead patients: absence of a listed interaction does not establish safety, particularly for variable herbal products and incomplete medication histories.
+
+**Action on branch `safety/interaction-claims-20261010`:** Removed automatic clearance and the direct proceed-to-remedy action from the SafetyGate, routed both known-medication and no-known-medication responses to the information screen, displayed a warning that the interaction list is incomplete and not a safety clearance, replaced the proceed button with a pharmacist-review action, changed green rows to “NO FLAG LISTED” with caution styling, and changed “MILD / SAFE” to “MILD — NOT PROVEN SAFE” with caution styling.
+
+**Safety boundary:** This is a conservative UI mitigation, **not clinical validation**. It does not establish that underlying herb doses, references, interaction datasets, patient triage, or backend policies are safe. Static source review only; no live patient testing. The app's old `onConfirm` pathway is intentionally no longer reachable through this gate; human UX review is needed before release.
+
+**Release policy:** Keep this change on a **draft pull request** pending CI, focused interaction testing, qualified pharmacist/clinician review, and confirmation that all remedy entry points are protected. Existing CI is known to fail; do not merge just to show green progress.
+
+**Open high-priority blockers:** Live Supabase project mapping/RLS and consultation-session permissions unverified; deployed signup function may differ from source; clinical claims/doses and triage require authoritative evidence review; CI lint and lockfile require repair. No real patient data or production claims until these are resolved.
